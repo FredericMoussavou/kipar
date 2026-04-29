@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
@@ -24,10 +24,6 @@ async def initiate_stripe_payment(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """
-    Crée un PaymentIntent Stripe pour une réservation acceptée.
-    Le frontend utilise le client_secret pour afficher Stripe Elements.
-    """
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
@@ -37,7 +33,6 @@ async def initiate_stripe_payment(
     if booking.status != "accepted":
         raise HTTPException(status_code=400, detail=t("errors.booking_not_accepted", lang))
 
-    # Récupère le compte Stripe du transporteur
     result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
     trip = result.scalar_one_or_none()
     result = await db.execute(select(User).where(User.id == trip.carrier_id))
@@ -49,7 +44,6 @@ async def initiate_stripe_payment(
         carrier_stripe_account=carrier.stripe_account_id,
     )
 
-    # Sauvegarde la référence escrow
     booking.escrow_ref = intent["id"]
     booking.payment_rail = "stripe"
 
@@ -70,10 +64,6 @@ async def initiate_flutterwave_payment(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """
-    Crée un lien de paiement Flutterwave pour mobile money africain.
-    currency : XOF (UEMOA), XAF (CEMAC), GHS, KES, NGN...
-    """
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
@@ -91,7 +81,7 @@ async def initiate_flutterwave_payment(
     )
 
     if flw_response.get("status") != "success":
-        raise HTTPException(status_code=400, detail="Erreur Flutterwave")
+        raise HTTPException(status_code=400, detail=t("errors.flutterwave_error", lang))
 
     booking.escrow_ref = flw_response["data"]["tx_ref"]
     booking.payment_rail = "flutterwave"
@@ -112,11 +102,6 @@ async def confirm_payment(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """
-    Confirme le paiement — appelé après succès côté frontend.
-    En production : déclenché par webhook Stripe/Flutterwave.
-    En dev/test : appelé manuellement.
-    """
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
@@ -124,9 +109,8 @@ async def confirm_payment(
     if booking.sender_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if not booking.escrow_ref:
-        raise HTTPException(status_code=400, detail="Aucun paiement initié")
+        raise HTTPException(status_code=400, detail=t("errors.payment_not_initiated", lang))
 
-    # Capture selon le rail de paiement
     success = False
     if booking.payment_rail == "stripe":
         success = await capture_payment_intent(booking.escrow_ref)
@@ -134,11 +118,9 @@ async def confirm_payment(
         success = await verify_transaction(booking.escrow_ref)
 
     if not success:
-        raise HTTPException(status_code=400, detail="Échec de la capture du paiement")
+        raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
 
     booking.status = "paid"
     booking.paid_at = datetime.now(timezone.utc)
-
-    # TODO Sprint 4 : envoyer code de remise au récepteur via Celery
 
     return {"message": t("notifications.payment_confirmed", lang)}

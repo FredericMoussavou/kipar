@@ -22,11 +22,23 @@
     "delivery_code_invalid": "Invalid code",
     "delivery_qr_invalid": "Invalid QR token",
     "payment_required": "Payment must be confirmed first",
-    "flight_not_found": "No flight tracking found for this trip"
-  },
+    "flight_not_found": "No flight tracking found for this trip",
+    "flutterwave_error": "Error creating Flutterwave payment",
+    "payment_not_initiated": "No payment initiated",
+    "payment_capture_failed": "Payment capture failed",
+    "conversation_booking_not_accepted": "Booking must be accepted first",
+    "kyc_already_verified": "KYC already verified",
+    "kyc_applicant_creation_failed": "Error creating KYC application",
+    "kyc_token_generation_failed": "Error generating KYC token",
+    "review_already_submitted": "Review already submitted",
+    "review_booking_not_delivered": "Delivery must be confirmed before leaving a review"
+      },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
-    "delivery_confirmed_qr": "Delivery confirmed via QR — payment release in progress"
+    "delivery_confirmed_qr": "Delivery confirmed via QR — payment release in progress",
+    "kyc_simulate_ok": "KYC simulated — status verified",
+    "fcm_token_updated": "FCM token updated",
+    "language_updated": "Language updated"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

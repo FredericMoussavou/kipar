@@ -22,11 +22,23 @@
     "delivery_code_invalid": "Code incorrect",
     "delivery_qr_invalid": "QR token invalide",
     "payment_required": "Le paiement doit être confirmé",
-    "flight_not_found": "Aucun suivi de vol pour ce trajet"
+    "flight_not_found": "Aucun suivi de vol pour ce trajet",
+    "flutterwave_error": "Erreur lors de la création du paiement Flutterwave",
+    "payment_not_initiated": "Aucun paiement initié",
+    "payment_capture_failed": "Échec de la capture du paiement",
+    "conversation_booking_not_accepted": "La réservation doit être acceptée",
+    "kyc_already_verified": "KYC déjà vérifié",
+    "kyc_applicant_creation_failed": "Erreur lors de la création du dossier KYC",
+    "kyc_token_generation_failed": "Erreur lors de la génération du token KYC",
+    "review_already_submitted": "Avis déjà soumis",
+    "review_booking_not_delivered": "La livraison doit être confirmée avant de laisser un avis"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
-    "delivery_confirmed_qr": "Livraison confirmée via QR — paiement en cours de libération"
+    "delivery_confirmed_qr": "Livraison confirmée via QR — paiement en cours de libération",
+    "kyc_simulate_ok": "KYC simulé — statut vérifié",
+    "fcm_token_updated": "Token FCM mis à jour",
+    "language_updated": "Langue mise à jour"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

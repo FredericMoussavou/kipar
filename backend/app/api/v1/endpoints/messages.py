@@ -7,13 +7,15 @@ from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.lang import get_lang
 from app.core.security import decode_token
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
 from app.models.message import Conversation, Message
-from app.schemas.message import ConversationResponse, MessageResponse
+from app.schemas.message import ConversationResponse
 from app.websockets.chat import manager
+from app.i18n.loader import t
 
 router = APIRouter(prefix="/conversations", tags=["messages"])
 
@@ -33,17 +35,17 @@ async def create_conversation(
     booking_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.status != "accepted":
-        raise HTTPException(status_code=400, detail="La réservation doit être acceptée")
+        raise HTTPException(status_code=400, detail=t("errors.conversation_booking_not_accepted", lang))
     if current_user.id not in (booking.sender_id, booking.receiver_id):
-        raise HTTPException(status_code=403, detail="Non autorisé")
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
-    # Vérifie qu'une conversation n'existe pas déjà
     result = await db.execute(
         select(Conversation)
         .where(Conversation.booking_id == booking_id)
@@ -64,7 +66,6 @@ async def create_conversation(
     db.add(conversation)
     await db.flush()
 
-    # Recharge avec les messages (vide pour l'instant)
     result = await db.execute(
         select(Conversation)
         .where(Conversation.id == conversation.id)
@@ -78,6 +79,7 @@ async def get_conversation(
     conversation_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
     result = await db.execute(
         select(Conversation)
@@ -86,9 +88,9 @@ async def get_conversation(
     )
     conv = result.scalar_one_or_none()
     if not conv:
-        raise HTTPException(status_code=404, detail="Conversation introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.conversation_not_found", lang))
     if current_user.id not in (conv.sender_id, conv.carrier_id):
-        raise HTTPException(status_code=403, detail="Non autorisé")
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     return conv
 
 
@@ -119,7 +121,6 @@ async def websocket_chat(
         while True:
             data = await websocket.receive_text()
             clean_content = mask_sensitive(data)
-
             msg = Message(
                 conversation_id=conv.id,
                 sender_id=user_id,
@@ -127,7 +128,6 @@ async def websocket_chat(
             )
             db.add(msg)
             await db.flush()
-
             await manager.broadcast(conversation_id, {
                 "id": str(msg.id),
                 "sender_id": str(user_id),
@@ -135,6 +135,5 @@ async def websocket_chat(
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
             await db.commit()
-
     except WebSocketDisconnect:
         manager.disconnect(conversation_id, websocket)

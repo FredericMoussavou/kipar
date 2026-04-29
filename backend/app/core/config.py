@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     # AviationStack
     AVIATIONSTACK_API_KEY: str = ""
 
+    SENTRY_DSN: str = ""
+
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"

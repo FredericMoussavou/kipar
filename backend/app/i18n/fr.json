@@ -31,7 +31,9 @@
     "kyc_applicant_creation_failed": "Erreur lors de la création du dossier KYC",
     "kyc_token_generation_failed": "Erreur lors de la génération du token KYC",
     "review_already_submitted": "Avis déjà soumis",
-    "review_booking_not_delivered": "La livraison doit être confirmée avant de laisser un avis"
+    "review_booking_not_delivered": "La livraison doit être confirmée avant de laisser un avis",
+    "rate_limit_exceeded": "Trop de requêtes — réessayez dans {seconds} secondes",
+    "maintenance": "Service temporairement indisponible"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

@@ -1,5 +1,5 @@
 import re
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import JWTError
@@ -9,6 +9,7 @@ from app.core.security import (
     hash_password, verify_password,
     create_access_token, create_refresh_token, decode_token
 )
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.i18n.loader import t
 
@@ -58,7 +59,9 @@ class RefreshRequest(BaseModel):
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    """5 inscriptions max par minute par IP."""
     lang = payload.language
     result = await db.execute(select(User).where(User.email == payload.email))
     if result.scalar_one_or_none():
@@ -82,7 +85,9 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    """10 tentatives de connexion max par minute par IP — anti brute force."""
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     lang = user.language if user else "fr"
@@ -95,7 +100,8 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("20/minute")
+async def refresh(request: Request, payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
     try:
         data = decode_token(payload.refresh_token)
         if data.get("type") != "refresh":

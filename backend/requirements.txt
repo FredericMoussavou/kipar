@@ -36,3 +36,5 @@ firebase-admin==6.5.0
 twilio==9.1.0
 resend==2.0.0
 stripe==9.3.0
+slowapi==0.1.9
+sentry-sdk==1.45.0

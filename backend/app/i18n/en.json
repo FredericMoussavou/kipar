@@ -42,7 +42,11 @@
     "kiparscan_no_image": "No image provided",
     "kiparscan_failed": "Package analysis failed — please try again",
     "kiparscan_prohibited": "Potentially prohibited item detected — check customs regulations",
-    "translation_failed": "Translation unavailable"
+    "translation_failed": "Translation unavailable",
+    "claim_not_found": "Claim not found",
+    "claim_already_exists": "A claim already exists for this booking",
+    "claim_booking_not_delivered": "Booking must be in transit or delivered to open a claim",
+    "claim_already_resolved": "This claim is already resolved"
       },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -53,7 +57,9 @@
     "reset_email_sent": "A reset link has been sent to your email address",
     "password_reset_success": "Password successfully reset",
     "password_changed": "Password successfully changed",
-    "kiparscan_ok": "Package successfully analyzed"
+    "kiparscan_ok": "Package successfully analyzed",
+    "claim_opened": "Claim opened — our team will contact you within 48h",
+    "claim_resolved": "Claim resolved"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

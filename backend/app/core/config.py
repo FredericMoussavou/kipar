@@ -47,6 +47,8 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: str = ""
 
+    SUPPORT_EMAIL: str = "support@kipar.app"
+
     DEEPL_API_KEY: str = ""
 
     @property

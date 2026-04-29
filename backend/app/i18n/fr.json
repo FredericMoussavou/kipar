@@ -42,7 +42,11 @@
     "kiparscan_no_image": "Aucune image fournie",
     "kiparscan_failed": "Analyse du colis impossible — réessayez",
     "kiparscan_prohibited": "Produit potentiellement prohibé détecté — vérifiez la réglementation douanière",
-    "translation_failed": "Traduction indisponible"
+    "translation_failed": "Traduction indisponible",
+    "claim_not_found": "Litige introuvable",
+    "claim_already_exists": "Un litige existe déjà pour cette réservation",
+    "claim_booking_not_delivered": "La réservation doit être en transit ou livrée pour ouvrir un litige",
+    "claim_already_resolved": "Ce litige est déjà résolu"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -53,7 +57,9 @@
     "reset_email_sent": "Un lien de réinitialisation a été envoyé à votre adresse email",
     "password_reset_success": "Mot de passe réinitialisé avec succès",
     "password_changed": "Mot de passe modifié avec succès",
-    "kiparscan_ok": "Colis analysé avec succès"
+    "kiparscan_ok": "Colis analysé avec succès",
+    "claim_opened": "Litige ouvert — notre équipe vous contactera sous 48h",
+    "claim_resolved": "Litige résolu"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

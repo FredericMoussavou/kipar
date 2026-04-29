@@ -46,7 +46,10 @@
     "claim_not_found": "Claim not found",
     "claim_already_exists": "A claim already exists for this booking",
     "claim_booking_not_delivered": "Booking must be in transit or delivered to open a claim",
-    "claim_already_resolved": "This claim is already resolved"
+    "claim_already_resolved": "This claim is already resolved",
+    "pir_already_reported": "A lost luggage report already exists for this trip",
+    "pir_not_found": "Report not found",
+    "trip_not_in_transit": "Trip must be in transit to report lost luggage"
       },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -73,7 +76,11 @@
     "delivery_confirmed_carrier": "Handover confirmed — payment transfer in progress",
     "booking_expired": "Your request has expired — the carrier did not respond in time",
     "payment_released": "Payment of {amount}€ transferred to your account",
-    "escrow_auto_released": "Payment automatically released after 7 days"
+    "escrow_auto_released": "Payment automatically released after 7 days",
+    "pir_opened": "Luggage reported lost — Montreal Convention procedure initiated",
+    "pir_resolved_found": "Good news — your luggage has been found",
+    "pir_resolved_lost": "Luggage definitively lost — reimbursement being processed",
+    "pir_reminder_carrier": "Reminder: update your luggage status in the Kipar app"
   },
   "statuses": {
     "pending": "Pending",

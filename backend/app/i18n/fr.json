@@ -46,7 +46,10 @@
     "claim_not_found": "Litige introuvable",
     "claim_already_exists": "Un litige existe déjà pour cette réservation",
     "claim_booking_not_delivered": "La réservation doit être en transit ou livrée pour ouvrir un litige",
-    "claim_already_resolved": "Ce litige est déjà résolu"
+    "claim_already_resolved": "Ce litige est déjà résolu",
+    "pir_already_reported": "Un signalement de bagage perdu existe déjà pour ce trajet",
+    "pir_not_found": "Signalement introuvable",
+    "trip_not_in_transit": "Le trajet doit être en transit pour signaler un bagage perdu"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -73,7 +76,11 @@
     "delivery_confirmed_carrier": "Remise confirmée — paiement en cours de virement",
     "booking_expired": "Votre demande a expiré — le transporteur n'a pas répondu dans les délais",
     "payment_released": "Paiement de {amount}€ viré sur votre compte",
-    "escrow_auto_released": "Paiement libéré automatiquement après 7 jours"
+    "escrow_auto_released": "Paiement libéré automatiquement après 7 jours",
+    "pir_opened": "Bagage signalé perdu — procédure Convention de Montréal déclenchée",
+    "pir_resolved_found": "Bonne nouvelle — votre bagage a été retrouvé",
+    "pir_resolved_lost": "Bagage définitivement perdu — remboursement en cours de traitement",
+    "pir_reminder_carrier": "Rappel : signalez le statut de votre bagage dans l'app Kipar"
   },
   "statuses": {
     "pending": "En attente",

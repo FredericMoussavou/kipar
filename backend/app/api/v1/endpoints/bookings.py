@@ -14,6 +14,7 @@ from app.models.booking import Booking
 from app.models.receiver_invitation import ReceiverInvitation
 from app.schemas.booking import BookingCreate, BookingResponse
 from app.i18n.loader import t
+from app.services.notification_service import notify_booking_received, notify_booking_accepted
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -92,6 +93,18 @@ async def create_booking(
     else:
         booking.status = "awaiting_receiver"
 
+    # Notifie le transporteur
+    result = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = result.scalar_one_or_none()
+    route = f"{trip.origin_airport_code} → {trip.destination_airport_code}"
+    await notify_booking_received(
+        carrier_fcm_token=carrier.fcm_token,
+        carrier_phone=carrier.phone,
+        carrier_email=carrier.email,
+        route=route,
+        lang=carrier.language,
+    )
+
     return booking
 
 
@@ -120,6 +133,17 @@ async def accept_booking(
 
     booking.status = "accepted"
     booking.accepted_at = datetime.now(timezone.utc)
+
+    # Notifie l'expéditeur
+    result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender = result.scalar_one_or_none()
+    await notify_booking_accepted(
+        sender_fcm_token=sender.fcm_token,
+        sender_phone=sender.phone,
+        sender_email=sender.email,
+        lang=sender.language,
+    )
+
     return booking
 
 

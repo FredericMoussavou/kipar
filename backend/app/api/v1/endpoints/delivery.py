@@ -8,6 +8,7 @@ from app.core.deps import get_current_user
 from app.core.lang import get_lang
 from app.models.user import User
 from app.models.booking import Booking
+from app.models.trip import Trip
 from app.schemas.delivery import (
     DeliveryCodeResponse,
     ValidateDeliveryRequest,
@@ -18,6 +19,7 @@ from app.services.delivery_service import (
     verify_code,
     code_expires_at,
 )
+from app.services.notification_service import notify_delivery_code
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/delivery", tags=["delivery"])
@@ -46,6 +48,26 @@ async def generate_delivery_code(
     booking.delivery_code_hash = hashed
     booking.delivery_qr_token = qr_token
     booking.delivery_code_expires_at = code_expires_at()
+
+    # Récupère les infos pour notifier le récepteur
+    result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = result.scalar_one_or_none()
+    result = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = result.scalar_one_or_none()
+
+    if booking.receiver_id:
+        result = await db.execute(select(User).where(User.id == booking.receiver_id))
+        receiver = result.scalar_one_or_none()
+        if receiver:
+            await notify_delivery_code(
+                receiver_fcm_token=receiver.fcm_token,
+                receiver_phone=receiver.phone,
+                receiver_email=receiver.email,
+                code=code,
+                carrier_name=carrier.full_name,
+                flight_number=trip.flight_number,
+                lang=receiver.language,
+            )
 
     return DeliveryCodeResponse(booking_id=booking.id, code=code, qr_token=qr_token)
 

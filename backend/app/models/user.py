@@ -39,6 +39,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     language: Mapped[str] = mapped_column(String(5), default="fr")
+    fcm_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
 
     created_at: Mapped[datetime] = mapped_column(

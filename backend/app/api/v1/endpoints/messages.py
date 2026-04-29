@@ -15,6 +15,7 @@ from app.models.trip import Trip
 from app.models.message import Conversation, Message
 from app.schemas.message import ConversationResponse
 from app.websockets.chat import manager
+from app.services.translation_service import translate_message
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/conversations", tags=["messages"])
@@ -101,6 +102,10 @@ async def websocket_chat(
     token: str,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    WebSocket chat avec traduction DeepL temps réel.
+    Chaque message est traduit dans la langue du destinataire.
+    """
     try:
         payload = decode_token(token)
         user_id = payload.get("sub")
@@ -116,11 +121,31 @@ async def websocket_chat(
         await websocket.close(code=1008)
         return
 
+    # Récupère les langues des deux participants pour la traduction
+    result = await db.execute(select(User).where(User.id == conv.sender_id))
+    sender = result.scalar_one_or_none()
+    result = await db.execute(select(User).where(User.id == conv.carrier_id))
+    carrier = result.scalar_one_or_none()
+
     await manager.connect(conversation_id, websocket)
     try:
         while True:
             data = await websocket.receive_text()
             clean_content = mask_sensitive(data)
+
+            # Détermine la langue du destinataire pour la traduction
+            is_sender = str(user_id) == str(conv.sender_id)
+            recipient = carrier if is_sender else sender
+            recipient_lang = recipient.language if recipient else "fr"
+
+            # Traduit si les langues sont différentes
+            sender_user = sender if is_sender else carrier
+            sender_lang = sender_user.language if sender_user else "fr"
+
+            translated_content = None
+            if sender_lang != recipient_lang:
+                translated_content = await translate_message(clean_content, recipient_lang)
+
             msg = Message(
                 conversation_id=conv.id,
                 sender_id=user_id,
@@ -128,12 +153,16 @@ async def websocket_chat(
             )
             db.add(msg)
             await db.flush()
+
             await manager.broadcast(conversation_id, {
                 "id": str(msg.id),
                 "sender_id": str(user_id),
                 "content": clean_content,
+                "translated_content": translated_content,
+                "sender_lang": sender_lang,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
             await db.commit()
+
     except WebSocketDisconnect:
         manager.disconnect(conversation_id, websocket)

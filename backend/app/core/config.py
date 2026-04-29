@@ -47,6 +47,8 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: str = ""
 
+    DEEPL_API_KEY: str = ""
+
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"

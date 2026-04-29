@@ -41,7 +41,8 @@
     "old_password_invalid": "Incorrect old password",
     "kiparscan_no_image": "No image provided",
     "kiparscan_failed": "Package analysis failed — please try again",
-    "kiparscan_prohibited": "Potentially prohibited item detected — check customs regulations"
+    "kiparscan_prohibited": "Potentially prohibited item detected — check customs regulations",
+    "translation_failed": "Translation unavailable"
       },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

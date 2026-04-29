@@ -41,7 +41,8 @@
     "old_password_invalid": "Ancien mot de passe incorrect",
     "kiparscan_no_image": "Aucune image fournie",
     "kiparscan_failed": "Analyse du colis impossible — réessayez",
-    "kiparscan_prohibited": "Produit potentiellement prohibé détecté — vérifiez la réglementation douanière"
+    "kiparscan_prohibited": "Produit potentiellement prohibé détecté — vérifiez la réglementation douanière",
+    "translation_failed": "Traduction indisponible"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

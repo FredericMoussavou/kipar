@@ -1,0 +1,67 @@
+{
+  "errors": {
+    "email_already_registered": "Email already registered",
+    "invalid_credentials": "Invalid email or password",
+    "invalid_token": "Invalid or expired token",
+    "token_type_invalid": "Invalid token type",
+    "user_not_found": "User not found",
+    "kyc_required": "KYC verification required to perform this action",
+    "trip_not_found": "Trip not found",
+    "trip_not_open": "This trip is no longer accepting packages",
+    "weight_exceeds_capacity": "Requested weight ({requested}kg) exceeds available capacity ({available}kg)",
+    "weight_exceeds_max": "Maximum weight per package: {max}kg",
+    "booking_not_found": "Booking not found",
+    "booking_not_accepted": "Booking must be accepted first",
+    "booking_not_in_transit": "Package must be in transit",
+    "booking_already_actioned": "This booking can no longer be modified",
+    "unauthorized": "Unauthorized",
+    "conversation_not_found": "Conversation not found",
+    "delivery_code_already_generated": "Code already generated",
+    "delivery_no_code": "No delivery code generated",
+    "delivery_code_expired": "Code expired",
+    "delivery_code_invalid": "Invalid code",
+    "delivery_qr_invalid": "Invalid QR token",
+    "payment_required": "Payment must be confirmed first",
+    "flight_not_found": "No flight tracking found for this trip"
+  },
+  "success": {
+    "delivery_confirmed": "Delivery confirmed — payment release in progress",
+    "delivery_confirmed_qr": "Delivery confirmed via QR — payment release in progress"
+  },
+  "notifications": {
+    "booking_received": "New package request on your trip {route}",
+    "booking_accepted": "Your request has been accepted — proceed to payment",
+    "booking_refused": "Your request has been refused",
+    "payment_confirmed": "Payment confirmed — your delivery code is available",
+    "flight_departed": "Carrier has departed — estimated arrival: {arrival}",
+    "flight_landed": "Carrier has landed — package handover can take place",
+    "flight_delayed": "Flight delayed — new estimated arrival: {arrival}",
+    "delivery_confirmed_sender": "Your package has been successfully delivered",
+    "delivery_confirmed_carrier": "Handover confirmed — payment transfer in progress"
+  },
+  "statuses": {
+    "pending": "Pending",
+    "awaiting_receiver": "Awaiting receiver",
+    "accepted": "Accepted",
+    "refused": "Refused",
+    "paid": "Paid",
+    "in_transit": "In transit",
+    "delivered": "Delivered",
+    "disputed": "Disputed",
+    "refunded": "Refunded",
+    "open": "Available",
+    "full": "Full",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "scheduled": "Scheduled",
+    "boarding": "Boarding",
+    "in_air": "In flight",
+    "landed": "Landed",
+    "delayed": "Delayed"
+  },
+  "currencies": {
+    "default": "EUR",
+    "symbol": "€",
+    "supported": ["EUR", "XAF", "XOF", "USD", "GBP"]
+  }
+}

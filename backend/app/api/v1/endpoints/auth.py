@@ -10,6 +10,7 @@ from app.core.security import (
     create_access_token, create_refresh_token, decode_token
 )
 from app.models.user import User
+from app.i18n.loader import t
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,6 +21,7 @@ class RegisterRequest(BaseModel):
     first_name: str
     last_name: str
     phone: str | None = None
+    language: str = "fr"
 
     @field_validator("password")
     @classmethod
@@ -57,9 +59,10 @@ class RefreshRequest(BaseModel):
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    lang = payload.language
     result = await db.execute(select(User).where(User.email == payload.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email déjà utilisé")
+        raise HTTPException(status_code=400, detail=t("errors.email_already_registered", lang))
 
     user = User(
         email=payload.email,
@@ -67,6 +70,7 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
         hashed_password=hash_password(payload.password),
         first_name=payload.first_name,
         last_name=payload.last_name,
+        language=payload.language,
     )
     db.add(user)
     await db.flush()
@@ -81,8 +85,9 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
+    lang = user.language if user else "fr"
     if not user or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+        raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
@@ -94,15 +99,15 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
     try:
         data = decode_token(payload.refresh_token)
         if data.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Type de token invalide")
+            raise HTTPException(status_code=401, detail=t("errors.token_type_invalid", "fr"))
         user_id = data["sub"]
     except JWTError:
-        raise HTTPException(status_code=401, detail="Token invalide ou expiré")
+        raise HTTPException(status_code=401, detail=t("errors.invalid_token", "fr"))
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="Utilisateur introuvable")
+        raise HTTPException(status_code=401, detail=t("errors.user_not_found", "fr"))
 
     return TokenResponse(
         access_token=create_access_token(user_id),

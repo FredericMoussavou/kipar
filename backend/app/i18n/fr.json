@@ -1,0 +1,67 @@
+{
+  "errors": {
+    "email_already_registered": "Email déjà utilisé",
+    "invalid_credentials": "Email ou mot de passe incorrect",
+    "invalid_token": "Token invalide ou expiré",
+    "token_type_invalid": "Type de token invalide",
+    "user_not_found": "Utilisateur introuvable",
+    "kyc_required": "Vérification KYC requise pour effectuer cette action",
+    "trip_not_found": "Trajet introuvable",
+    "trip_not_open": "Ce trajet n'accepte plus de colis",
+    "weight_exceeds_capacity": "Poids demandé ({requested}kg) supérieur au disponible ({available}kg)",
+    "weight_exceeds_max": "Poids max par colis : {max}kg",
+    "booking_not_found": "Réservation introuvable",
+    "booking_not_accepted": "La réservation doit être acceptée",
+    "booking_not_in_transit": "Le colis doit être en transit",
+    "booking_already_actioned": "Cette réservation ne peut plus être modifiée",
+    "unauthorized": "Non autorisé",
+    "conversation_not_found": "Conversation introuvable",
+    "delivery_code_already_generated": "Code déjà généré",
+    "delivery_no_code": "Aucun code de remise généré",
+    "delivery_code_expired": "Code expiré",
+    "delivery_code_invalid": "Code incorrect",
+    "delivery_qr_invalid": "QR token invalide",
+    "payment_required": "Le paiement doit être confirmé",
+    "flight_not_found": "Aucun suivi de vol pour ce trajet"
+  },
+  "success": {
+    "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
+    "delivery_confirmed_qr": "Livraison confirmée via QR — paiement en cours de libération"
+  },
+  "notifications": {
+    "booking_received": "Nouvelle demande de colis sur votre trajet {route}",
+    "booking_accepted": "Votre demande a été acceptée — procédez au paiement",
+    "booking_refused": "Votre demande a été refusée",
+    "payment_confirmed": "Paiement confirmé — votre code de remise est disponible",
+    "flight_departed": "Le transporteur a décollé — arrivée estimée : {arrival}",
+    "flight_landed": "Le transporteur est arrivé — la remise du colis peut avoir lieu",
+    "flight_delayed": "Vol retardé — nouvelle arrivée estimée : {arrival}",
+    "delivery_confirmed_sender": "Votre colis a été remis avec succès",
+    "delivery_confirmed_carrier": "Remise confirmée — paiement en cours de virement"
+  },
+  "statuses": {
+    "pending": "En attente",
+    "awaiting_receiver": "En attente du récepteur",
+    "accepted": "Acceptée",
+    "refused": "Refusée",
+    "paid": "Payée",
+    "in_transit": "En transit",
+    "delivered": "Livrée",
+    "disputed": "En litige",
+    "refunded": "Remboursée",
+    "open": "Disponible",
+    "full": "Complet",
+    "completed": "Terminé",
+    "cancelled": "Annulé",
+    "scheduled": "Programmé",
+    "boarding": "Embarquement",
+    "in_air": "En vol",
+    "landed": "Atterri",
+    "delayed": "Retardé"
+  },
+  "currencies": {
+    "default": "EUR",
+    "symbol": "€",
+    "supported": ["EUR", "XAF", "XOF", "USD", "GBP"]
+  }
+}

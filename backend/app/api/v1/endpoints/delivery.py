@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.lang import get_lang
 from app.models.user import User
 from app.models.booking import Booking
 from app.schemas.delivery import (
@@ -17,6 +18,7 @@ from app.services.delivery_service import (
     verify_code,
     code_expires_at,
 )
+from app.i18n.loader import t
 
 router = APIRouter(prefix="/delivery", tags=["delivery"])
 
@@ -26,37 +28,26 @@ async def generate_delivery_code(
     booking_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
-    """
-    Génère le code de remise après paiement.
-    Appelé automatiquement après confirmation du paiement.
-    Seul le récepteur ou l'expéditeur peut le déclencher.
-    """
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.status != "paid":
-        raise HTTPException(status_code=400, detail="Le paiement doit être confirmé")
+        raise HTTPException(status_code=400, detail=t("errors.payment_required", lang))
     if current_user.id not in (booking.sender_id, booking.receiver_id):
-        raise HTTPException(status_code=403, detail="Non autorisé")
-
-    # Génère le code seulement s'il n'existe pas encore
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if booking.delivery_code_hash:
-        raise HTTPException(status_code=400, detail="Code déjà généré")
+        raise HTTPException(status_code=400, detail=t("errors.delivery_code_already_generated", lang))
 
     code, hashed = generate_and_hash_code()
     qr_token = Booking.generate_qr_token()
-
     booking.delivery_code_hash = hashed
     booking.delivery_qr_token = qr_token
     booking.delivery_code_expires_at = code_expires_at()
 
-    return DeliveryCodeResponse(
-        booking_id=booking.id,
-        code=code,
-        qr_token=qr_token,
-    )
+    return DeliveryCodeResponse(booking_id=booking.id, code=code, qr_token=qr_token)
 
 
 @router.post("/{booking_id}/validate", response_model=dict)
@@ -65,35 +56,26 @@ async def validate_delivery(
     payload: ValidateDeliveryRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
-    """
-    Le transporteur saisit le code donné par le récepteur.
-    Valide la livraison et déclenche la libération du paiement.
-    """
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.status != "in_transit":
-        raise HTTPException(status_code=400, detail="Le colis doit être en transit")
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_in_transit", lang))
     if not booking.delivery_code_hash:
-        raise HTTPException(status_code=400, detail="Aucun code de remise généré")
-
-    # Vérifie l'expiration
+        raise HTTPException(status_code=400, detail=t("errors.delivery_no_code", lang))
     if datetime.now(timezone.utc) > booking.delivery_code_expires_at:
-        raise HTTPException(status_code=400, detail="Code expiré")
-
-    # Vérifie le code
+        raise HTTPException(status_code=400, detail=t("errors.delivery_code_expired", lang))
     if not verify_code(payload.code, booking.delivery_code_hash):
-        raise HTTPException(status_code=400, detail="Code incorrect")
+        raise HTTPException(status_code=400, detail=t("errors.delivery_code_invalid", lang))
 
     booking.status = "delivered"
     booking.delivery_confirmed_at = datetime.now(timezone.utc)
     booking.delivery_confirmed_by = current_user.id
 
-    # TODO: déclencher Celery task pour libérer le paiement sous 24h
-
-    return {"message": "Livraison confirmée — paiement en cours de libération"}
+    return {"message": t("success.delivery_confirmed", lang)}
 
 
 @router.post("/{booking_id}/validate-qr", response_model=dict)
@@ -102,19 +84,19 @@ async def validate_delivery_qr(
     payload: ValidateDeliveryQRRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
-    """Option secondaire — validation par QR token."""
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.status != "in_transit":
-        raise HTTPException(status_code=400, detail="Le colis doit être en transit")
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_in_transit", lang))
     if booking.delivery_qr_token != payload.qr_token:
-        raise HTTPException(status_code=400, detail="QR token invalide")
+        raise HTTPException(status_code=400, detail=t("errors.delivery_qr_invalid", lang))
 
     booking.status = "delivered"
     booking.delivery_confirmed_at = datetime.now(timezone.utc)
     booking.delivery_confirmed_by = current_user.id
 
-    return {"message": "Livraison confirmée via QR — paiement en cours de libération"}
+    return {"message": t("success.delivery_confirmed_qr", lang)}

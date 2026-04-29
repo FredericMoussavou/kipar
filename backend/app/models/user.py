@@ -38,6 +38,8 @@ class User(Base):
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
+    language: Mapped[str] = mapped_column(String(5), default="fr")
+
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

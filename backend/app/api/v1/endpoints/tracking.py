@@ -5,11 +5,13 @@ from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.lang import get_lang
 from app.models.user import User
 from app.models.trip import Trip
 from app.models.flight import FlightTracking
 from app.schemas.tracking import FlightTrackingResponse, SetFlightRequest
 from app.services.flight_service import fetch_flight_status
+from app.i18n.loader import t
 
 router = APIRouter(prefix="/tracking", tags=["tracking"])
 
@@ -20,29 +22,22 @@ async def set_flight(
     payload: SetFlightRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
-    """
-    Le transporteur saisit son numéro de vol.
-    Kipar interroge AviationStack et crée le suivi.
-    """
     result = await db.execute(select(Trip).where(Trip.id == trip_id))
     trip = result.scalar_one_or_none()
     if not trip:
-        raise HTTPException(status_code=404, detail="Trajet introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
     if trip.carrier_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Non autorisé")
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
-    # Vérifie si un tracking existe déjà
     result = await db.execute(
         select(FlightTracking).where(FlightTracking.trip_id == trip_id)
     )
     existing = result.scalar_one_or_none()
-
-    # Interroge l'API de vols
     flight_data = await fetch_flight_status(payload.flight_number)
 
     if existing:
-        # Met à jour le tracking existant
         existing.flight_number = payload.flight_number
         existing.airline = payload.airline
         if flight_data:
@@ -51,7 +46,6 @@ async def set_flight(
         existing.last_checked_at = datetime.now(timezone.utc)
         return existing
 
-    # Crée le tracking
     tracking = FlightTracking(
         trip_id=trip.id,
         flight_number=payload.flight_number,
@@ -62,12 +56,9 @@ async def set_flight(
     )
     db.add(tracking)
     await db.flush()
-
-    # Met à jour le trip avec le numéro de vol
     trip.flight_number = payload.flight_number
     trip.airline = payload.airline
     trip.status = "in_transit"
-
     return tracking
 
 
@@ -76,12 +67,12 @@ async def get_flight_status(
     trip_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
 ):
-    """Récupère le statut actuel du vol."""
     result = await db.execute(
         select(FlightTracking).where(FlightTracking.trip_id == trip_id)
     )
     tracking = result.scalar_one_or_none()
     if not tracking:
-        raise HTTPException(status_code=404, detail="Aucun suivi de vol pour ce trajet")
+        raise HTTPException(status_code=404, detail=t("errors.flight_not_found", lang))
     return tracking

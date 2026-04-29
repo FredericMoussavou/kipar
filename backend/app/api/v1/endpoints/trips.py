@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
-from app.core.deps import get_verified_user
+from app.core.deps import get_verified_user, get_current_user
+from app.core.lang import get_lang, get_lang_optional
 from app.models.user import User
 from app.models.trip import Trip
 from app.schemas.trip import TripCreate, TripResponse
+from app.i18n.loader import t
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -15,8 +17,8 @@ async def create_trip(
     payload: TripCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_verified_user),
+    lang: str = Depends(get_lang),
 ):
-    """Publier un trajet — réservé aux utilisateurs KYC vérifiés."""
     trip = Trip(
         carrier_id=current_user.id,
         origin_city=payload.origin_city,
@@ -27,7 +29,7 @@ async def create_trip(
         flight_number=payload.flight_number,
         airline=payload.airline,
         total_kg=payload.total_kg,
-        remaining_kg=payload.total_kg,  # au départ = total
+        remaining_kg=payload.total_kg,
         max_kg_per_package=payload.max_kg_per_package,
         price_per_kg=payload.price_per_kg,
     )
@@ -42,27 +44,22 @@ async def search_trips(
     destination: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
-    """Rechercher des trajets disponibles — public, pas besoin d'être connecté."""
     query = select(Trip).where(Trip.status == "open")
-
     if origin:
-        query = query.where(
-            Trip.origin_airport_code == origin.upper()
-        )
+        query = query.where(Trip.origin_airport_code == origin.upper())
     if destination:
-        query = query.where(
-            Trip.destination_airport_code == destination.upper()
-        )
-
+        query = query.where(Trip.destination_airport_code == destination.upper())
     result = await db.execute(query)
     return result.scalars().all()
 
 
 @router.get("/{trip_id}", response_model=TripResponse)
-async def get_trip(trip_id: str, db: AsyncSession = Depends(get_db)):
-    """Détail d'un trajet."""
+async def get_trip(
+    trip_id: str,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(Trip).where(Trip.id == trip_id))
     trip = result.scalar_one_or_none()
     if not trip:
-        raise HTTPException(status_code=404, detail="Trajet introuvable")
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", "fr"))
     return trip

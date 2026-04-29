@@ -54,7 +54,10 @@
     "insurance_not_found": "Assurance introuvable",
     "insurance_booking_not_accepted": "La réservation doit être acceptée pour souscrire une assurance",
     "airport_not_found": "Aéroport {code} introuvable",
-    "airport_iata_invalid": "Code IATA {code} non reconnu — utilisez la recherche d'aéroports"
+    "airport_iata_invalid": "Code IATA {code} non reconnu — utilisez la recherche d'aéroports",
+    "oauth_token_invalid": "Token d'authentification invalide",
+    "oauth_email_missing": "Aucune adresse email associée à ce compte",
+    "oauth_provider_error": "Erreur lors de la connexion avec {provider}"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -69,7 +72,9 @@
     "claim_opened": "Litige ouvert — notre équipe vous contactera sous 48h",
     "claim_resolved": "Litige résolu",
     "insurance_subscribed": "Assurance souscrite — votre colis est couvert jusqu'à {amount}€",
-    "insurance_cancelled": "Assurance annulée — remboursement en cours"
+    "insurance_cancelled": "Assurance annulée — remboursement en cours",
+    "oauth_login": "Connecté avec {provider}",
+    "oauth_register": "Compte créé avec {provider}"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

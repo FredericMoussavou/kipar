@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, Float, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
 
@@ -15,12 +15,15 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
-
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    # Rôles — un utilisateur peut être expéditeur, transporteur et/ou récepteur
+    # OAuth
+    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
+    apple_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
+
+    # Rôles
     is_sender: Mapped[bool] = mapped_column(Boolean, default=True)
     is_carrier: Mapped[bool] = mapped_column(Boolean, default=False)
     is_receiver: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -29,10 +32,10 @@ class User(Base):
     kyc_status: Mapped[str] = mapped_column(String(20), default="pending")
     onfido_applicant_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    # Score de confiance KiparTrust
+    # KiparTrust
     trust_score: Mapped[float] = mapped_column(Float, default=0.0)
 
-    # Comptes de paiement
+    # Paiements
     stripe_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     flutterwave_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
@@ -40,7 +43,6 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     language: Mapped[str] = mapped_column(String(5), default="fr")
     fcm_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
-
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

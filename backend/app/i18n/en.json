@@ -53,7 +53,10 @@
     "insurance_already_subscribed": "You have already subscribed to insurance for this package",
     "insurance_not_found": "Insurance not found",
     "insurance_booking_not_accepted": "Booking must be accepted before subscribing to insurance",
-    "airport_iata_invalid": "IATA code {code} not recognized — use the airport search"
+    "airport_iata_invalid": "IATA code {code} not recognized — use the airport search",
+    "oauth_token_invalid": "Invalid authentication token",
+    "oauth_email_missing": "No email address associated with this account",
+    "oauth_provider_error": "Error connecting with {provider}"
       },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -69,7 +72,9 @@
     "claim_resolved": "Claim resolved",
     "insurance_subscribed": "Insurance subscribed — your package is covered up to {amount}€",
     "insurance_cancelled": "Insurance cancelled — refund in progress",
-    "airport_not_found": "Airport {code} not found"
+    "airport_not_found": "Airport {code} not found",
+    "oauth_login": "Connected with {provider}",
+    "oauth_register": "Account created with {provider}"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

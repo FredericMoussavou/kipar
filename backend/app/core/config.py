@@ -55,6 +55,9 @@ class Settings(BaseSettings):
 
     DEEPL_API_KEY: str = ""
 
+    GOOGLE_CLIENT_ID: str = ""
+    APPLE_CLIENT_ID: str = ""  # ex: com.kipar.app
+
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"

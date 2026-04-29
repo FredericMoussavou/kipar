@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     # AviationStack
     AVIATIONSTACK_API_KEY: str = ""
 
+    OPENAI_API_KEY: str = ""
+
     SENTRY_DSN: str = ""
 
     @property

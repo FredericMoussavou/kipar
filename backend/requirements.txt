@@ -38,3 +38,4 @@ resend==2.0.0
 stripe==9.3.0
 slowapi==0.1.9
 sentry-sdk==1.45.0
+openai==1.30.0

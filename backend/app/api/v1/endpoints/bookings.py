@@ -168,3 +168,60 @@ async def refuse_booking(
 
     booking.status = "refused"
     return booking
+
+
+@router.get("", response_model=list[BookingResponse])
+async def list_my_bookings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Liste toutes les réservations de l'utilisateur connecté (expéditeur ou récepteur)."""
+    from sqlalchemy import or_
+    result = await db.execute(
+        select(Booking)
+        .where(or_(
+            Booking.sender_id == current_user.id,
+            Booking.receiver_id == current_user.id,
+        ))
+        .order_by(Booking.created_at.desc())
+    )
+    return result.scalars().all()
+
+
+@router.get("/detail", response_model=list[BookingResponse])
+async def list_my_bookings_detailed(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Liste enrichie avec les données du package."""
+    from sqlalchemy import or_
+    from app.models.package import Package
+    result = await db.execute(
+        select(Booking)
+        .where(or_(
+            Booking.sender_id == current_user.id,
+            Booking.receiver_id == current_user.id,
+        ))
+        .order_by(Booking.created_at.desc())
+    )
+    bookings = result.scalars().all()
+    responses = []
+    for b in bookings:
+        pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
+        pkg = pkg_result.scalar_one_or_none()
+        resp = BookingResponse(
+            id=b.id,
+            trip_id=b.trip_id,
+            package_id=b.package_id,
+            sender_id=b.sender_id,
+            receiver_id=b.receiver_id,
+            amount=b.amount,
+            insurance_subscribed=b.insurance_subscribed,
+            status=b.status,
+            payment_rail=b.payment_rail,
+            weight_kg=pkg.weight_kg if pkg else None,
+            content_description=pkg.content_description if pkg else None,
+            declared_value=pkg.declared_value if pkg else None,
+        )
+        responses.append(resp)
+    return responses

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # App
     ENVIRONMENT: str = "development"
     FRONTEND_URL: str = "http://localhost:3000"
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "null"]
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://kipar:kipar_dev@localhost:5432/kipar_db"

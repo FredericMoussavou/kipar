@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
 from app.core.database import get_db
-from app.core.deps import get_verified_user, get_current_user
-from app.core.lang import get_lang, get_lang_optional
+from app.core.deps import get_verified_user
+from app.core.lang import get_lang
 from app.models.user import User
 from app.models.trip import Trip
 from app.schemas.trip import TripCreate, TripResponse
@@ -57,9 +58,10 @@ async def search_trips(
 async def get_trip(
     trip_id: str,
     db: AsyncSession = Depends(get_db),
+    lang: str = Query("fr"),
 ):
     result = await db.execute(select(Trip).where(Trip.id == trip_id))
     trip = result.scalar_one_or_none()
     if not trip:
-        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", "fr"))
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
     return trip

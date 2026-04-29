@@ -1,0 +1,1594 @@
+{
+  "CDG": {
+    "name": "Paris Charles de Gaulle",
+    "city": "Paris",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "ORY": {
+    "name": "Paris Orly",
+    "city": "Paris",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "LYS": {
+    "name": "Lyon Saint-Exupéry",
+    "city": "Lyon",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "MRS": {
+    "name": "Marseille Provence",
+    "city": "Marseille",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "NCE": {
+    "name": "Nice Côte d'Azur",
+    "city": "Nice",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "TLS": {
+    "name": "Toulouse Blagnac",
+    "city": "Toulouse",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "BOD": {
+    "name": "Bordeaux Mérignac",
+    "city": "Bordeaux",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "NTE": {
+    "name": "Nantes Atlantique",
+    "city": "Nantes",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  },
+  "LHR": {
+    "name": "London Heathrow",
+    "city": "Londres",
+    "country": "Royaume-Uni",
+    "country_code": "GB",
+    "continent": "EU",
+    "timezone": "Europe/London"
+  },
+  "LGW": {
+    "name": "London Gatwick",
+    "city": "Londres",
+    "country": "Royaume-Uni",
+    "country_code": "GB",
+    "continent": "EU",
+    "timezone": "Europe/London"
+  },
+  "STN": {
+    "name": "London Stansted",
+    "city": "Londres",
+    "country": "Royaume-Uni",
+    "country_code": "GB",
+    "continent": "EU",
+    "timezone": "Europe/London"
+  },
+  "MAN": {
+    "name": "Manchester Airport",
+    "city": "Manchester",
+    "country": "Royaume-Uni",
+    "country_code": "GB",
+    "continent": "EU",
+    "timezone": "Europe/London"
+  },
+  "AMS": {
+    "name": "Amsterdam Schiphol",
+    "city": "Amsterdam",
+    "country": "Pays-Bas",
+    "country_code": "NL",
+    "continent": "EU",
+    "timezone": "Europe/Amsterdam"
+  },
+  "BRU": {
+    "name": "Bruxelles Zaventem",
+    "city": "Bruxelles",
+    "country": "Belgique",
+    "country_code": "BE",
+    "continent": "EU",
+    "timezone": "Europe/Brussels"
+  },
+  "FRA": {
+    "name": "Frankfurt am Main",
+    "city": "Francfort",
+    "country": "Allemagne",
+    "country_code": "DE",
+    "continent": "EU",
+    "timezone": "Europe/Berlin"
+  },
+  "MUC": {
+    "name": "Munich Airport",
+    "city": "Munich",
+    "country": "Allemagne",
+    "country_code": "DE",
+    "continent": "EU",
+    "timezone": "Europe/Berlin"
+  },
+  "BER": {
+    "name": "Berlin Brandenburg",
+    "city": "Berlin",
+    "country": "Allemagne",
+    "country_code": "DE",
+    "continent": "EU",
+    "timezone": "Europe/Berlin"
+  },
+  "HAM": {
+    "name": "Hamburg Airport",
+    "city": "Hambourg",
+    "country": "Allemagne",
+    "country_code": "DE",
+    "continent": "EU",
+    "timezone": "Europe/Berlin"
+  },
+  "MAD": {
+    "name": "Madrid Barajas",
+    "city": "Madrid",
+    "country": "Espagne",
+    "country_code": "ES",
+    "continent": "EU",
+    "timezone": "Europe/Madrid"
+  },
+  "BCN": {
+    "name": "Barcelona El Prat",
+    "city": "Barcelone",
+    "country": "Espagne",
+    "country_code": "ES",
+    "continent": "EU",
+    "timezone": "Europe/Madrid"
+  },
+  "VLC": {
+    "name": "Valencia Airport",
+    "city": "Valence",
+    "country": "Espagne",
+    "country_code": "ES",
+    "continent": "EU",
+    "timezone": "Europe/Madrid"
+  },
+  "SVQ": {
+    "name": "Sevilla Airport",
+    "city": "Séville",
+    "country": "Espagne",
+    "country_code": "ES",
+    "continent": "EU",
+    "timezone": "Europe/Madrid"
+  },
+  "LIS": {
+    "name": "Lisbonne Humberto Delgado",
+    "city": "Lisbonne",
+    "country": "Portugal",
+    "country_code": "PT",
+    "continent": "EU",
+    "timezone": "Europe/Lisbon"
+  },
+  "OPO": {
+    "name": "Porto Francisco Sá Carneiro",
+    "city": "Porto",
+    "country": "Portugal",
+    "country_code": "PT",
+    "continent": "EU",
+    "timezone": "Europe/Lisbon"
+  },
+  "FCO": {
+    "name": "Rome Fiumicino",
+    "city": "Rome",
+    "country": "Italie",
+    "country_code": "IT",
+    "continent": "EU",
+    "timezone": "Europe/Rome"
+  },
+  "MXP": {
+    "name": "Milan Malpensa",
+    "city": "Milan",
+    "country": "Italie",
+    "country_code": "IT",
+    "continent": "EU",
+    "timezone": "Europe/Rome"
+  },
+  "VCE": {
+    "name": "Venise Marco Polo",
+    "city": "Venise",
+    "country": "Italie",
+    "country_code": "IT",
+    "continent": "EU",
+    "timezone": "Europe/Rome"
+  },
+  "ZRH": {
+    "name": "Zurich Airport",
+    "city": "Zurich",
+    "country": "Suisse",
+    "country_code": "CH",
+    "continent": "EU",
+    "timezone": "Europe/Zurich"
+  },
+  "GVA": {
+    "name": "Genève Cointrin",
+    "city": "Genève",
+    "country": "Suisse",
+    "country_code": "CH",
+    "continent": "EU",
+    "timezone": "Europe/Zurich"
+  },
+  "VIE": {
+    "name": "Vienne Schwechat",
+    "city": "Vienne",
+    "country": "Autriche",
+    "country_code": "AT",
+    "continent": "EU",
+    "timezone": "Europe/Vienna"
+  },
+  "CPH": {
+    "name": "Copenhague Kastrup",
+    "city": "Copenhague",
+    "country": "Danemark",
+    "country_code": "DK",
+    "continent": "EU",
+    "timezone": "Europe/Copenhagen"
+  },
+  "OSL": {
+    "name": "Oslo Gardermoen",
+    "city": "Oslo",
+    "country": "Norvège",
+    "country_code": "NO",
+    "continent": "EU",
+    "timezone": "Europe/Oslo"
+  },
+  "ARN": {
+    "name": "Stockholm Arlanda",
+    "city": "Stockholm",
+    "country": "Suède",
+    "country_code": "SE",
+    "continent": "EU",
+    "timezone": "Europe/Stockholm"
+  },
+  "HEL": {
+    "name": "Helsinki Vantaa",
+    "city": "Helsinki",
+    "country": "Finlande",
+    "country_code": "FI",
+    "continent": "EU",
+    "timezone": "Europe/Helsinki"
+  },
+  "ATH": {
+    "name": "Athènes Eleftherios Venizelos",
+    "city": "Athènes",
+    "country": "Grèce",
+    "country_code": "GR",
+    "continent": "EU",
+    "timezone": "Europe/Athens"
+  },
+  "IST": {
+    "name": "Istanbul Airport",
+    "city": "Istanbul",
+    "country": "Turquie",
+    "country_code": "TR",
+    "continent": "EU",
+    "timezone": "Europe/Istanbul"
+  },
+  "SAW": {
+    "name": "Istanbul Sabiha Gökçen",
+    "city": "Istanbul",
+    "country": "Turquie",
+    "country_code": "TR",
+    "continent": "EU",
+    "timezone": "Europe/Istanbul"
+  },
+  "WAW": {
+    "name": "Varsovie Chopin",
+    "city": "Varsovie",
+    "country": "Pologne",
+    "country_code": "PL",
+    "continent": "EU",
+    "timezone": "Europe/Warsaw"
+  },
+  "PRG": {
+    "name": "Prague Václav Havel",
+    "city": "Prague",
+    "country": "République tchèque",
+    "country_code": "CZ",
+    "continent": "EU",
+    "timezone": "Europe/Prague"
+  },
+  "BUD": {
+    "name": "Budapest Ferenc Liszt",
+    "city": "Budapest",
+    "country": "Hongrie",
+    "country_code": "HU",
+    "continent": "EU",
+    "timezone": "Europe/Budapest"
+  },
+  "OTP": {
+    "name": "Bucarest Henri Coandă",
+    "city": "Bucarest",
+    "country": "Roumanie",
+    "country_code": "RO",
+    "continent": "EU",
+    "timezone": "Europe/Bucharest"
+  },
+  "SVO": {
+    "name": "Moscou Sheremetyevo",
+    "city": "Moscou",
+    "country": "Russie",
+    "country_code": "RU",
+    "continent": "EU",
+    "timezone": "Europe/Moscow"
+  },
+  "LED": {
+    "name": "Saint-Pétersbourg Pulkovo",
+    "city": "Saint-Pétersbourg",
+    "country": "Russie",
+    "country_code": "RU",
+    "continent": "EU",
+    "timezone": "Europe/Moscow"
+  },
+  "KBP": {
+    "name": "Kiev Boryspil",
+    "city": "Kiev",
+    "country": "Ukraine",
+    "country_code": "UA",
+    "continent": "EU",
+    "timezone": "Europe/Kiev"
+  },
+  "DUB": {
+    "name": "Dublin Airport",
+    "city": "Dublin",
+    "country": "Irlande",
+    "country_code": "IE",
+    "continent": "EU",
+    "timezone": "Europe/Dublin"
+  },
+  "JFK": {
+    "name": "New York John F. Kennedy",
+    "city": "New York",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "EWR": {
+    "name": "New York Newark",
+    "city": "New York",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "LAX": {
+    "name": "Los Angeles International",
+    "city": "Los Angeles",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/Los_Angeles"
+  },
+  "ORD": {
+    "name": "Chicago O'Hare",
+    "city": "Chicago",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/Chicago"
+  },
+  "MIA": {
+    "name": "Miami International",
+    "city": "Miami",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "ATL": {
+    "name": "Atlanta Hartsfield-Jackson",
+    "city": "Atlanta",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "IAD": {
+    "name": "Washington Dulles",
+    "city": "Washington DC",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "SFO": {
+    "name": "San Francisco International",
+    "city": "San Francisco",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/Los_Angeles"
+  },
+  "BOS": {
+    "name": "Boston Logan",
+    "city": "Boston",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/New_York"
+  },
+  "HOU": {
+    "name": "Houston Hobby",
+    "city": "Houston",
+    "country": "États-Unis",
+    "country_code": "US",
+    "continent": "NA",
+    "timezone": "America/Chicago"
+  },
+  "YYZ": {
+    "name": "Toronto Pearson",
+    "city": "Toronto",
+    "country": "Canada",
+    "country_code": "CA",
+    "continent": "NA",
+    "timezone": "America/Toronto"
+  },
+  "YUL": {
+    "name": "Montréal Trudeau",
+    "city": "Montréal",
+    "country": "Canada",
+    "country_code": "CA",
+    "continent": "NA",
+    "timezone": "America/Montreal"
+  },
+  "YVR": {
+    "name": "Vancouver International",
+    "city": "Vancouver",
+    "country": "Canada",
+    "country_code": "CA",
+    "continent": "NA",
+    "timezone": "America/Vancouver"
+  },
+  "MEX": {
+    "name": "Mexico Benito Juárez",
+    "city": "Mexico",
+    "country": "Mexique",
+    "country_code": "MX",
+    "continent": "NA",
+    "timezone": "America/Mexico_City"
+  },
+  "CUN": {
+    "name": "Cancún International",
+    "city": "Cancún",
+    "country": "Mexique",
+    "country_code": "MX",
+    "continent": "NA",
+    "timezone": "America/Cancun"
+  },
+  "GUA": {
+    "name": "Guatemala La Aurora",
+    "city": "Guatemala",
+    "country": "Guatemala",
+    "country_code": "GT",
+    "continent": "NA",
+    "timezone": "America/Guatemala"
+  },
+  "SAP": {
+    "name": "San Pedro Sula Ramón Villeda",
+    "city": "San Pedro Sula",
+    "country": "Honduras",
+    "country_code": "HN",
+    "continent": "NA",
+    "timezone": "America/Tegucigalpa"
+  },
+  "HAV": {
+    "name": "La Havane José Martí",
+    "city": "La Havane",
+    "country": "Cuba",
+    "country_code": "CU",
+    "continent": "NA",
+    "timezone": "America/Havana"
+  },
+  "PTY": {
+    "name": "Panama Tocumen",
+    "city": "Panama City",
+    "country": "Panama",
+    "country_code": "PA",
+    "continent": "NA",
+    "timezone": "America/Panama"
+  },
+  "BOG": {
+    "name": "Bogotá El Dorado",
+    "city": "Bogotá",
+    "country": "Colombie",
+    "country_code": "CO",
+    "continent": "SA",
+    "timezone": "America/Bogota"
+  },
+  "MDE": {
+    "name": "Medellín José María Córdova",
+    "city": "Medellín",
+    "country": "Colombie",
+    "country_code": "CO",
+    "continent": "SA",
+    "timezone": "America/Bogota"
+  },
+  "LIM": {
+    "name": "Lima Jorge Chávez",
+    "city": "Lima",
+    "country": "Pérou",
+    "country_code": "PE",
+    "continent": "SA",
+    "timezone": "America/Lima"
+  },
+  "GYE": {
+    "name": "Guayaquil José Joaquín de Olmedo",
+    "city": "Guayaquil",
+    "country": "Équateur",
+    "country_code": "EC",
+    "continent": "SA",
+    "timezone": "America/Guayaquil"
+  },
+  "SCL": {
+    "name": "Santiago Arturo Merino Benítez",
+    "city": "Santiago",
+    "country": "Chili",
+    "country_code": "CL",
+    "continent": "SA",
+    "timezone": "America/Santiago"
+  },
+  "EZE": {
+    "name": "Buenos Aires Ezeiza",
+    "city": "Buenos Aires",
+    "country": "Argentine",
+    "country_code": "AR",
+    "continent": "SA",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "GRU": {
+    "name": "São Paulo Guarulhos",
+    "city": "São Paulo",
+    "country": "Brésil",
+    "country_code": "BR",
+    "continent": "SA",
+    "timezone": "America/Sao_Paulo"
+  },
+  "GIG": {
+    "name": "Rio de Janeiro Galeão",
+    "city": "Rio de Janeiro",
+    "country": "Brésil",
+    "country_code": "BR",
+    "continent": "SA",
+    "timezone": "America/Sao_Paulo"
+  },
+  "BSB": {
+    "name": "Brasília International",
+    "city": "Brasília",
+    "country": "Brésil",
+    "country_code": "BR",
+    "continent": "SA",
+    "timezone": "America/Sao_Paulo"
+  },
+  "SSA": {
+    "name": "Salvador Deputado Luís Eduardo Magalhães",
+    "city": "Salvador",
+    "country": "Brésil",
+    "country_code": "BR",
+    "continent": "SA",
+    "timezone": "America/Bahia"
+  },
+  "FOR": {
+    "name": "Fortaleza Pinto Martins",
+    "city": "Fortaleza",
+    "country": "Brésil",
+    "country_code": "BR",
+    "continent": "SA",
+    "timezone": "America/Fortaleza"
+  },
+  "CCS": {
+    "name": "Caracas Simón Bolívar",
+    "city": "Caracas",
+    "country": "Venezuela",
+    "country_code": "VE",
+    "continent": "SA",
+    "timezone": "America/Caracas"
+  },
+  "UIO": {
+    "name": "Quito Mariscal Sucre",
+    "city": "Quito",
+    "country": "Équateur",
+    "country_code": "EC",
+    "continent": "SA",
+    "timezone": "America/Guayaquil"
+  },
+  "DXB": {
+    "name": "Dubaï International",
+    "city": "Dubaï",
+    "country": "Émirats arabes unis",
+    "country_code": "AE",
+    "continent": "AS",
+    "timezone": "Asia/Dubai"
+  },
+  "AUH": {
+    "name": "Abu Dhabi International",
+    "city": "Abu Dhabi",
+    "country": "Émirats arabes unis",
+    "country_code": "AE",
+    "continent": "AS",
+    "timezone": "Asia/Dubai"
+  },
+  "DOH": {
+    "name": "Doha Hamad International",
+    "city": "Doha",
+    "country": "Qatar",
+    "country_code": "QA",
+    "continent": "AS",
+    "timezone": "Asia/Qatar"
+  },
+  "RUH": {
+    "name": "Riyad King Khalid",
+    "city": "Riyad",
+    "country": "Arabie saoudite",
+    "country_code": "SA",
+    "continent": "AS",
+    "timezone": "Asia/Riyadh"
+  },
+  "JED": {
+    "name": "Djeddah King Abdulaziz",
+    "city": "Djeddah",
+    "country": "Arabie saoudite",
+    "country_code": "SA",
+    "continent": "AS",
+    "timezone": "Asia/Riyadh"
+  },
+  "KWI": {
+    "name": "Koweït International",
+    "city": "Koweït",
+    "country": "Koweït",
+    "country_code": "KW",
+    "continent": "AS",
+    "timezone": "Asia/Kuwait"
+  },
+  "BAH": {
+    "name": "Bahreïn International",
+    "city": "Manama",
+    "country": "Bahreïn",
+    "country_code": "BH",
+    "continent": "AS",
+    "timezone": "Asia/Bahrain"
+  },
+  "MCT": {
+    "name": "Mascate Seeb",
+    "city": "Mascate",
+    "country": "Oman",
+    "country_code": "OM",
+    "continent": "AS",
+    "timezone": "Asia/Muscat"
+  },
+  "BEY": {
+    "name": "Beyrouth Rafic Hariri",
+    "city": "Beyrouth",
+    "country": "Liban",
+    "country_code": "LB",
+    "continent": "AS",
+    "timezone": "Asia/Beirut"
+  },
+  "AMM": {
+    "name": "Amman Queen Alia",
+    "city": "Amman",
+    "country": "Jordanie",
+    "country_code": "JO",
+    "continent": "AS",
+    "timezone": "Asia/Amman"
+  },
+  "TLV": {
+    "name": "Tel Aviv Ben Gourion",
+    "city": "Tel Aviv",
+    "country": "Israël",
+    "country_code": "IL",
+    "continent": "AS",
+    "timezone": "Asia/Jerusalem"
+  },
+  "IKA": {
+    "name": "Téhéran Imam Khomeini",
+    "city": "Téhéran",
+    "country": "Iran",
+    "country_code": "IR",
+    "continent": "AS",
+    "timezone": "Asia/Tehran"
+  },
+  "KHI": {
+    "name": "Karachi Jinnah",
+    "city": "Karachi",
+    "country": "Pakistan",
+    "country_code": "PK",
+    "continent": "AS",
+    "timezone": "Asia/Karachi"
+  },
+  "LHE": {
+    "name": "Lahore Allama Iqbal",
+    "city": "Lahore",
+    "country": "Pakistan",
+    "country_code": "PK",
+    "continent": "AS",
+    "timezone": "Asia/Karachi"
+  },
+  "ISB": {
+    "name": "Islamabad Benazir Bhutto",
+    "city": "Islamabad",
+    "country": "Pakistan",
+    "country_code": "PK",
+    "continent": "AS",
+    "timezone": "Asia/Karachi"
+  },
+  "DEL": {
+    "name": "Delhi Indira Gandhi",
+    "city": "New Delhi",
+    "country": "Inde",
+    "country_code": "IN",
+    "continent": "AS",
+    "timezone": "Asia/Kolkata"
+  },
+  "BOM": {
+    "name": "Mumbai Chhatrapati Shivaji",
+    "city": "Mumbai",
+    "country": "Inde",
+    "country_code": "IN",
+    "continent": "AS",
+    "timezone": "Asia/Kolkata"
+  },
+  "BLR": {
+    "name": "Bangalore Kempegowda",
+    "city": "Bangalore",
+    "country": "Inde",
+    "country_code": "IN",
+    "continent": "AS",
+    "timezone": "Asia/Kolkata"
+  },
+  "MAA": {
+    "name": "Chennai International",
+    "city": "Chennai",
+    "country": "Inde",
+    "country_code": "IN",
+    "continent": "AS",
+    "timezone": "Asia/Kolkata"
+  },
+  "HYD": {
+    "name": "Hyderabad Rajiv Gandhi",
+    "city": "Hyderabad",
+    "country": "Inde",
+    "country_code": "IN",
+    "continent": "AS",
+    "timezone": "Asia/Kolkata"
+  },
+  "CMB": {
+    "name": "Colombo Bandaranaike",
+    "city": "Colombo",
+    "country": "Sri Lanka",
+    "country_code": "LK",
+    "continent": "AS",
+    "timezone": "Asia/Colombo"
+  },
+  "DAC": {
+    "name": "Dhaka Hazrat Shahjalal",
+    "city": "Dhaka",
+    "country": "Bangladesh",
+    "country_code": "BD",
+    "continent": "AS",
+    "timezone": "Asia/Dhaka"
+  },
+  "KTM": {
+    "name": "Katmandou Tribhuvan",
+    "city": "Katmandou",
+    "country": "Népal",
+    "country_code": "NP",
+    "continent": "AS",
+    "timezone": "Asia/Kathmandu"
+  },
+  "PEK": {
+    "name": "Pékin Capital",
+    "city": "Pékin",
+    "country": "Chine",
+    "country_code": "CN",
+    "continent": "AS",
+    "timezone": "Asia/Shanghai"
+  },
+  "PVG": {
+    "name": "Shanghai Pudong",
+    "city": "Shanghai",
+    "country": "Chine",
+    "country_code": "CN",
+    "continent": "AS",
+    "timezone": "Asia/Shanghai"
+  },
+  "CAN": {
+    "name": "Guangzhou Baiyun",
+    "city": "Guangzhou",
+    "country": "Chine",
+    "country_code": "CN",
+    "continent": "AS",
+    "timezone": "Asia/Shanghai"
+  },
+  "HKG": {
+    "name": "Hong Kong International",
+    "city": "Hong Kong",
+    "country": "Hong Kong",
+    "country_code": "HK",
+    "continent": "AS",
+    "timezone": "Asia/Hong_Kong"
+  },
+  "TPE": {
+    "name": "Taipei Taoyuan",
+    "city": "Taipei",
+    "country": "Taïwan",
+    "country_code": "TW",
+    "continent": "AS",
+    "timezone": "Asia/Taipei"
+  },
+  "ICN": {
+    "name": "Séoul Incheon",
+    "city": "Séoul",
+    "country": "Corée du Sud",
+    "country_code": "KR",
+    "continent": "AS",
+    "timezone": "Asia/Seoul"
+  },
+  "NRT": {
+    "name": "Tokyo Narita",
+    "city": "Tokyo",
+    "country": "Japon",
+    "country_code": "JP",
+    "continent": "AS",
+    "timezone": "Asia/Tokyo"
+  },
+  "HND": {
+    "name": "Tokyo Haneda",
+    "city": "Tokyo",
+    "country": "Japon",
+    "country_code": "JP",
+    "continent": "AS",
+    "timezone": "Asia/Tokyo"
+  },
+  "KIX": {
+    "name": "Osaka Kansai",
+    "city": "Osaka",
+    "country": "Japon",
+    "country_code": "JP",
+    "continent": "AS",
+    "timezone": "Asia/Tokyo"
+  },
+  "SIN": {
+    "name": "Singapour Changi",
+    "city": "Singapour",
+    "country": "Singapour",
+    "country_code": "SG",
+    "continent": "AS",
+    "timezone": "Asia/Singapore"
+  },
+  "KUL": {
+    "name": "Kuala Lumpur International",
+    "city": "Kuala Lumpur",
+    "country": "Malaisie",
+    "country_code": "MY",
+    "continent": "AS",
+    "timezone": "Asia/Kuala_Lumpur"
+  },
+  "CGK": {
+    "name": "Jakarta Soekarno-Hatta",
+    "city": "Jakarta",
+    "country": "Indonésie",
+    "country_code": "ID",
+    "continent": "AS",
+    "timezone": "Asia/Jakarta"
+  },
+  "BKK": {
+    "name": "Bangkok Suvarnabhumi",
+    "city": "Bangkok",
+    "country": "Thaïlande",
+    "country_code": "TH",
+    "continent": "AS",
+    "timezone": "Asia/Bangkok"
+  },
+  "MNL": {
+    "name": "Manille Ninoy Aquino",
+    "city": "Manille",
+    "country": "Philippines",
+    "country_code": "PH",
+    "continent": "AS",
+    "timezone": "Asia/Manila"
+  },
+  "SGN": {
+    "name": "Ho Chi Minh Tan Son Nhat",
+    "city": "Hô Chi Minh-Ville",
+    "country": "Vietnam",
+    "country_code": "VN",
+    "continent": "AS",
+    "timezone": "Asia/Ho_Chi_Minh"
+  },
+  "HAN": {
+    "name": "Hanoï Noi Bai",
+    "city": "Hanoï",
+    "country": "Vietnam",
+    "country_code": "VN",
+    "continent": "AS",
+    "timezone": "Asia/Hanoi"
+  },
+  "RGN": {
+    "name": "Rangoun Hanthawaddy",
+    "city": "Rangoun",
+    "country": "Myanmar",
+    "country_code": "MM",
+    "continent": "AS",
+    "timezone": "Asia/Rangoon"
+  },
+  "PNH": {
+    "name": "Phnom Penh Pochentong",
+    "city": "Phnom Penh",
+    "country": "Cambodge",
+    "country_code": "KH",
+    "continent": "AS",
+    "timezone": "Asia/Phnom_Penh"
+  },
+  "SYD": {
+    "name": "Sydney Kingsford Smith",
+    "city": "Sydney",
+    "country": "Australie",
+    "country_code": "AU",
+    "continent": "OC",
+    "timezone": "Australia/Sydney"
+  },
+  "MEL": {
+    "name": "Melbourne Tullamarine",
+    "city": "Melbourne",
+    "country": "Australie",
+    "country_code": "AU",
+    "continent": "OC",
+    "timezone": "Australia/Melbourne"
+  },
+  "BNE": {
+    "name": "Brisbane Airport",
+    "city": "Brisbane",
+    "country": "Australie",
+    "country_code": "AU",
+    "continent": "OC",
+    "timezone": "Australia/Brisbane"
+  },
+  "PER": {
+    "name": "Perth Airport",
+    "city": "Perth",
+    "country": "Australie",
+    "country_code": "AU",
+    "continent": "OC",
+    "timezone": "Australia/Perth"
+  },
+  "AKL": {
+    "name": "Auckland Airport",
+    "city": "Auckland",
+    "country": "Nouvelle-Zélande",
+    "country_code": "NZ",
+    "continent": "OC",
+    "timezone": "Pacific/Auckland"
+  },
+  "NAN": {
+    "name": "Nadi International",
+    "city": "Nadi",
+    "country": "Fidji",
+    "country_code": "FJ",
+    "continent": "OC",
+    "timezone": "Pacific/Fiji"
+  },
+  "DSS": {
+    "name": "Dakar Blaise Diagne",
+    "city": "Dakar",
+    "country": "Sénégal",
+    "country_code": "SN",
+    "continent": "AF",
+    "timezone": "Africa/Dakar"
+  },
+  "ABJ": {
+    "name": "Abidjan Félix Houphouët-Boigny",
+    "city": "Abidjan",
+    "country": "Côte d'Ivoire",
+    "country_code": "CI",
+    "continent": "AF",
+    "timezone": "Africa/Abidjan"
+  },
+  "LBV": {
+    "name": "Libreville Léon M'ba",
+    "city": "Libreville",
+    "country": "Gabon",
+    "country_code": "GA",
+    "continent": "AF",
+    "timezone": "Africa/Libreville"
+  },
+  "DLA": {
+    "name": "Douala International",
+    "city": "Douala",
+    "country": "Cameroun",
+    "country_code": "CM",
+    "continent": "AF",
+    "timezone": "Africa/Douala"
+  },
+  "YAO": {
+    "name": "Yaoundé Nsimalen",
+    "city": "Yaoundé",
+    "country": "Cameroun",
+    "country_code": "CM",
+    "continent": "AF",
+    "timezone": "Africa/Douala"
+  },
+  "BZV": {
+    "name": "Brazzaville Maya-Maya",
+    "city": "Brazzaville",
+    "country": "Congo",
+    "country_code": "CG",
+    "continent": "AF",
+    "timezone": "Africa/Brazzaville"
+  },
+  "FIH": {
+    "name": "Kinshasa N'Djili",
+    "city": "Kinshasa",
+    "country": "RD Congo",
+    "country_code": "CD",
+    "continent": "AF",
+    "timezone": "Africa/Kinshasa"
+  },
+  "LFW": {
+    "name": "Lomé Gnassingbé Eyadéma",
+    "city": "Lomé",
+    "country": "Togo",
+    "country_code": "TG",
+    "continent": "AF",
+    "timezone": "Africa/Lome"
+  },
+  "COO": {
+    "name": "Cotonou Cadjehoun",
+    "city": "Cotonou",
+    "country": "Bénin",
+    "country_code": "BJ",
+    "continent": "AF",
+    "timezone": "Africa/Porto-Novo"
+  },
+  "NIM": {
+    "name": "Niamey Diori Hamani",
+    "city": "Niamey",
+    "country": "Niger",
+    "country_code": "NE",
+    "continent": "AF",
+    "timezone": "Africa/Niamey"
+  },
+  "OUA": {
+    "name": "Ouagadougou Thomas Sankara",
+    "city": "Ouagadougou",
+    "country": "Burkina Faso",
+    "country_code": "BF",
+    "continent": "AF",
+    "timezone": "Africa/Ouagadougou"
+  },
+  "BKO": {
+    "name": "Bamako Modibo Kéïta",
+    "city": "Bamako",
+    "country": "Mali",
+    "country_code": "ML",
+    "continent": "AF",
+    "timezone": "Africa/Bamako"
+  },
+  "CKY": {
+    "name": "Conakry Ahmed Sékou Touré",
+    "city": "Conakry",
+    "country": "Guinée",
+    "country_code": "GN",
+    "continent": "AF",
+    "timezone": "Africa/Conakry"
+  },
+  "FNA": {
+    "name": "Freetown Lungi",
+    "city": "Freetown",
+    "country": "Sierra Leone",
+    "country_code": "SL",
+    "continent": "AF",
+    "timezone": "Africa/Freetown"
+  },
+  "ROB": {
+    "name": "Monrovia Roberts",
+    "city": "Monrovia",
+    "country": "Libéria",
+    "country_code": "LR",
+    "continent": "AF",
+    "timezone": "Africa/Monrovia"
+  },
+  "ACC": {
+    "name": "Accra Kotoka",
+    "city": "Accra",
+    "country": "Ghana",
+    "country_code": "GH",
+    "continent": "AF",
+    "timezone": "Africa/Accra"
+  },
+  "LOS": {
+    "name": "Lagos Murtala Muhammed",
+    "city": "Lagos",
+    "country": "Nigeria",
+    "country_code": "NG",
+    "continent": "AF",
+    "timezone": "Africa/Lagos"
+  },
+  "ABV": {
+    "name": "Abuja Nnamdi Azikiwe",
+    "city": "Abuja",
+    "country": "Nigeria",
+    "country_code": "NG",
+    "continent": "AF",
+    "timezone": "Africa/Lagos"
+  },
+  "PHC": {
+    "name": "Port Harcourt International",
+    "city": "Port Harcourt",
+    "country": "Nigeria",
+    "country_code": "NG",
+    "continent": "AF",
+    "timezone": "Africa/Lagos"
+  },
+  "KAN": {
+    "name": "Kano Mallam Aminu Kano",
+    "city": "Kano",
+    "country": "Nigeria",
+    "country_code": "NG",
+    "continent": "AF",
+    "timezone": "Africa/Lagos"
+  },
+  "NDJ": {
+    "name": "N'Djamena Hassan Djamous",
+    "city": "N'Djamena",
+    "country": "Tchad",
+    "country_code": "TD",
+    "continent": "AF",
+    "timezone": "Africa/Ndjamena"
+  },
+  "BGF": {
+    "name": "Bangui M'Poko",
+    "city": "Bangui",
+    "country": "RCA",
+    "country_code": "CF",
+    "continent": "AF",
+    "timezone": "Africa/Bangui"
+  },
+  "SSG": {
+    "name": "Malabo Santa Isabel",
+    "city": "Malabo",
+    "country": "Guinée équatoriale",
+    "country_code": "GQ",
+    "continent": "AF",
+    "timezone": "Africa/Malabo"
+  },
+  "STP": {
+    "name": "São Tomé International",
+    "city": "São Tomé",
+    "country": "São Tomé-et-Príncipe",
+    "country_code": "ST",
+    "continent": "AF",
+    "timezone": "Africa/Sao_Tome"
+  },
+  "CMN": {
+    "name": "Casablanca Mohammed V",
+    "city": "Casablanca",
+    "country": "Maroc",
+    "country_code": "MA",
+    "continent": "AF",
+    "timezone": "Africa/Casablanca"
+  },
+  "RAK": {
+    "name": "Marrakech Menara",
+    "city": "Marrakech",
+    "country": "Maroc",
+    "country_code": "MA",
+    "continent": "AF",
+    "timezone": "Africa/Casablanca"
+  },
+  "TNG": {
+    "name": "Tanger Ibn Batouta",
+    "city": "Tanger",
+    "country": "Maroc",
+    "country_code": "MA",
+    "continent": "AF",
+    "timezone": "Africa/Casablanca"
+  },
+  "ALG": {
+    "name": "Alger Houari Boumédiène",
+    "city": "Alger",
+    "country": "Algérie",
+    "country_code": "DZ",
+    "continent": "AF",
+    "timezone": "Africa/Algiers"
+  },
+  "ORN": {
+    "name": "Oran Ahmed Ben Bella",
+    "city": "Oran",
+    "country": "Algérie",
+    "country_code": "DZ",
+    "continent": "AF",
+    "timezone": "Africa/Algiers"
+  },
+  "TUN": {
+    "name": "Tunis Carthage",
+    "city": "Tunis",
+    "country": "Tunisie",
+    "country_code": "TN",
+    "continent": "AF",
+    "timezone": "Africa/Tunis"
+  },
+  "CAI": {
+    "name": "Le Caire International",
+    "city": "Le Caire",
+    "country": "Égypte",
+    "country_code": "EG",
+    "continent": "AF",
+    "timezone": "Africa/Cairo"
+  },
+  "HRG": {
+    "name": "Hurghada International",
+    "city": "Hurghada",
+    "country": "Égypte",
+    "country_code": "EG",
+    "continent": "AF",
+    "timezone": "Africa/Cairo"
+  },
+  "SSH": {
+    "name": "Charm el-Cheikh Sharm",
+    "city": "Charm el-Cheikh",
+    "country": "Égypte",
+    "country_code": "EG",
+    "continent": "AF",
+    "timezone": "Africa/Cairo"
+  },
+  "TRP": {
+    "name": "Tripoli Mitiga",
+    "city": "Tripoli",
+    "country": "Libye",
+    "country_code": "LY",
+    "continent": "AF",
+    "timezone": "Africa/Tripoli"
+  },
+  "KRT": {
+    "name": "Khartoum International",
+    "city": "Khartoum",
+    "country": "Soudan",
+    "country_code": "SD",
+    "continent": "AF",
+    "timezone": "Africa/Khartoum"
+  },
+  "ADD": {
+    "name": "Addis-Abeba Bole",
+    "city": "Addis-Abeba",
+    "country": "Éthiopie",
+    "country_code": "ET",
+    "continent": "AF",
+    "timezone": "Africa/Addis_Ababa"
+  },
+  "JIB": {
+    "name": "Djibouti Ambouli",
+    "city": "Djibouti",
+    "country": "Djibouti",
+    "country_code": "DJ",
+    "continent": "AF",
+    "timezone": "Africa/Djibouti"
+  },
+  "MGQ": {
+    "name": "Mogadiscio Aden Adde",
+    "city": "Mogadiscio",
+    "country": "Somalie",
+    "country_code": "SO",
+    "continent": "AF",
+    "timezone": "Africa/Mogadishu"
+  },
+  "NBO": {
+    "name": "Nairobi Jomo Kenyatta",
+    "city": "Nairobi",
+    "country": "Kenya",
+    "country_code": "KE",
+    "continent": "AF",
+    "timezone": "Africa/Nairobi"
+  },
+  "MBA": {
+    "name": "Mombasa Moi",
+    "city": "Mombasa",
+    "country": "Kenya",
+    "country_code": "KE",
+    "continent": "AF",
+    "timezone": "Africa/Nairobi"
+  },
+  "EBB": {
+    "name": "Kampala Entebbe",
+    "city": "Kampala",
+    "country": "Ouganda",
+    "country_code": "UG",
+    "continent": "AF",
+    "timezone": "Africa/Kampala"
+  },
+  "KGL": {
+    "name": "Kigali Bugesera",
+    "city": "Kigali",
+    "country": "Rwanda",
+    "country_code": "RW",
+    "continent": "AF",
+    "timezone": "Africa/Kigali"
+  },
+  "BJM": {
+    "name": "Bujumbura International",
+    "city": "Bujumbura",
+    "country": "Burundi",
+    "country_code": "BI",
+    "continent": "AF",
+    "timezone": "Africa/Bujumbura"
+  },
+  "DAR": {
+    "name": "Dar es Salaam Julius Nyerere",
+    "city": "Dar es Salaam",
+    "country": "Tanzanie",
+    "country_code": "TZ",
+    "continent": "AF",
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  "ZNZ": {
+    "name": "Zanzibar Abeid Amani Karume",
+    "city": "Zanzibar",
+    "country": "Tanzanie",
+    "country_code": "TZ",
+    "continent": "AF",
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  "LLW": {
+    "name": "Lilongwe Kamuzu",
+    "city": "Lilongwe",
+    "country": "Malawi",
+    "country_code": "MW",
+    "continent": "AF",
+    "timezone": "Africa/Blantyre"
+  },
+  "LUN": {
+    "name": "Lusaka Kenneth Kaunda",
+    "city": "Lusaka",
+    "country": "Zambie",
+    "country_code": "ZM",
+    "continent": "AF",
+    "timezone": "Africa/Lusaka"
+  },
+  "HRE": {
+    "name": "Harare Robert Gabriel Mugabe",
+    "city": "Harare",
+    "country": "Zimbabwe",
+    "country_code": "ZW",
+    "continent": "AF",
+    "timezone": "Africa/Harare"
+  },
+  "MPM": {
+    "name": "Maputo International",
+    "city": "Maputo",
+    "country": "Mozambique",
+    "country_code": "MZ",
+    "continent": "AF",
+    "timezone": "Africa/Maputo"
+  },
+  "WDH": {
+    "name": "Windhoek Hosea Kutako",
+    "city": "Windhoek",
+    "country": "Namibie",
+    "country_code": "NA",
+    "continent": "AF",
+    "timezone": "Africa/Windhoek"
+  },
+  "GBE": {
+    "name": "Gaborone Sir Seretse Khama",
+    "city": "Gaborone",
+    "country": "Botswana",
+    "country_code": "BW",
+    "continent": "AF",
+    "timezone": "Africa/Gaborone"
+  },
+  "JNB": {
+    "name": "Johannesburg O.R. Tambo",
+    "city": "Johannesburg",
+    "country": "Afrique du Sud",
+    "country_code": "ZA",
+    "continent": "AF",
+    "timezone": "Africa/Johannesburg"
+  },
+  "CPT": {
+    "name": "Le Cap International",
+    "city": "Le Cap",
+    "country": "Afrique du Sud",
+    "country_code": "ZA",
+    "continent": "AF",
+    "timezone": "Africa/Johannesburg"
+  },
+  "DUR": {
+    "name": "Durban King Shaka",
+    "city": "Durban",
+    "country": "Afrique du Sud",
+    "country_code": "ZA",
+    "continent": "AF",
+    "timezone": "Africa/Johannesburg"
+  },
+  "MRU": {
+    "name": "Maurice Sir Seewoosagur Ramgoolam",
+    "city": "Port-Louis",
+    "country": "Maurice",
+    "country_code": "MU",
+    "continent": "AF",
+    "timezone": "Indian/Mauritius"
+  },
+  "RUN": {
+    "name": "La Réunion Roland Garros",
+    "city": "Saint-Denis",
+    "country": "La Réunion",
+    "country_code": "RE",
+    "continent": "AF",
+    "timezone": "Indian/Reunion"
+  },
+  "TNR": {
+    "name": "Antananarivo Ivato",
+    "city": "Antananarivo",
+    "country": "Madagascar",
+    "country_code": "MG",
+    "continent": "AF",
+    "timezone": "Indian/Antananarivo"
+  },
+  "SEZ": {
+    "name": "Mahé Seychelles International",
+    "city": "Victoria",
+    "country": "Seychelles",
+    "country_code": "SC",
+    "continent": "AF",
+    "timezone": "Indian/Mahe"
+  },
+  "RAI": {
+    "name": "Praia Nelson Mandela",
+    "city": "Praia",
+    "country": "Cap-Vert",
+    "country_code": "CV",
+    "continent": "AF",
+    "timezone": "Atlantic/Cape_Verde"
+  },
+  "SID": {
+    "name": "Mindelo Cesária Évora",
+    "city": "Mindelo",
+    "country": "Cap-Vert",
+    "country_code": "CV",
+    "continent": "AF",
+    "timezone": "Atlantic/Cape_Verde"
+  },
+  "OXB": {
+    "name": "Bissau Osvaldo Vieira",
+    "city": "Bissau",
+    "country": "Guinée-Bissau",
+    "country_code": "GW",
+    "continent": "AF",
+    "timezone": "Africa/Bissau"
+  },
+  "BXO": {
+    "name": "Bissau Inassa",
+    "city": "Bissau",
+    "country": "Guinée-Bissau",
+    "country_code": "GW",
+    "continent": "AF",
+    "timezone": "Africa/Bissau"
+  },
+  "ASM": {
+    "name": "Asmara International",
+    "city": "Asmara",
+    "country": "Érythrée",
+    "country_code": "ER",
+    "continent": "AF",
+    "timezone": "Africa/Asmara"
+  },
+  "DKR": {
+    "name": "Dakar Léopold Sédar Senghor (ancien)",
+    "city": "Dakar",
+    "country": "Sénégal",
+    "country_code": "SN",
+    "continent": "AF",
+    "timezone": "Africa/Dakar"
+  },
+  "MBJ": {
+    "name": "Montego Bay Sangster",
+    "city": "Montego Bay",
+    "country": "Jamaïque",
+    "country_code": "JM",
+    "continent": "NA",
+    "timezone": "America/Jamaica"
+  },
+  "POS": {
+    "name": "Port of Spain Piarco",
+    "city": "Port of Spain",
+    "country": "Trinité-et-Tobago",
+    "country_code": "TT",
+    "continent": "NA",
+    "timezone": "America/Port_of_Spain"
+  },
+  "PTP": {
+    "name": "Pointe-à-Pitre Pôle Caraïbes",
+    "city": "Pointe-à-Pitre",
+    "country": "Guadeloupe",
+    "country_code": "GP",
+    "continent": "NA",
+    "timezone": "America/Guadeloupe"
+  },
+  "FDF": {
+    "name": "Fort-de-France Aimé Césaire",
+    "city": "Fort-de-France",
+    "country": "Martinique",
+    "country_code": "MQ",
+    "continent": "NA",
+    "timezone": "America/Martinique"
+  },
+  "CAY": {
+    "name": "Cayenne Félix Eboué",
+    "city": "Cayenne",
+    "country": "Guyane française",
+    "country_code": "GF",
+    "continent": "SA",
+    "timezone": "America/Cayenne"
+  },
+  "SDQ": {
+    "name": "Saint-Domingue Las Américas",
+    "city": "Saint-Domingue",
+    "country": "République dominicaine",
+    "country_code": "DO",
+    "continent": "NA",
+    "timezone": "America/Santo_Domingo"
+  },
+  "PAP": {
+    "name": "Port-au-Prince Toussaint Louverture",
+    "city": "Port-au-Prince",
+    "country": "Haïti",
+    "country_code": "HT",
+    "continent": "NA",
+    "timezone": "America/Port-au-Prince"
+  },
+  "MBE": {
+    "name": "Mbeya Airport",
+    "city": "Mbeya",
+    "country": "Tanzanie",
+    "country_code": "TZ",
+    "continent": "AF",
+    "timezone": "Africa/Dar_es_Salaam"
+  },
+  "GOM": {
+    "name": "Goma International",
+    "city": "Goma",
+    "country": "RD Congo",
+    "country_code": "CD",
+    "continent": "AF",
+    "timezone": "Africa/Lubumbashi"
+  },
+  "ANR": {
+    "name": "Anvers International",
+    "city": "Anvers",
+    "country": "Belgique",
+    "country_code": "BE",
+    "continent": "EU",
+    "timezone": "Europe/Brussels"
+  },
+  "TXL": {
+    "name": "Toulouse Blagnac 2",
+    "city": "Toulouse",
+    "country": "France",
+    "country_code": "FR",
+    "continent": "EU",
+    "timezone": "Europe/Paris"
+  }
+}

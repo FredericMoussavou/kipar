@@ -52,7 +52,9 @@
     "trip_not_in_transit": "Le trajet doit être en transit pour signaler un bagage perdu",
     "insurance_already_subscribed": "Vous avez déjà souscrit une assurance pour ce colis",
     "insurance_not_found": "Assurance introuvable",
-    "insurance_booking_not_accepted": "La réservation doit être acceptée pour souscrire une assurance"
+    "insurance_booking_not_accepted": "La réservation doit être acceptée pour souscrire une assurance",
+    "airport_not_found": "Aéroport {code} introuvable",
+    "airport_iata_invalid": "Code IATA {code} non reconnu — utilisez la recherche d'aéroports"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

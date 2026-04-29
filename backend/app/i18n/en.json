@@ -52,7 +52,8 @@
     "trip_not_in_transit": "Trip must be in transit to report lost luggage",
     "insurance_already_subscribed": "You have already subscribed to insurance for this package",
     "insurance_not_found": "Insurance not found",
-    "insurance_booking_not_accepted": "Booking must be accepted before subscribing to insurance"
+    "insurance_booking_not_accepted": "Booking must be accepted before subscribing to insurance",
+    "airport_iata_invalid": "IATA code {code} not recognized — use the airport search"
       },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -67,7 +68,8 @@
     "claim_opened": "Claim opened — our team will contact you within 48h",
     "claim_resolved": "Claim resolved",
     "insurance_subscribed": "Insurance subscribed — your package is covered up to {amount}€",
-    "insurance_cancelled": "Insurance cancelled — refund in progress"
+    "insurance_cancelled": "Insurance cancelled — refund in progress",
+    "airport_not_found": "Airport {code} not found"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
@@ -11,6 +12,7 @@ from app.core.rate_limit import limiter, rate_limit_handler
 from app.core.logging_config import setup_logging
 from app.core.sentry import setup_sentry
 from app.api.v1.router import api_router
+from app.i18n.loader import t
 
 
 @asynccontextmanager
@@ -27,6 +29,35 @@ app = FastAPI(
     docs_url="/docs" if not settings.is_production else None,
     redoc_url="/redoc" if not settings.is_production else None,
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Intercepte les erreurs de validation Pydantic.
+    Traduit les erreurs IATA_INVALID dans la langue de la requête.
+    """
+    lang = request.headers.get("Accept-Language", "fr")[:2]
+    errors = []
+
+    for error in exc.errors():
+        msg = error.get("msg", "")
+
+        # Traduit l'erreur IATA
+        if "IATA_INVALID:" in msg:
+            code = msg.split("IATA_INVALID:")[1].strip()
+            msg = t("errors.airport_iata_invalid", lang, code=code)
+
+        errors.append({
+            "field": " → ".join(str(x) for x in error.get("loc", [])),
+            "message": msg,
+        })
+
+    return JSONResponse(
+        status_code=422,
+        content={"detail": errors}
+    )
+
 
 # Rate limiting
 app.state.limiter = limiter

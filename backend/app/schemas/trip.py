@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 from datetime import date
 import uuid
+from app.services.airport_service import validate_iata
 
 
 class TripCreate(BaseModel):
@@ -17,9 +18,11 @@ class TripCreate(BaseModel):
 
     @field_validator("origin_airport_code", "destination_airport_code")
     @classmethod
-    def uppercase_iata(cls, v: str) -> str:
-        """Les codes IATA sont toujours en majuscules — CDG, DSS, LBV."""
-        return v.upper().strip()
+    def validate_iata_code(cls, v: str) -> str:
+        code = v.upper().strip()
+        if not validate_iata(code):
+            raise ValueError(f"IATA_INVALID:{code}")
+        return code
 
     @field_validator("total_kg", "max_kg_per_package", "price_per_kg")
     @classmethod

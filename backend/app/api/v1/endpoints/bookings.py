@@ -12,7 +12,7 @@ from app.models.trip import Trip
 from app.models.package import Package
 from app.models.booking import Booking
 from app.models.receiver_invitation import ReceiverInvitation
-from app.schemas.booking import BookingCreate, BookingResponse
+from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse
 from app.i18n.loader import t
 from app.services.notification_service import notify_booking_received, notify_booking_accepted
 
@@ -225,3 +225,59 @@ async def list_my_bookings_detailed(
         )
         responses.append(resp)
     return responses
+
+
+@router.get("/{booking_id}/full", response_model=BookingDetailResponse)
+async def get_booking_full(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Détail complet d'une réservation — transporteur, récepteur, colis, KiparScan."""
+    from app.models.package import Package
+    from app.models.trip import Trip
+    from app.schemas.booking import BookingDetailResponse
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = result.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if current_user.id not in (b.sender_id, b.receiver_id):
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
+    pkg = pkg_result.scalar_one_or_none()
+    trip_result = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    carrier = None
+    if trip:
+        carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
+        carrier = carrier_result.scalar_one_or_none()
+    receiver = None
+    if b.receiver_id:
+        receiver_result = await db.execute(select(User).where(User.id == b.receiver_id))
+        receiver = receiver_result.scalar_one_or_none()
+
+    return BookingDetailResponse(
+        id=b.id, trip_id=b.trip_id, package_id=b.package_id,
+        sender_id=b.sender_id, receiver_id=b.receiver_id,
+        amount=b.amount, insurance_subscribed=b.insurance_subscribed,
+        status=b.status, payment_rail=b.payment_rail,
+        weight_kg=pkg.weight_kg if pkg else None,
+        content_description=pkg.content_description if pkg else None,
+        declared_value=pkg.declared_value if pkg else None,
+        ai_scan_result=pkg.ai_scan_result if pkg else None,
+        ai_prohibited_flag=pkg.ai_prohibited_flag if pkg else None,
+        origin_airport_code=trip.origin_airport_code if trip else None,
+        destination_airport_code=trip.destination_airport_code if trip else None,
+        departure_date=str(trip.departure_date) if trip else None,
+        flight_number=trip.flight_number if trip else None,
+        carrier_first_name=carrier.first_name if carrier else None,
+        carrier_last_name=carrier.last_name if carrier else None,
+        carrier_trust_score=carrier.trust_score if carrier else None,
+        carrier_kyc_status=carrier.kyc_status if carrier else None,
+        receiver_first_name=receiver.first_name if receiver else None,
+        receiver_last_name=receiver.last_name if receiver else None,
+        receiver_email=receiver.email if receiver else None,
+    )

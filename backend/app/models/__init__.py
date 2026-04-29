@@ -6,9 +6,10 @@ from app.models.message import Conversation, Message
 from app.models.flight import FlightTracking
 from app.models.review import Review
 from app.models.claim import Claim
+from app.models.receiver_invitation import ReceiverInvitation
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
     "Conversation", "Message", "FlightTracking",
-    "Review", "Claim",
+    "Review", "Claim", "ReceiverInvitation",
 ]

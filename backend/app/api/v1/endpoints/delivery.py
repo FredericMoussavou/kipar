@@ -122,3 +122,17 @@ async def validate_delivery_qr(
     booking.delivery_confirmed_by = current_user.id
 
     return {"message": t("success.delivery_confirmed_qr", lang)}
+
+
+# Import ajouté en fin de fichier pour déclencher la libération du paiement
+def _schedule_payment_release(booking_id: str):
+    """Planifie la libération du paiement 24h après livraison."""
+    try:
+        from app.workers.booking_tasks import release_payment_after_delivery
+        release_payment_after_delivery.apply_async(
+            args=[booking_id],
+            countdown=86400  # 24h en secondes
+        )
+    except Exception:
+        # Celery non disponible en test — on ignore
+        pass

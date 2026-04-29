@@ -49,7 +49,10 @@
     "flight_landed": "Le transporteur est arrivé — la remise du colis peut avoir lieu",
     "flight_delayed": "Vol retardé — nouvelle arrivée estimée : {arrival}",
     "delivery_confirmed_sender": "Votre colis a été remis avec succès",
-    "delivery_confirmed_carrier": "Remise confirmée — paiement en cours de virement"
+    "delivery_confirmed_carrier": "Remise confirmée — paiement en cours de virement",
+    "booking_expired": "Votre demande a expiré — le transporteur n'a pas répondu dans les délais",
+    "payment_released": "Paiement de {amount}€ viré sur votre compte",
+    "escrow_auto_released": "Paiement libéré automatiquement après 7 jours"
   },
   "statuses": {
     "pending": "En attente",

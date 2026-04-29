@@ -49,7 +49,10 @@
     "flight_landed": "Carrier has landed — package handover can take place",
     "flight_delayed": "Flight delayed — new estimated arrival: {arrival}",
     "delivery_confirmed_sender": "Your package has been successfully delivered",
-    "delivery_confirmed_carrier": "Handover confirmed — payment transfer in progress"
+    "delivery_confirmed_carrier": "Handover confirmed — payment transfer in progress",
+    "booking_expired": "Your request has expired — the carrier did not respond in time",
+    "payment_released": "Payment of {amount}€ transferred to your account",
+    "escrow_auto_released": "Payment automatically released after 7 days"
   },
   "statuses": {
     "pending": "Pending",

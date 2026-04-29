@@ -49,7 +49,10 @@
     "claim_already_resolved": "Ce litige est déjà résolu",
     "pir_already_reported": "Un signalement de bagage perdu existe déjà pour ce trajet",
     "pir_not_found": "Signalement introuvable",
-    "trip_not_in_transit": "Le trajet doit être en transit pour signaler un bagage perdu"
+    "trip_not_in_transit": "Le trajet doit être en transit pour signaler un bagage perdu",
+    "insurance_already_subscribed": "Vous avez déjà souscrit une assurance pour ce colis",
+    "insurance_not_found": "Assurance introuvable",
+    "insurance_booking_not_accepted": "La réservation doit être acceptée pour souscrire une assurance"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -62,7 +65,9 @@
     "password_changed": "Mot de passe modifié avec succès",
     "kiparscan_ok": "Colis analysé avec succès",
     "claim_opened": "Litige ouvert — notre équipe vous contactera sous 48h",
-    "claim_resolved": "Litige résolu"
+    "claim_resolved": "Litige résolu",
+    "insurance_subscribed": "Assurance souscrite — votre colis est couvert jusqu'à {amount}€",
+    "insurance_cancelled": "Assurance annulée — remboursement en cours"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

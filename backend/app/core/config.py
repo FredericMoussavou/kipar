@@ -49,6 +49,10 @@ class Settings(BaseSettings):
 
     SUPPORT_EMAIL: str = "support@kipar.app"
 
+    INSURANCE_RATE_MIN: float = 0.02   # 2% valeur déclarée
+    INSURANCE_RATE_MAX: float = 0.04   # 4% valeur déclarée
+    INSURANCE_RATE_DEFAULT: float = 0.03  # 3% par défaut
+
     DEEPL_API_KEY: str = ""
 
     @property

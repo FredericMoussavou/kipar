@@ -1,13 +1,7 @@
 'use client'
 import { Calendar } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
-
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const CHARCOAL2 = '#6B6560'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
 
 function getTrustGradient(score: number) {
   if (score >= 75) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 60%,#16A34A 100%)', color: '#16A34A' }
@@ -23,6 +17,8 @@ interface Trip {
   origin_city: string
   destination_city: string
   departure_date: string
+  departure_time?: string | null
+  arrival_time?: string | null
   flight_number: string | null
   remaining_kg: number
   max_kg_per_package: number
@@ -93,6 +89,9 @@ export default function TripCard({ trip, onClick, className }: {
           <Calendar size={12} />
           <span>{trip.departure_date}</span>
         </div>
+        {trip.departure_time && (
+          <span style={{ fontWeight: 600, color: CHARCOAL2 }}>{trip.departure_time}{trip.arrival_time ? " → " + trip.arrival_time : ""}</span>
+        )}
         {trip.flight_number && <span>✈ {trip.flight_number}</span>}
       </div>
 

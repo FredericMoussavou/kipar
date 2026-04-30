@@ -43,6 +43,8 @@ async def create_trip(
 async def search_trips(
     origin: str | None = None,
     destination: str | None = None,
+    date: str | None = None,
+    sort_by: str | None = None,
     mine: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
@@ -55,9 +57,17 @@ async def search_trips(
             query = query.where(Trip.origin_airport_code == origin.upper())
         if destination:
             query = query.where(Trip.destination_airport_code == destination.upper())
+        if date:
+            from datetime import date as dclass
+            query = query.where(Trip.departure_date == dclass.fromisoformat(date))
+        if sort_by == "price_asc":
+            query = query.order_by(Trip.price_per_kg.asc())
+        elif sort_by == "price_desc":
+            query = query.order_by(Trip.price_per_kg.desc())
+        else:
+            query = query.order_by(Trip.departure_date.asc())
     result = await db.execute(query)
     trips = result.scalars().all()
-    # Enrichit chaque trajet avec le trust_score du transporteur
     enriched = []
     for trip in trips:
         carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
@@ -70,6 +80,8 @@ async def search_trips(
             "destination_city": trip.destination_city,
             "destination_airport_code": trip.destination_airport_code,
             "departure_date": trip.departure_date,
+            "departure_time": trip.departure_time,
+            "arrival_time": trip.arrival_time,
             "flight_number": trip.flight_number,
             "airline": trip.airline,
             "total_kg": trip.total_kg,

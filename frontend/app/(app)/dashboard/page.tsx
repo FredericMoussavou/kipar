@@ -21,12 +21,7 @@ const CORRIDORS = [
   { label: 'CDG → LOS', origin: 'CDG', dest: 'LOS' },
 ]
 
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
-const BG = '#FBFBFF'
+import { RED, CHARCOAL, TAUPE, SAND, BORDER, BG } from '@/lib/theme'
 
 export default function DashboardPage() {
   const { t } = useTranslation()

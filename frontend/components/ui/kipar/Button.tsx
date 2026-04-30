@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { RED } from '@/lib/theme'
 import { Loader2 } from 'lucide-react'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
@@ -32,7 +33,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     <button
       ref={ref}
       disabled={disabled || loading}
-      style={variant === 'primary' ? { backgroundColor: '#DC0029' } : undefined}
+      style={variant === 'primary' ? { backgroundColor: RED } : undefined}
       className={cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}
       {...props}
     >

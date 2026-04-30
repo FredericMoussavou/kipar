@@ -1,4 +1,5 @@
 'use client'
+import { RED, TAUPE, BORDER } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, Package, User, Plane } from 'lucide-react'
@@ -20,7 +21,7 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t z-50"
-      style={{ borderColor: '#EEEBE6', boxShadow: '0 -4px 20px rgba(0,0,0,0.04)' }}
+      style={{ borderColor: BORDER, boxShadow: '0 -4px 20px rgba(0,0,0,0.04)' }}
     >
       <div className="flex items-center">
         {items.map(({ href, icon: Icon, label }) => {
@@ -30,7 +31,7 @@ export default function BottomNav() {
               key={href}
               href={href}
               className="flex-1 flex flex-col items-center gap-1 py-2.5 transition-colors relative"
-              style={{ color: active ? '#DC0029' : '#B5AFAB' }}
+              style={{ color: active ? RED : TAUPE }}
             >
               <Icon
                 size={20}
@@ -40,7 +41,7 @@ export default function BottomNav() {
               {active && (
                 <div
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-full"
-                  style={{ width: 20, height: 2, background: '#DC0029' }}
+                  style={{ width: 20, height: 2, background: RED }}
                 />
               )}
             </Link>

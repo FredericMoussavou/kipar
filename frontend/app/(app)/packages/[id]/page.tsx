@@ -7,12 +7,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import api from '@/lib/api'
 
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const CHARCOAL2 = '#6B6560'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
 
 function getTrustGradient(score: number) {
   if (score >= 75) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 60%,#16A34A 100%)', color: '#16A34A' }

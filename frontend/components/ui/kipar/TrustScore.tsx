@@ -1,3 +1,4 @@
+import { RED } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 interface TrustScoreProps {
@@ -11,7 +12,7 @@ function getTrustColor(score: number): string {
   if (score >= 75) return '#16A34A'
   if (score >= 50) return '#4ADE80'
   if (score >= 30) return '#F59E0B'
-  return '#DC0029'
+  return RED
 }
 
 export default function TrustScore({ score, showLabel = true, size = 'md', className }: TrustScoreProps) {
@@ -23,8 +24,8 @@ export default function TrustScore({ score, showLabel = true, size = 'md', class
     : pct >= 50
     ? 'linear-gradient(90deg, #F59E0B 0%, #4ADE80 100%)'
     : pct >= 30
-    ? 'linear-gradient(90deg, #DC0029 0%, #F59E0B 100%)'
-    : 'linear-gradient(90deg, #DC0029 0%, #F97316 100%)'
+    ? 'linear-gradient(90deg, ' + RED + ' 0%, #F59E0B 100%)'
+    : 'linear-gradient(90deg, ' + RED + ' 0%, #F97316 100%)'
 
   return (
     <div className={cn('flex items-center gap-2', className)}>

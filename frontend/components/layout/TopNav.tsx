@@ -1,4 +1,5 @@
 'use client'
+import { RED } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane } from 'lucide-react'
@@ -28,7 +29,7 @@ export default function TopNav() {
 
         <Link href="/dashboard">
           <span className="font-syne text-xl font-extrabold text-k-charcoal tracking-tight">
-            KIPAR<span style={{ color: '#DC0029' }}>.</span>
+            KIPAR<span style={{ color: RED }}>.</span>
           </span>
         </Link>
 
@@ -59,7 +60,7 @@ export default function TopNav() {
             <button onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-k-border hover:bg-k-sand transition-colors">
               <div className="w-8 h-8 rounded-full flex items-center justify-center font-syne font-bold text-white text-sm"
-                style={{ backgroundColor: '#DC0029' }}>
+                style={{ backgroundColor: RED }}>
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-k-taupe" />

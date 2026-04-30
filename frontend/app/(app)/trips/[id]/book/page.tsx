@@ -13,12 +13,7 @@ import { useBookingStore } from '@/stores/booking.store'
 import { Button, Input } from '@/components/ui/kipar'
 import api from '@/lib/api'
 
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const CHARCOAL2 = '#6B6560'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),

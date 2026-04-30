@@ -10,11 +10,7 @@ import { Button } from '@/components/ui/kipar'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import api from '@/lib/api'
 
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
+import { RED, CHARCOAL, TAUPE, SAND, BORDER } from '@/lib/theme'
 
 export default function CarrierPage() {
   const { t } = useTranslation()

@@ -9,6 +9,8 @@ class TripCreate(BaseModel):
     destination_city: str
     destination_airport_code: str
     departure_date: date
+    departure_time: str | None = None
+    arrival_time: str | None = None
     flight_number: str | None = None
     airline: str | None = None
     total_kg: float
@@ -46,6 +48,8 @@ class TripResponse(BaseModel):
     destination_city: str
     destination_airport_code: str
     departure_date: date
+    departure_time: str | None = None
+    arrival_time: str | None = None
     flight_number: str | None
     airline: str | None
     total_kg: float

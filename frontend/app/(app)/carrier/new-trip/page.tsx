@@ -10,9 +10,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
 import api from '@/lib/api'
 
-const RED = '#DC0029'
-const TAUPE = '#B5AFAB'
-const BORDER = '#EEEBE6'
+import { RED, TAUPE, BORDER } from '@/lib/theme'
 
 const schema = z.object({
   origin_city: z.string().min(2, 'Requis'),

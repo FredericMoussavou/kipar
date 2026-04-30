@@ -8,12 +8,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import api from '@/lib/api'
 
-const RED = '#DC0029'
-const CHARCOAL = '#3D3D3D'
-const CHARCOAL2 = '#6B6560'
-const TAUPE = '#B5AFAB'
-const SAND = '#F0EDE8'
-const BORDER = '#EEEBE6'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
 
 export default function PackagesPage() {
   const { t } = useTranslation()

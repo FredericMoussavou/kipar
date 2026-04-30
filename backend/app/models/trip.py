@@ -24,6 +24,8 @@ class Trip(Base):
 
     # Vol
     departure_date: Mapped[date] = mapped_column(Date, index=True)
+    departure_time: Mapped[str | None] = mapped_column(String(5), nullable=True)   # ex: 14:30
+    arrival_time: Mapped[str | None] = mapped_column(String(5), nullable=True)     # ex: 18:45
     flight_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     airline: Mapped[str | None] = mapped_column(String(100), nullable=True)
 

@@ -164,6 +164,11 @@ export const fr = {
   kg_label: 'Kg disponibles',
   max_kg_label: 'Max kg par colis',
   price_label: 'Prix par kg (€)',
+  step1: 'Activez le mode transporteur',
+  step2: 'Complétez votre vérification KYC',
+  step3: 'Postez vos annonces de trajet',
+  no_bookings_sub: 'Les nouvelles réservations apparaîtront ici',
+  no_trips_sub: 'Publiez votre première annonce',
   submit_btn: 'Publier mon annonce',
 },
   errors: {

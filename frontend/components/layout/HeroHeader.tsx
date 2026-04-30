@@ -1,0 +1,31 @@
+'use client'
+
+import { ReactNode } from 'react'
+
+interface HeroHeaderProps {
+  imageUrl: string
+  children: ReactNode
+  minHeight?: number
+  gradient?: 'vertical' | 'horizontal'
+}
+
+export default function HeroHeader({ imageUrl, children, minHeight = 180, gradient = 'horizontal' }: HeroHeaderProps) {
+  const bg = gradient === 'horizontal'
+    ? 'linear-gradient(90deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.70) 100%)'
+    : 'linear-gradient(180deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.80) 100%)'
+
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden', minHeight, borderRadius: '0 0 24px 24px' }}
+      className="md:rounded-[20px] md:mb-6">
+      <img
+        src={imageUrl}
+        alt="hero"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+      <div style={{ position: 'absolute', inset: 0, background: bg }} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {children}
+      </div>
+    </div>
+  )
+}

@@ -164,6 +164,11 @@ export const en = {
   kg_label: 'Available kg',
   max_kg_label: 'Max kg per package',
   price_label: 'Price per kg (€)',
+  step1: 'Activate carrier mode',
+  step2: 'Complete your KYC verification',
+  step3: 'Post your trip listings',
+  no_bookings_sub: 'New bookings will appear here',
+  no_trips_sub: 'Post your first listing',
   submit_btn: 'Publish my listing',
 },
   errors: {

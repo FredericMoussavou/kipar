@@ -1,9 +1,20 @@
 'use client'
-
-import { MapPin, Calendar, Package } from 'lucide-react'
-import { Shield } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Calendar } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
+
+const RED = '#DC0029'
+const CHARCOAL = '#3D3D3D'
+const CHARCOAL2 = '#6B6560'
+const TAUPE = '#B5AFAB'
+const SAND = '#F0EDE8'
+const BORDER = '#EEEBE6'
+
+function getTrustGradient(score: number) {
+  if (score >= 75) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 60%,#16A34A 100%)', color: '#16A34A' }
+  if (score >= 50) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 100%)', color: '#4ADE80' }
+  if (score >= 30) return { gradient: 'linear-gradient(90deg,#DC0029 0%,#F59E0B 100%)', color: '#F59E0B' }
+  return { gradient: 'linear-gradient(90deg,#DC0029 0%,#F97316 100%)', color: '#DC0029' }
+}
 
 interface Trip {
   id: string
@@ -20,98 +31,88 @@ interface Trip {
   status: string
 }
 
-interface TripCardProps {
-  trip: Trip
-  onClick: () => void
-  className?: string
-}
-
-export default function TripCard({ trip, onClick, className }: TripCardProps) {
+export default function TripCard({ trip, onClick, className }: {
+  trip: Trip; onClick: () => void; className?: string
+}) {
   const { t } = useTranslation()
   const score = Math.round(trip.trust_score || 0)
-  const scorePct = Math.min(score, 100)
-  const scoreColor = scorePct >= 70 ? '#1B5E4B' : scorePct >= 40 ? '#F59E0B' : '#EF4444'
+  const { gradient, color } = getTrustGradient(score)
 
   return (
     <div
       onClick={onClick}
-      className={cn(
-        'bg-white border border-kipar-border rounded-xl p-4 cursor-pointer',
-        'hover:border-kipar-green hover:shadow-kipar transition-all active:scale-[0.99]',
-        className
-      )}
+      className={className}
+      style={{
+        background: '#fff',
+        border: `1px solid ${BORDER}`,
+        borderRadius: 16,
+        padding: 16,
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
+        ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(220,0,41,0.2)'
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'
+        ;(e.currentTarget as HTMLDivElement).style.borderColor = BORDER
+      }}
     >
       {/* Route */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="text-center">
-            <p className="font-syne text-xl font-bold text-kipar-text">
-              {trip.origin_airport_code}
-            </p>
-            <p className="text-xs text-kipar-muted">{trip.origin_city}</p>
-          </div>
-          <div className="flex flex-col items-center gap-0.5">
-            <div className="w-16 flex items-center gap-1">
-              <div className="flex-1 h-px bg-kipar-border" />
-              <span className="text-xs">✈️</span>
-              <div className="flex-1 h-px bg-kipar-border" />
-            </div>
-          </div>
-          <div className="text-center">
-            <p className="font-syne text-xl font-bold text-kipar-text">
-              {trip.destination_airport_code}
-            </p>
-            <p className="text-xs text-kipar-muted">{trip.destination_city}</p>
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>
+            {trip.origin_airport_code}
+          </p>
+          <p style={{ fontSize: 10, color: TAUPE, marginTop: 2 }}>{trip.origin_city}</p>
         </div>
-        <div className="text-right">
-          <p className="font-syne text-xl font-bold" style={{ color: '#1B5E4B' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ flex: 1, height: 1, background: BORDER }} />
+          <div style={{ width: 24, height: 24, borderRadius: '50%', background: SAND, border: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>✈</div>
+          <div style={{ flex: 1, height: 1, background: BORDER }} />
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>
+            {trip.destination_airport_code}
+          </p>
+          <p style={{ fontSize: 10, color: TAUPE, marginTop: 2 }}>{trip.destination_city}</p>
+        </div>
+        <div style={{ marginLeft: 8, textAlign: 'right' }}>
+          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>
             {trip.price_per_kg}€
           </p>
-          <p className="text-xs text-kipar-muted">{t.trip.price_per_kg}</p>
+          <p style={{ fontSize: 10, color: TAUPE, marginTop: 2 }}>{t.trip.price_per_kg}</p>
         </div>
       </div>
 
-      {/* Infos */}
-      <div className="flex items-center gap-3 text-xs text-kipar-muted mb-3">
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" />
+      {/* Meta */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: TAUPE, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Calendar size={12} />
           <span>{trip.departure_date}</span>
         </div>
-        {trip.flight_number && (
-          <div className="flex items-center gap-1">
-            <span>✈</span>
-            <span>{trip.flight_number}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1">
-          <Package className="w-3.5 h-3.5" />
-          <span>{trip.remaining_kg} kg</span>
-        </div>
+        {trip.flight_number && <span>✈ {trip.flight_number}</span>}
       </div>
 
-      {/* Tags + Trust */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <span className="text-xs px-2.5 py-1 rounded-pill bg-green-50 text-kipar-green font-medium">
-            {trip.remaining_kg} kg dispo
-          </span>
-          <span className="text-xs px-2.5 py-1 rounded-pill bg-gray-100 text-kipar-muted font-medium">
-            Max {trip.max_kg_per_package} kg
-          </span>
+      {/* Tags */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
+          {trip.remaining_kg} kg dispo
+        </span>
+        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 500 }}>
+          Max {trip.max_kg_per_package} kg
+        </span>
+      </div>
+
+      {/* Trust */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 10, color: TAUPE, minWidth: 28 }}>Trust</span>
+        <div style={{ flex: 1, height: 4, background: SAND, borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', background: gradient, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
-        <div className="flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5" style={{ color: scoreColor }} />
-          <div className="w-16 h-1.5 bg-gray-100 rounded-pill overflow-hidden">
-            <div
-              className="h-full rounded-pill transition-all"
-              style={{ width: `${scorePct}%`, backgroundColor: scoreColor }}
-            />
-          </div>
-          <span className="text-xs font-medium" style={{ color: scoreColor }}>
-            {score}
-          </span>
-        </div>
+        <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 24, textAlign: 'right' }}>{score}</span>
       </div>
     </div>
   )

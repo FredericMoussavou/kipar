@@ -9,31 +9,24 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
-  label,
-  error,
-  leftIcon,
-  rightIcon,
-  className,
-  ...props
+  label, error, leftIcon, rightIcon, className, ...props
 }, ref) => {
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-sm font-medium text-kipar-text">
-          {label}
-        </label>
+        <label className="text-sm font-medium text-k-charcoal">{label}</label>
       )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-kipar-muted">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-k-taupe">
             {leftIcon}
           </div>
         )}
         <input
           ref={ref}
           className={cn(
-            'w-full bg-kipar-input border border-kipar-border rounded-md px-4 py-3 text-[15px] text-kipar-text placeholder:text-kipar-light',
-            'focus:outline-none focus:border-green focus:ring-2 focus:ring-green/10',
+            'w-full bg-k-sand border border-k-border rounded-kipar px-4 py-3 text-[15px] text-k-charcoal placeholder:text-k-taupe',
+            'focus:outline-none focus:border-k-red focus:ring-2 focus:ring-k-red/10',
             'transition-all duration-200',
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
@@ -43,16 +36,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-kipar-muted cursor-pointer">
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-k-taupe">
             {rightIcon}
           </div>
         )}
       </div>
-      {error && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   )
 })

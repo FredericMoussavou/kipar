@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils'
-import { Shield } from 'lucide-react'
 
 interface TrustScoreProps {
   score: number
@@ -8,26 +7,43 @@ interface TrustScoreProps {
   className?: string
 }
 
+function getTrustColor(score: number): string {
+  if (score >= 75) return '#16A34A'
+  if (score >= 50) return '#4ADE80'
+  if (score >= 30) return '#F59E0B'
+  return '#DC0029'
+}
+
 export default function TrustScore({ score, showLabel = true, size = 'md', className }: TrustScoreProps) {
   const pct = Math.min(Math.max(score, 0), 100)
-  const color = pct >= 70 ? 'bg-kipar-green' : pct >= 40 ? 'bg-yellow-400' : 'bg-red-400'
+  const color = getTrustColor(pct)
+
+  const gradient = pct >= 75
+    ? 'linear-gradient(90deg, #F59E0B 0%, #4ADE80 60%, #16A34A 100%)'
+    : pct >= 50
+    ? 'linear-gradient(90deg, #F59E0B 0%, #4ADE80 100%)'
+    : pct >= 30
+    ? 'linear-gradient(90deg, #DC0029 0%, #F59E0B 100%)'
+    : 'linear-gradient(90deg, #DC0029 0%, #F97316 100%)'
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {showLabel && (
-        <div className="flex items-center gap-1">
-          <Shield className={cn('text-kipar-green', size === 'sm' ? 'w-3 h-3' : 'w-4 h-4')} />
-          <span className={cn('font-medium text-kipar-green', size === 'sm' ? 'text-xs' : 'text-sm')}>
-            {Math.round(pct)}
-          </span>
-        </div>
+        <span className={cn('font-medium min-w-[28px]', size === 'sm' ? 'text-[10px]' : 'text-xs')}
+          style={{ color }}>
+          Trust
+        </span>
       )}
-      <div className="flex-1 h-1.5 bg-kipar-border rounded-pill overflow-hidden">
+      <div className={cn('flex-1 bg-k-sand rounded-pill overflow-hidden', size === 'sm' ? 'h-[3px]' : 'h-[4px]')}>
         <div
-          className={cn('h-full rounded-pill transition-all duration-500', color)}
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-pill transition-all duration-500"
+          style={{ width: `${pct}%`, background: gradient }}
         />
       </div>
+      <span className={cn('font-bold min-w-[24px] text-right', size === 'sm' ? 'text-[10px]' : 'text-xs')}
+        style={{ color }}>
+        {Math.round(pct)}
+      </span>
     </div>
   )
 }

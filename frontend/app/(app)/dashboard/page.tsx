@@ -21,13 +21,19 @@ const CORRIDORS = [
   { label: 'CDG → LOS', origin: 'CDG', dest: 'LOS' },
 ]
 
+const RED = '#DC0029'
+const CHARCOAL = '#3D3D3D'
+const TAUPE = '#B5AFAB'
+const SAND = '#F0EDE8'
+const BORDER = '#EEEBE6'
+const BG = '#FBFBFF'
+
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
   const [activeCorr, setActiveCorr] = useState(0)
-
   const corridor = CORRIDORS[activeCorr]
 
   const { data: trips = [], isLoading } = useQuery({
@@ -47,79 +53,100 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div style={{ background: BG, minHeight: '100vh' }}>
 
-      {/* Header marine */}
-      <div style={{ backgroundColor: '#1B5E4B' }} className="px-5 pt-12 pb-6 text-white">
-        <div className="flex items-center justify-between mb-4">
+      {/* Hero mobile */}
+      <div className="md:hidden" style={{ background: RED, padding: '48px 20px 24px', color: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <p className="text-sm opacity-70">{t.dashboard.greeting} 👋</p>
-            <h1 className="font-syne text-2xl font-bold mt-0.5">
+            <p style={{ fontSize: 13, opacity: 0.8 }}>{t.dashboard.greeting} 👋</p>
+            <h1 style={{ fontFamily: 'var(--font-syne, Syne)', fontSize: 22, fontWeight: 800, marginTop: 2 }}>
               {user?.first_name} {user?.last_name}
             </h1>
           </div>
-          <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-white" />
+          <button style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Bell size={18} color="#fff" />
           </button>
         </div>
-
-        {/* Barre de recherche */}
         <Link href="/search">
-          <div className="flex items-center gap-3 bg-white/15 rounded-xl px-4 py-3 mt-2">
-            <Search className="w-4 h-4 text-white/70" />
-            <span className="text-sm text-white/70">{t.dashboard.search_placeholder}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '10px 14px', cursor: 'pointer' }}>
+            <Search size={15} color="rgba(255,255,255,0.8)" />
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{t.dashboard.search_placeholder}</span>
           </div>
         </Link>
       </div>
 
-      {/* Contenu */}
-      <div className="flex-1 px-5 pt-5">
+      {/* Hero desktop */}
+      <div className="hidden md:block" style={{ marginBottom: 24 }}>
+        <div style={{ background: RED, borderRadius: 20, padding: '24px 32px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: -30, top: -30, width: 120, height: 120, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
+          <div>
+            <p style={{ fontSize: 13, opacity: 0.8 }}>{t.dashboard.greeting} 👋</p>
+            <h1 style={{ fontFamily: 'var(--font-syne, Syne)', fontSize: 28, fontWeight: 800, marginTop: 4, marginBottom: 4 }}>
+              {user?.first_name} {user?.last_name}
+            </h1>
+            <p style={{ fontSize: 13, opacity: 0.7 }}>Trouvez un transporteur pour vos colis</p>
+          </div>
+          <Link href="/search">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '12px 20px', cursor: 'pointer' }}>
+              <Search size={15} color="rgba(255,255,255,0.85)" />
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{t.dashboard.search_placeholder}</span>
+            </div>
+          </Link>
+        </div>
+      </div>
 
-        {/* Corridors */}
-        <p className="text-xs font-semibold text-kipar-muted uppercase tracking-wider mb-3">
+      {/* Corridors */}
+      <div style={{ padding: '20px 20px 0', overflowX: 'auto' }} className="md:px-0 md:pb-0">
+        <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
           {t.dashboard.popular_corridors}
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-none mb-5">
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
           {CORRIDORS.map((c, i) => (
             <button
               key={i}
               onClick={() => setActiveCorr(i)}
-              className={`flex-shrink-0 px-4 py-2 rounded-pill text-sm font-medium transition-all ${
-                activeCorr === i
-                  ? 'text-white'
-                  : 'bg-gray-100 text-kipar-muted hover:bg-gray-200'
-              }`}
-              style={activeCorr === i ? { backgroundColor: '#1B5E4B' } : {}}
+              style={{
+                flexShrink: 0,
+                padding: '7px 14px',
+                borderRadius: 99,
+                fontSize: 13,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeCorr === i ? RED : '#fff',
+                color: activeCorr === i ? '#fff' : '#3D3D3D',
+                boxShadow: activeCorr === i ? '0 2px 8px rgba(220,0,41,0.2)' : '0 1px 3px rgba(0,0,0,0.06)',
+              }}
             >
               {c.label}
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Liste trajets */}
-        <p className="text-xs font-semibold text-kipar-muted uppercase tracking-wider mb-3">
+      {/* Trajets */}
+      <div style={{ padding: '20px 20px 0' }} className="md:px-0">
+        <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
           {t.dashboard.available_trips}
         </p>
 
         {isLoading ? (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-gray-100 rounded-xl animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ height: 140, background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, animation: 'pulse 1.5s infinite' }} />
             ))}
           </div>
         ) : trips.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-4xl mb-3">✈️</p>
-            <p className="text-kipar-muted text-sm">{t.dashboard.no_trips}</p>
+          <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+            <p style={{ fontSize: 36, marginBottom: 10 }}>✈️</p>
+            <p style={{ color: TAUPE, fontSize: 14 }}>{t.dashboard.no_trips}</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
             {trips.map((trip: any) => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onClick={() => handleTripClick(trip)}
-              />
+              <TripCard key={trip.id} trip={trip} onClick={() => handleTripClick(trip)} />
             ))}
           </div>
         )}

@@ -33,7 +33,7 @@ class User(Base):
     onfido_applicant_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # KiparTrust
-    trust_score: Mapped[float] = mapped_column(Float, default=0.0)
+    trust_score: Mapped[float] = mapped_column(Float, default=50.0)
 
     # Paiements
     stripe_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -39,7 +39,7 @@ async def create_trip(
     return trip
 
 
-@router.get("", response_model=list[TripResponse])
+@router.get("", response_model=list[TripResponse], response_model_exclude_none=False)
 async def search_trips(
     origin: str | None = None,
     destination: str | None = None,
@@ -56,7 +56,31 @@ async def search_trips(
         if destination:
             query = query.where(Trip.destination_airport_code == destination.upper())
     result = await db.execute(query)
-    return result.scalars().all()
+    trips = result.scalars().all()
+    # Enrichit chaque trajet avec le trust_score du transporteur
+    enriched = []
+    for trip in trips:
+        carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
+        carrier = carrier_result.scalar_one_or_none()
+        trip_dict = {
+            "id": trip.id,
+            "carrier_id": trip.carrier_id,
+            "origin_city": trip.origin_city,
+            "origin_airport_code": trip.origin_airport_code,
+            "destination_city": trip.destination_city,
+            "destination_airport_code": trip.destination_airport_code,
+            "departure_date": trip.departure_date,
+            "flight_number": trip.flight_number,
+            "airline": trip.airline,
+            "total_kg": trip.total_kg,
+            "remaining_kg": trip.remaining_kg,
+            "max_kg_per_package": trip.max_kg_per_package,
+            "price_per_kg": trip.price_per_kg,
+            "status": trip.status,
+            "trust_score": carrier.trust_score if carrier else 50.0,
+        }
+        enriched.append(trip_dict)
+    return enriched
 
 
 @router.get("/{trip_id}", response_model=TripResponse)

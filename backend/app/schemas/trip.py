@@ -3,7 +3,6 @@ from datetime import date
 import uuid
 from app.services.airport_service import validate_iata
 
-
 class TripCreate(BaseModel):
     origin_city: str
     origin_airport_code: str
@@ -28,16 +27,16 @@ class TripCreate(BaseModel):
     @classmethod
     def positive_values(cls, v: float) -> float:
         if v <= 0:
-            raise ValueError("La valeur doit être positive")
+            raise ValueError("La valeur doit etre positive")
         return v
 
     @field_validator("departure_date")
     @classmethod
     def future_date(cls, v: date) -> date:
-        if v <= date.today():
-            raise ValueError("La date de départ doit être dans le futur")
+        from datetime import date as d
+        if v <= d.today():
+            raise ValueError("La date de depart doit etre dans le futur")
         return v
-
 
 class TripResponse(BaseModel):
     id: uuid.UUID
@@ -54,5 +53,5 @@ class TripResponse(BaseModel):
     max_kg_per_package: float
     price_per_kg: float
     status: str
-
-    model_config = {"from_attributes": True}
+    trust_score: float | None = None
+    model_config = {"from_attributes": False}

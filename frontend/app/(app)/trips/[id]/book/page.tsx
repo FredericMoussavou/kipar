@@ -62,7 +62,7 @@ export default function BookPage() {
     },
     onSuccess: (data) => {
       setCurrentBookingId(data.id)
-      router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${total.toFixed(2)}`)
+      router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${(transport + commission).toFixed(2)}&declared_value=${value}`)
     },
     onError: (err: any) => {
       const detail = err.response?.data?.detail

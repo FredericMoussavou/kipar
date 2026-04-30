@@ -127,7 +127,11 @@ async def accept_booking(
     if booking.status not in ("pending", "awaiting_receiver"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
-    trip.remaining_kg -= booking.amount / trip.price_per_kg
+    # Récupère le poids réel depuis le package
+    pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
+    pkg = pkg_result.scalar_one_or_none()
+    weight = pkg.weight_kg if pkg else (booking.amount / (trip.price_per_kg * 1.13))
+    trip.remaining_kg = max(0.0, trip.remaining_kg - weight)
     if trip.remaining_kg <= 0:
         trip.status = "full"
 

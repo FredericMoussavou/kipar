@@ -24,6 +24,11 @@ export default function PaymentPage() {
   const bookingId = searchParams.get('booking_id')
   const amount = searchParams.get('amount')
   const [selectedPM, setSelectedPM] = useState<'stripe' | 'flutterwave'>('stripe')
+  const [withInsurance, setWithInsurance] = useState(false)
+  const declaredValue = parseFloat(searchParams.get('declared_value') || '0') || 0
+  const baseAmount = parseFloat(amount || '0') || 0
+  const insuranceAmount = withInsurance ? declaredValue * 0.03 : 0
+  const totalAmount = (baseAmount + insuranceAmount).toFixed(2)
 
   const paymentMethods = [
     { id: 'stripe' as const, icon: CreditCard, label: t.payment.card, desc: t.payment.card_desc },
@@ -57,9 +62,9 @@ export default function PaymentPage() {
         <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, textAlign: 'center' }}>
           {t.payment.title}
         </h1>
-        <p style={{ textAlign: 'center', fontSize: 24, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)' }}>
-          {amount}€
-        </p>
+          <p style={{ textAlign: 'center', fontSize: 24, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)' }}>
+            {totalAmount}€
+          </p>
       </div>
 
       <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -85,7 +90,7 @@ export default function PaymentPage() {
 
         <div style={{ background: SAND, borderRadius: 14, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: CHARCOAL2 }}>{t.payment.total}</span>
-          <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{amount}€</span>
+          <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
         </div>
 
         <Button fullWidth size="lg" loading={mutation.isPending} onClick={() => mutation.mutate()}>

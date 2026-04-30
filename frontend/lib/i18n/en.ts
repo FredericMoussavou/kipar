@@ -112,6 +112,7 @@ export const en = {
     title: 'My packages',
     empty: 'No bookings yet',
     login_required: 'Sign in to view your packages',
+    empty_sub: 'Find a trip and send your first package',
   },
   profile: {
     title: 'My profile',

@@ -7,6 +7,7 @@ import { Search, X } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import TripCard from '@/components/trips/TripCard'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER } from '@/lib/theme'
 
@@ -75,10 +76,22 @@ function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeho
   )
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(true)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+  return isMobile
+}
+
 export default function SearchPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
+  const isMobile = useIsMobile()
 
   const [origin, setOrigin] = useState('')
   const [dest, setDest] = useState('')
@@ -124,87 +137,71 @@ export default function SearchPage() {
     router.push('/trips/' + trip.id)
   }
 
+  const airportInputProps = {
+    origin: {
+      value: origin, label: t.search.origin_label, placeholder: t.search.origin_placeholder,
+      suggestions: originSuggestions,
+      onChange: (v: string) => { setOrigin(v); searchAirports(v, setOriginSuggestions) },
+      onSelect: (a: any) => { setOrigin(a.code); setOriginSuggestions([]) },
+      onClear: () => { setOrigin(''); setOriginSuggestions([]) },
+    },
+    dest: {
+      value: dest, label: t.search.dest_label, placeholder: t.search.dest_placeholder,
+      suggestions: destSuggestions,
+      onChange: (v: string) => { setDest(v); searchAirports(v, setDestSuggestions) },
+      onSelect: (a: any) => { setDest(a.code); setDestSuggestions([]) },
+      onClear: () => { setDest(''); setDestSuggestions([]) },
+    },
+  }
+
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      {/* Header hero — mobile */}
-      <div className="md:hidden" style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 0 24px 24px', minHeight: 220 }}>
-        <img src="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=800&q=80" alt="hero"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.80) 100%)' }} />
-        <div style={{ position: 'relative', zIndex: 1, padding: '48px 20px 24px' }}>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200&q=80"
+        minHeight={isMobile ? 280 : 220}
+      >
+        <div style={{ padding: isMobile ? '48px 20px 24px' : '32px' }}>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 22 : 28, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
             {t.search.title}
           </h1>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <AirportInput
-                value={origin} label={t.search.origin_label} placeholder={t.search.origin_placeholder}
-                suggestions={originSuggestions}
-                onChange={v => { setOrigin(v); searchAirports(v, setOriginSuggestions) }}
-                onSelect={a => { setOrigin(a.code); setOriginSuggestions([]) }}
-                onClear={() => { setOrigin(''); setOriginSuggestions([]) }}
-              />
-              <AirportInput
-                value={dest} label={t.search.dest_label} placeholder={t.search.dest_placeholder}
-                suggestions={destSuggestions}
-                onChange={v => { setDest(v); searchAirports(v, setDestSuggestions) }}
-                onSelect={a => { setDest(a.code); setDestSuggestions([]) }}
-                onClear={() => { setDest(''); setDestSuggestions([]) }}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: date ? CHARCOAL : TAUPE, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }}>
-                  <option value="">{t.search.sort_date}</option>
-                  <option value="price_asc">{t.search.sort_price_asc}</option>
-                  <option value="price_desc">{t.search.sort_price_desc}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <button onClick={handleSearch}
-              style={{ background: '#fff', border: 'none', borderRadius: 99, padding: '12px 36px', fontSize: 14, fontWeight: 700, color: RED, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
-              <Search size={15} />
-              {t.search.search_btn}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Header hero — desktop */}
-      <div className="hidden md:block" style={{ marginBottom: 24 }}>
-        <div style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', minHeight: 180 }}>
-          <img src="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200&q=80" alt="hero"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.70) 100%)' }} />
-          <div style={{ position: 'relative', zIndex: 1, padding: 32 }}>
-            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
-              {t.search.title}
-            </h1>
+          {isMobile ? (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <AirportInput {...airportInputProps.origin} />
+                  <AirportInput {...airportInputProps.dest} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: date ? CHARCOAL : TAUPE, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
+                    <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }}>
+                      <option value="">{t.search.sort_date}</option>
+                      <option value="price_asc">{t.search.sort_price_asc}</option>
+                      <option value="price_desc">{t.search.sort_price_desc}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button onClick={handleSearch}
+                  style={{ background: '#fff', border: 'none', borderRadius: 99, padding: '12px 36px', fontSize: 14, fontWeight: 700, color: RED, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+                  <Search size={15} />
+                  {t.search.search_btn}
+                </button>
+              </div>
+            </>
+          ) : (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'flex-end' }}>
-              <AirportInput
-                value={origin} label={t.search.origin_label} placeholder={t.search.origin_placeholder}
-                suggestions={originSuggestions}
-                onChange={v => { setOrigin(v); searchAirports(v, setOriginSuggestions) }}
-                onSelect={a => { setOrigin(a.code); setOriginSuggestions([]) }}
-                onClear={() => { setOrigin(''); setOriginSuggestions([]) }}
-              />
-              <AirportInput
-                value={dest} label={t.search.dest_label} placeholder={t.search.dest_placeholder}
-                suggestions={destSuggestions}
-                onChange={v => { setDest(v); searchAirports(v, setDestSuggestions) }}
-                onSelect={a => { setDest(a.code); setDestSuggestions([]) }}
-                onClear={() => { setDest(''); setDestSuggestions([]) }}
-              />
+              <AirportInput {...airportInputProps.origin} />
+              <AirportInput {...airportInputProps.dest} />
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
@@ -225,12 +222,12 @@ export default function SearchPage() {
                 {t.search.search_btn}
               </button>
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      </HeroHeader>
 
       {/* Résultats */}
-      <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
+      <div style={{ padding: '20px 20px 80px' }}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[1, 2, 3].map(i => (

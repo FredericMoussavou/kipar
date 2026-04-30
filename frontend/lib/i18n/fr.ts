@@ -112,6 +112,7 @@ export const fr = {
     title: 'Mes colis',
     empty: 'Aucune réservation pour le moment',
     login_required: 'Connectez-vous pour voir vos colis',
+    empty_sub: 'Trouvez un trajet et envoyez votre premier colis',
   },
   profile: {
     title: 'Mon profil',

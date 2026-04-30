@@ -8,8 +8,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/kipar'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+
+const HERO_IMG = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80'
 
 export default function CarrierPage() {
   const { t } = useTranslation()
@@ -72,14 +75,8 @@ export default function CarrierPage() {
   if (!user?.is_carrier) {
     return (
       <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)' }}>
-        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 0 24px 24px', minHeight: 200 }}>
-          <img
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
-            alt="hero"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(220,0,41,0.88) 0%, rgba(60,0,15,0.75) 100%)' }} />
-          <div style={{ position: 'relative', zIndex: 1, padding: '56px 24px 32px', textAlign: 'center' }}>
+        <HeroHeader imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
+          <div style={{ padding: '56px 24px 32px', textAlign: 'center' }}>
             <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 26, fontWeight: 800, color: WHITE, marginBottom: 8 }}>
               {t.carrier.onboarding_title}
             </h1>
@@ -87,7 +84,7 @@ export default function CarrierPage() {
               {t.carrier.onboarding_sub}
             </p>
           </div>
-        </div>
+        </HeroHeader>
 
         <div style={{ padding: '32px 24px 80px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {[
@@ -125,33 +122,29 @@ export default function CarrierPage() {
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      {/* Hero */}
-      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 0 24px 24px', minHeight: 160 }} className="md:rounded-[20px] md:mb-6">
-        <img
-          src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
-          alt="hero"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.70) 100%)' }} />
-        <div style={{ position: 'relative', zIndex: 1, padding: '48px 20px 24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}>
-              {t.carrier.dashboard_title}
-            </h1>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-              {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
-            </p>
+      <HeroHeader imageUrl={HERO_IMG} minHeight={180}>
+        <div style={{ padding: '48px 24px 28px' }} className="md:p-8">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} className="md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}
+                className="md:text-3xl">
+                {t.carrier.dashboard_title}
+              </h1>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+                {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
+              </p>
+            </div>
+            <button
+              onClick={() => router.push('/carrier/new-trip')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 99, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', alignSelf: 'flex-start' }}>
+              <Plus size={14} />
+              {t.carrier.new_trip}
+            </button>
           </div>
-          <button
-            onClick={() => router.push('/carrier/new-trip')}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 99, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
-            <Plus size={14} />
-            {t.carrier.new_trip}
-          </button>
         </div>
-      </div>
+      </HeroHeader>
 
-      <div style={{ padding: '20px 20px 80px' }}>
+      <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
 
         {/* Réservations en attente */}
         <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>

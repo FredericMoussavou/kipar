@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.deps import get_verified_user
+from app.core.deps import get_verified_user, get_current_user, get_optional_user
 from app.core.lang import get_lang
 from app.models.user import User
 from app.models.trip import Trip
@@ -43,13 +43,18 @@ async def create_trip(
 async def search_trips(
     origin: str | None = None,
     destination: str | None = None,
+    mine: bool = False,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
 ):
-    query = select(Trip).where(Trip.status == "open")
-    if origin:
-        query = query.where(Trip.origin_airport_code == origin.upper())
-    if destination:
-        query = query.where(Trip.destination_airport_code == destination.upper())
+    if mine and current_user:
+        query = select(Trip).where(Trip.carrier_id == current_user.id).order_by(Trip.created_at.desc())
+    else:
+        query = select(Trip).where(Trip.status == "open")
+        if origin:
+            query = query.where(Trip.origin_airport_code == origin.upper())
+        if destination:
+            query = query.where(Trip.destination_airport_code == destination.upper())
     result = await db.execute(query)
     return result.scalars().all()
 

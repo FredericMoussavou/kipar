@@ -55,6 +55,8 @@ export const fr = {
     popular_corridors: 'Corridors populaires',
     available_trips: 'Trajets disponibles',
     no_trips: 'Aucun trajet disponible sur ce corridor',
+    hero_sub: 'Trouvez un transporteur de confiance pour vos colis',
+    no_trips_sub: 'Aucun trajet disponible sur ce corridor',
     loading: 'Chargement...',
   },
   trip: {

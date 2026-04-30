@@ -1,9 +1,8 @@
 'use client'
-import { RED, TAUPE, BORDER } from '@/lib/theme'
+import { RED, TAUPE, WHITE } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, Package, User, Plane } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useTranslation } from '@/hooks/useTranslation'
 
 export default function BottomNav() {
@@ -19,35 +18,52 @@ export default function BottomNav() {
   ]
 
   return (
-    <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t z-50"
-      style={{ borderColor: BORDER, boxShadow: '0 -4px 20px rgba(0,0,0,0.04)' }}
-    >
-      <div className="flex items-center">
-        {items.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex-1 flex flex-col items-center gap-1 py-2.5 transition-colors relative"
-              style={{ color: active ? RED : TAUPE }}
-            >
-              <Icon
-                size={20}
-                strokeWidth={active ? 2.5 : 1.5}
-              />
-              <span style={{ fontSize: 9, fontWeight: active ? 600 : 400 }}>{label}</span>
-              {active && (
-                <div
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-full"
-                  style={{ width: 20, height: 2, background: RED }}
-                />
-              )}
-            </Link>
-          )
-        })}
-      </div>
+    <nav style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: WHITE,
+      boxShadow: '0 -2px 20px rgba(0,0,0,0.06)',
+      zIndex: 50,
+      display: 'flex',
+    }}>
+      {items.map(({ href, icon: Icon, label }) => {
+        const active = pathname === href || pathname.startsWith(href + '/')
+        return (
+          <Link
+            key={href}
+            href={href}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 3,
+              padding: '10px 0 12px',
+              color: active ? RED : TAUPE,
+              textDecoration: 'none',
+              position: 'relative',
+              transition: 'color 0.2s',
+            }}
+          >
+            <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+            <span style={{ fontSize: 9, fontWeight: active ? 600 : 400 }}>{label}</span>
+            {active && (
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 20,
+                height: 2,
+                background: RED,
+                borderRadius: '2px 2px 0 0',
+              }} />
+            )}
+          </Link>
+        )
+      })}
     </nav>
   )
 }

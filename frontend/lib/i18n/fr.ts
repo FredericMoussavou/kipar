@@ -33,6 +33,12 @@ export const fr = {
     already_account: 'Déjà un compte ?',
     sign_in: 'Se connecter',
     google: 'Continuer avec Google',
+    stat_carriers: 'Transporteurs',
+    stat_destinations: 'Destinations', 
+    stat_rating: 'Note moyenne',
+    stat_carriers_value: '10K+',
+    stat_destinations_value: '50+',
+    stat_rating_value: '4.9★',
     apple: 'Continuer avec Apple',
   },
   nav: {

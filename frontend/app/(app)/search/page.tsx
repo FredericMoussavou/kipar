@@ -182,8 +182,14 @@ export default function SearchPage() {
           </div>
         ) : searched && trips.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 20px' }}>
-            <p style={{ fontSize: 32, marginBottom: 10 }}>✈️</p>
-            <p style={{ color: TAUPE, fontSize: 14 }}>{t.search.no_results}</p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 24, background: '#F0EDE8', marginBottom: 16 }}>
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 20L14 12L18 16L24 8L30 14" stroke="#B5AFAB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <path d="M4 26H10L14 18L19 22L23 14L28 20H32" stroke="#B5AFAB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.search.no_results}</p>
+            <p style={{ color: TAUPE, fontSize: 13 }}>{t.search.no_results_sub}</p>
           </div>
         ) : trips.length > 0 ? (
           <>

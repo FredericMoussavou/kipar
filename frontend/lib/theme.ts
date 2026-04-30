@@ -7,6 +7,7 @@ export const COLORS = {
   white: '#FFFFFF',
   sand: '#F0EDE8',
   border: '#EEEBE6',
+  green: '#16A34A',
 } as const
 
 export const {
@@ -18,4 +19,5 @@ export const {
   white: WHITE,
   sand: SAND,
   border: BORDER,
+  green: GREEN,
 } = COLORS

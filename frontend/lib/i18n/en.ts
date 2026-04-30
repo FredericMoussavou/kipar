@@ -130,6 +130,7 @@ export const en = {
     sort_price_desc: 'Price high to low',
     sort_date: 'Departure date',
     results_count: 'trip found',
+    no_results_sub: 'Try different search criteria',
     results_count_plural: 'trips found',
   },
   carrier: {
@@ -149,6 +150,8 @@ export const en = {
   origin_label: 'Departure airport',
   dest_label: 'Destination airport',
   date_label: 'Departure date',
+  departure_time_label: 'Departure time',
+  arrival_time_label: 'Arrival time',
   flight_label: 'Flight number',
   kg_label: 'Available kg',
   max_kg_label: 'Max kg per package',

@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils'
 import { InputHTMLAttributes, forwardRef, ReactNode } from 'react'
+import { CHARCOAL, TAUPE, SAND, BORDER, RED, BG } from '@/lib/theme'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -9,39 +9,45 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
-  label, error, leftIcon, rightIcon, className, ...props
+  label, error, leftIcon, rightIcon, style, ...props
 }, ref) => {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {label && (
-        <label className="text-sm font-medium text-k-charcoal">{label}</label>
+        <label style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL }}>{label}</label>
       )}
-      <div className="relative">
+      <div style={{ position: 'relative' }}>
         {leftIcon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-k-taupe">
+          <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: TAUPE, display: 'flex' }}>
             {leftIcon}
           </div>
         )}
         <input
           ref={ref}
-          className={cn(
-            'w-full bg-k-sand border border-k-border rounded-kipar px-4 py-3 text-[15px] text-k-charcoal placeholder:text-k-taupe',
-            'focus:outline-none focus:border-k-red focus:ring-2 focus:ring-k-red/10',
-            'transition-all duration-200',
-            leftIcon && 'pl-10',
-            rightIcon && 'pr-10',
-            error && 'border-red-400 focus:border-red-400 focus:ring-red-100',
-            className
-          )}
+          style={{
+            width: '100%',
+            background: BG,
+            border: '1px solid ' + (error ? '#F87171' : BORDER),
+            borderRadius: 10,
+            padding: leftIcon ? '10px 12px 10px 36px' : '10px 12px',
+            fontSize: 13,
+            color: CHARCOAL,
+            outline: 'none',
+            boxSizing: 'border-box',
+            transition: 'border-color 0.2s',
+            ...style,
+          }}
+          onFocus={e => { e.currentTarget.style.borderColor = RED }}
+          onBlur={e => { e.currentTarget.style.borderColor = error ? '#F87171' : BORDER }}
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-k-taupe">
+          <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: TAUPE, display: 'flex' }}>
             {rightIcon}
           </div>
         )}
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p style={{ fontSize: 11, color: RED }}>{error}</p>}
     </div>
   )
 })

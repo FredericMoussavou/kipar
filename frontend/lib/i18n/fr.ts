@@ -130,6 +130,7 @@ export const fr = {
     sort_price_desc: 'Prix décroissant',
     sort_date: 'Date départ',
     results_count: 'trajet trouvé',
+    no_results_sub: 'Essayez d\'autres critères de recherche',
     results_count_plural: 'trajets trouvés',
   },
   carrier: {
@@ -149,6 +150,8 @@ export const fr = {
   origin_label: 'Aéroport de départ',
   dest_label: 'Aéroport de destination',
   date_label: 'Date de départ',
+  departure_time_label: 'Heure de départ',
+  arrival_time_label: "Heure d'arrivée",
   flight_label: 'Numéro de vol',
   kg_label: 'Kg disponibles',
   max_kg_label: 'Max kg par colis',

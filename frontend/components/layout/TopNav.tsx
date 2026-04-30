@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Search, Package, Bell, LogOut, ChevronDown, User } from 'lucide-react'
+import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -17,6 +17,7 @@ export default function TopNav() {
   const items = [
     { href: '/dashboard', icon: Home,    label: t.nav.home },
     { href: '/search',    icon: Search,  label: t.nav.trips },
+    { href: '/carrier', icon: Plane, label: t.nav.carrier},
     { href: '/packages',  icon: Package, label: t.nav.my_packages },
   ]
 

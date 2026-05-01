@@ -9,8 +9,9 @@ import { ArrowLeft, Search, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN } from '@/lib/theme'
+import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/theme'
 
 const schema = z.object({
   origin_city: z.string().min(2, 'Requis'),
@@ -89,12 +90,12 @@ export default function NewTripPage() {
   }
 
   const airportDropdown = (suggestions: any[], onSelect: (a: any) => void) => (
-    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: 10, marginTop: 4, overflow: 'hidden', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, borderRadius: 10, marginTop: 4, overflow: 'hidden', zIndex: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
       {suggestions.map((a: any) => (
         <div key={a.code} onClick={() => onSelect(a)}
           style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid ' + SAND, display: 'flex', alignItems: 'center', gap: 10 }}
           onMouseEnter={e => (e.currentTarget.style.background = SAND)}
-          onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+          onMouseLeave={e => (e.currentTarget.style.background = WHITE)}>
           <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL, fontSize: 13, minWidth: 36 }}>{a.code}</span>
           <div>
             <p style={{ fontSize: 13, color: CHARCOAL, fontWeight: 500, margin: 0 }}>{a.city}</p>
@@ -106,39 +107,43 @@ export default function NewTripPage() {
   )
 
   return (
-    <div style={{ background: BG, minHeight: '100vh' }}>
-      <div style={{ background: RED, padding: '48px 20px 24px', color: '#fff', position: 'relative' }}>
-        <button
-          onClick={() => router.back()}
-          style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        >
-          <ArrowLeft size={16} color="#fff" />
-        </button>
-        <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, textAlign: 'center' }}>
-          {t.carrier.trip_form_title}
-        </h1>
-      </div>
+    <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      <form onSubmit={handleSubmit(onSubmit)} style={{ padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        minHeight={140}
+        gradient="vertical"
+      >
+        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
+          <button
+            onClick={() => router.back()}
+            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <ArrowLeft size={16} color="#fff" />
+          </button>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
+            {t.carrier.trip_form_title}
+          </h1>
+        </div>
+      </HeroHeader>
 
-        {/* Départ + Destination côte à côte */}
+      <form onSubmit={handleSubmit(onSubmit)} style={{ padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', gap: 16 }} className="md:max-w-3xl md:mx-auto">
+
+        {/* Départ + Destination */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-
-          {/* Départ */}
-          <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+          <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Départ</p>
             <div style={{ position: 'relative' }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.origin_label}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
-                <input
-                  value={originInput}
+                <input value={originInput}
                   onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); searchAirports(e.target.value, setOriginSuggestions) }}
                   placeholder="Ex: CDG..."
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }}
-                />
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {originInput && (
-                  <button type="button" onClick={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false); setValue('origin_city', ''); setValue('origin_airport_code', '') }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <button type="button" onClick={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false); setValue('origin_city', ''); setValue('origin_airport_code', '') }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     <X size={12} color={TAUPE} />
                   </button>
                 )}
@@ -149,21 +154,19 @@ export default function NewTripPage() {
             </div>
           </div>
 
-          {/* Destination */}
-          <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+          <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Destination</p>
             <div style={{ position: 'relative' }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.dest_label}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
-                <input
-                  value={destInput}
+                <input value={destInput}
                   onChange={e => { setDestInput(e.target.value); setDestSelected(false); searchAirports(e.target.value, setDestSuggestions) }}
                   placeholder="Ex: DSS..."
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }}
-                />
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {destInput && (
-                  <button type="button" onClick={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false); setValue('destination_city', ''); setValue('destination_airport_code', '') }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <button type="button" onClick={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false); setValue('destination_city', ''); setValue('destination_airport_code', '') }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     <X size={12} color={TAUPE} />
                   </button>
                 )}
@@ -176,7 +179,7 @@ export default function NewTripPage() {
         </div>
 
         {/* Vol */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Vol</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <Input label={t.carrier.date_label} type="date" error={errors.departure_date?.message} {...register('departure_date')} />
@@ -189,7 +192,7 @@ export default function NewTripPage() {
         </div>
 
         {/* Capacité et Prix */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Capacité et Prix</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <Input label={t.carrier.kg_label} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
@@ -198,11 +201,11 @@ export default function NewTripPage() {
           </div>
         </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <Button type="submit" size="lg" loading={isSubmitting}>
-          {t.carrier.submit_btn}
-        </Button>
-      </div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Button type="submit" size="lg" loading={isSubmitting}>
+            {t.carrier.submit_btn}
+          </Button>
+        </div>
 
       </form>
     </div>

@@ -172,6 +172,11 @@ export const fr = {
   no_bookings_sub: 'Les nouvelles réservations apparaîtront ici',
   no_trips_sub: 'Publiez votre première annonce',
   submit_btn: 'Publier mon annonce',
+  tab_pending: 'En attente',
+  tab_treated: 'Traitées',
+  tab_trips: 'Mes annonces',
+  accepted_bookings: 'Acceptées',
+  refused_bookings: 'Refusées',
 },
   errors: {
     server_unreachable: 'Impossible de contacter le serveur',

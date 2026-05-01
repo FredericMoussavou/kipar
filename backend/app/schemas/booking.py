@@ -60,5 +60,9 @@ class BookingDetailResponse(BaseModel):
     receiver_first_name: str | None = None
     receiver_last_name: str | None = None
     receiver_email: str | None = None
+    # Sender
+    sender_first_name: str | None = None
+    sender_last_name: str | None = None
+    sender_email: str | None = None
 
     model_config = {"from_attributes": False}

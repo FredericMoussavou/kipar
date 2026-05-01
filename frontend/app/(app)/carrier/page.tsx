@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Plus, Plane, Check, X, ChevronRight, Package } from 'lucide-react'
@@ -19,6 +20,7 @@ export default function CarrierPage() {
   const { user, setUser } = useAuthStore()
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [activeTab, setActiveTab] = useState<'pending' | 'treated' | 'trips'>('pending')
 
   const { data: myTrips = [], isLoading: loadingTrips } = useQuery({
     queryKey: ['my-trips'],
@@ -30,17 +32,17 @@ export default function CarrierPage() {
   })
 
   const { data: allBookings = [] } = useQuery({
-    queryKey: ['all-bookings-detail'],
-    enabled: !!user?.is_carrier && myTrips.length > 0,
+    queryKey: ['carrier-bookings'],
+    enabled: !!user?.is_carrier,
     queryFn: async () => {
-      const res = await api.get('/bookings/detail')
+      const res = await api.get('/bookings/carrier')
       return res.data
     },
   })
 
-  const pendingBookings = allBookings.filter(
-    (b: any) => b.status === 'pending' && myTrips.some((tr: any) => tr.id === b.trip_id)
-  )
+  const pendingBookings = allBookings.filter((b: any) => b.status === 'pending')
+  const acceptedBookings = allBookings.filter((b: any) => b.status === 'accepted')
+  const refusedBookings = allBookings.filter((b: any) => b.status === 'refused')
 
   const activateMutation = useMutation({
     mutationFn: () => api.patch('/users/me', { is_carrier: true }),
@@ -57,7 +59,7 @@ export default function CarrierPage() {
     mutationFn: (id: string) => api.patch(`/bookings/${id}/accept`),
     onSuccess: () => {
       toast.success('Réservation acceptée !')
-      queryClient.invalidateQueries({ queryKey: ['all-bookings-detail'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
   })
@@ -66,7 +68,7 @@ export default function CarrierPage() {
     mutationFn: (id: string) => api.patch(`/bookings/${id}/refuse`),
     onSuccess: () => {
       toast.success('Réservation refusée.')
-      queryClient.invalidateQueries({ queryKey: ['all-bookings-detail'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
   })
@@ -99,13 +101,11 @@ export default function CarrierPage() {
               <span style={{ fontSize: 14, color: CHARCOAL, fontWeight: 500 }}>{step.label}</span>
             </div>
           ))}
-
           {user?.kyc_status !== 'verified' && (
             <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: '10px 16px', margin: '8px 0 16px', maxWidth: 360, width: '100%' }}>
               <p style={{ fontSize: 13, color: '#F59E0B', fontWeight: 500 }}>{t.carrier.onboarding_kyc}</p>
             </div>
           )}
-
           <div style={{ width: '100%', maxWidth: 360, marginTop: 8 }}>
             <Button fullWidth size="lg" loading={activateMutation.isPending}
               onClick={() => activateMutation.mutate()}
@@ -118,7 +118,12 @@ export default function CarrierPage() {
     )
   }
 
-  // — Dashboard transporteur —
+  const tabs = [
+    { key: 'pending' as const, label: t.carrier.tab_pending, count: pendingBookings.length },
+    { key: 'treated' as const, label: t.carrier.tab_treated, count: acceptedBookings.length + refusedBookings.length },
+    { key: 'trips' as const, label: t.carrier.tab_trips, count: myTrips.length },
+  ]
+
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
@@ -134,8 +139,7 @@ export default function CarrierPage() {
                 {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
               </p>
             </div>
-            <button
-              onClick={() => router.push('/carrier/new-trip')}
+            <button onClick={() => router.push('/carrier/new-trip')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 99, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', alignSelf: 'flex-start' }}>
               <Plus size={14} />
               {t.carrier.new_trip}
@@ -144,77 +148,150 @@ export default function CarrierPage() {
         </div>
       </HeroHeader>
 
+      {/* Onglets */}
+      <div style={{ display: 'flex', gap: 0, background: WHITE, borderBottom: '1px solid ' + BORDER, padding: '0 20px' }} className="md:px-0">
+        {tabs.map(tab => (
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+            style={{ flex: 1, padding: '14px 8px', fontSize: 13, fontWeight: activeTab === tab.key ? 700 : 400, color: activeTab === tab.key ? RED : TAUPE, background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === tab.key ? `2px solid ${RED}` : '2px solid transparent', transition: 'all 0.2s', position: 'relative' }}>
+            {tab.label}
+            {tab.count > 0 && (
+              <span style={{ marginLeft: 6, background: activeTab === tab.key ? RED : SAND, color: activeTab === tab.key ? WHITE : TAUPE, borderRadius: 99, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
 
-        {/* Réservations en attente */}
-        <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-          {t.carrier.pending_bookings}
-        </p>
-        {pendingBookings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '24px', background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER, marginBottom: 24 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: SAND, marginBottom: 10 }}>
-              <Package size={24} color={TAUPE} strokeWidth={1.5} />
-            </div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 4 }}>{t.carrier.no_bookings}</p>
-            <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_bookings_sub}</p>
-          </div>
-        ) : (
-          <div style={{ marginBottom: 24 }}>
-            {pendingBookings.map((booking: any) => (
-              <div key={booking.id} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, marginBottom: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
-                    <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
-                  </div>
-                  <StatusBadge status={booking.status} />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => acceptMutation.mutate(booking.id)} disabled={acceptMutation.isPending}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 99, background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    <Check size={14} /> {t.carrier.accept}
-                  </button>
-                  <button onClick={() => refuseMutation.mutate(booking.id)} disabled={refuseMutation.isPending}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 99, background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                    <X size={14} /> {t.carrier.refuse}
-                  </button>
-                </div>
+        {/* Onglet : En attente */}
+        {activeTab === 'pending' && (
+          pendingBookings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: SAND, marginBottom: 16 }}>
+                <Package size={32} color={TAUPE} strokeWidth={1.5} />
               </div>
-            ))}
+              <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.no_bookings}</p>
+              <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_bookings_sub}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {pendingBookings.map((booking: any) => (
+                <div key={booking.id} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
+                      <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                    </div>
+                    <StatusBadge status={booking.status} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => acceptMutation.mutate(booking.id)} disabled={acceptMutation.isPending}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 99, background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      <Check size={14} /> {t.carrier.accept}
+                    </button>
+                    <button onClick={() => refuseMutation.mutate(booking.id)} disabled={refuseMutation.isPending}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 99, background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      <X size={14} /> {t.carrier.refuse}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {/* Onglet : Traitées */}
+        {activeTab === 'treated' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {acceptedBookings.length === 0 && refusedBookings.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: SAND, marginBottom: 16 }}>
+                  <Package size={32} color={TAUPE} strokeWidth={1.5} />
+                </div>
+                <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>Aucune réservation traitée</p>
+                <p style={{ fontSize: 13, color: TAUPE }}>Les réservations acceptées et refusées apparaîtront ici</p>
+              </div>
+            ) : (
+              <>
+                {acceptedBookings.length > 0 && (
+                  <>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                      {t.carrier.accepted_bookings} ({acceptedBookings.length})
+                    </p>
+                    {acceptedBookings.map((booking: any) => (
+                      <div key={booking.id} onClick={() => router.push(`/packages/${booking.id}`)}
+                        style={{ background: WHITE, border: '1px solid #6EE7B7', borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
+                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <StatusBadge status={booking.status} />
+                          <ChevronRight size={16} color={TAUPE} />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {refusedBookings.length > 0 && (
+                  <>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 4px' }}>
+                      {t.carrier.refused_bookings} ({refusedBookings.length})
+                    </p>
+                    {refusedBookings.map((booking: any) => (
+                      <div key={booking.id}
+                        style={{ background: WHITE, border: '1px solid #FCA5A5', borderRadius: 16, padding: 16, opacity: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
+                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                        </div>
+                        <StatusBadge status={booking.status} />
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
+            )}
           </div>
         )}
 
-        {/* Mes annonces */}
-        <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-          {t.carrier.my_trips}
-        </p>
-        {loadingTrips ? (
-          <div style={{ height: 80, background: WHITE, borderRadius: 14, border: '1px solid ' + BORDER }} />
-        ) : myTrips.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 24, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: SAND, marginBottom: 10 }}>
-              <Plane size={24} color={TAUPE} strokeWidth={1.5} />
+        {/* Onglet : Mes annonces */}
+        {activeTab === 'trips' && (
+          loadingTrips ? (
+            <div style={{ height: 80, background: WHITE, borderRadius: 14, border: '1px solid ' + BORDER }} />
+          ) : myTrips.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: SAND, marginBottom: 16 }}>
+                <Plane size={32} color={TAUPE} strokeWidth={1.5} />
+              </div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.no_trips}</p>
+              <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_trips_sub}</p>
             </div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 4 }}>{t.carrier.no_trips}</p>
-            <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_trips_sub}</p>
-          </div>
-        ) : (
-          myTrips.map((trip: any) => (
-            <div key={trip.id} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, marginBottom: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.origin_airport_code}</span>
-                  <Plane size={14} color={TAUPE} />
-                  <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.destination_airport_code}</span>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {myTrips.map((trip: any) => (
+                <div key={trip.id} onClick={() => router.push(`/trips/${trip.id}`)}
+                  style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(220,0,41,0.2)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = BORDER)}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.origin_airport_code}</span>
+                      <Plane size={14} color={TAUPE} />
+                      <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.destination_airport_code}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {trip.remaining_kg} kg dispo · {trip.price_per_kg}€/kg</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <StatusBadge status={trip.status} />
+                    <ChevronRight size={16} color={TAUPE} />
+                  </div>
                 </div>
-                <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {trip.remaining_kg} kg dispo · {trip.price_per_kg}€/kg</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <StatusBadge status={trip.status} />
-                <ChevronRight size={16} color={TAUPE} />
-              </div>
+              ))}
             </div>
-          ))
+          )
         )}
       </div>
     </div>

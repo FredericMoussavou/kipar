@@ -53,6 +53,11 @@ async def create_booking(
         raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
     if trip.status != "open":
         raise HTTPException(status_code=400, detail=t("errors.trip_not_open", lang))
+    # Empêche l'auto-expédition
+    if trip.carrier_id == current_user.id:
+        raise HTTPException(status_code=400, detail=t("errors.carrier_cannot_send", lang))
+    if payload.receiver_email_or_phone in (current_user.email, current_user.phone):
+        raise HTTPException(status_code=400, detail=t("errors.cannot_send_to_self", lang))
     if payload.weight_kg > trip.remaining_kg:
         raise HTTPException(status_code=400, detail=t(
             "errors.weight_exceeds_capacity", lang,
@@ -191,6 +196,48 @@ async def list_my_bookings(
     )
     return result.scalars().all()
 
+@router.get("/carrier", response_model=list[BookingResponse])
+async def list_carrier_bookings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Liste les réservations des trajets dont l'utilisateur est transporteur."""
+    from app.models.package import Package
+    # Récupère tous les trajets du transporteur
+    trips_result = await db.execute(
+        select(Trip).where(Trip.carrier_id == current_user.id)
+    )
+    trips = trips_result.scalars().all()
+    trip_ids = [t.id for t in trips]
+    if not trip_ids:
+        return []
+    # Récupère toutes les réservations de ces trajets
+    bookings_result = await db.execute(
+        select(Booking)
+        .where(Booking.trip_id.in_(trip_ids))
+        .order_by(Booking.created_at.desc())
+    )
+    bookings = bookings_result.scalars().all()
+    responses = []
+    for b in bookings:
+        pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
+        pkg = pkg_result.scalar_one_or_none()
+        responses.append(BookingResponse(
+            id=b.id,
+            trip_id=b.trip_id,
+            package_id=b.package_id,
+            sender_id=b.sender_id,
+            receiver_id=b.receiver_id,
+            amount=b.amount,
+            insurance_subscribed=b.insurance_subscribed,
+            status=b.status,
+            payment_rail=b.payment_rail,
+            weight_kg=pkg.weight_kg if pkg else None,
+            content_description=pkg.content_description if pkg else None,
+            declared_value=pkg.declared_value if pkg else None,
+        ))
+    return responses
+
 
 @router.get("/detail", response_model=list[BookingResponse])
 async def list_my_bookings_detailed(
@@ -247,9 +294,11 @@ async def get_booking_full(
     b = result.scalar_one_or_none()
     if not b:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-    if current_user.id not in (b.sender_id, b.receiver_id):
+    trip_check = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip_check_obj = trip_check.scalar_one_or_none()
+    carrier_id = trip_check_obj.carrier_id if trip_check_obj else None
+    if current_user.id not in (b.sender_id, b.receiver_id, carrier_id):
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-
     pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
     pkg = pkg_result.scalar_one_or_none()
     trip_result = await db.execute(select(Trip).where(Trip.id == b.trip_id))
@@ -258,10 +307,15 @@ async def get_booking_full(
     if trip:
         carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
         carrier = carrier_result.scalar_one_or_none()
+    
     receiver = None
     if b.receiver_id:
         receiver_result = await db.execute(select(User).where(User.id == b.receiver_id))
         receiver = receiver_result.scalar_one_or_none()
+    sender = None
+    if b.sender_id:
+        sender_result = await db.execute(select(User).where(User.id == b.sender_id))
+        sender = sender_result.scalar_one_or_none()
 
     return BookingDetailResponse(
         id=b.id, trip_id=b.trip_id, package_id=b.package_id,
@@ -284,4 +338,7 @@ async def get_booking_full(
         receiver_first_name=receiver.first_name if receiver else None,
         receiver_last_name=receiver.last_name if receiver else None,
         receiver_email=receiver.email if receiver else None,
+        sender_first_name=sender.first_name if sender else None,
+        sender_last_name=sender.last_name if sender else None,
+        sender_email=sender.email if sender else None,
     )

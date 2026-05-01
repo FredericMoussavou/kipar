@@ -172,6 +172,11 @@ export const en = {
   no_bookings_sub: 'New bookings will appear here',
   no_trips_sub: 'Post your first listing',
   submit_btn: 'Publish my listing',
+  tab_pending: 'Pending',
+  tab_treated: 'Treated',
+  tab_trips: 'My listings',
+  accepted_bookings: 'Accepted',
+  refused_bookings: 'Refused',
 },
   errors: {
     server_unreachable: 'Unable to reach server',

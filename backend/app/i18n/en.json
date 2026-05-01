@@ -56,8 +56,10 @@
     "airport_iata_invalid": "IATA code {code} not recognized — use the airport search",
     "oauth_token_invalid": "Invalid authentication token",
     "oauth_email_missing": "No email address associated with this account",
-    "oauth_provider_error": "Error connecting with {provider}"
-      },
+    "oauth_provider_error": "Error connecting with {provider}",
+    "carrier_cannot_send": "A carrier cannot send packages on their own trip",
+    "cannot_send_to_self": "You cannot send a package to yourself"
+  },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
     "delivery_confirmed_qr": "Delivery confirmed via QR — payment release in progress",
@@ -117,6 +119,12 @@
   "currencies": {
     "default": "EUR",
     "symbol": "€",
-    "supported": ["EUR", "XAF", "XOF", "USD", "GBP"]
+    "supported": [
+      "EUR",
+      "XAF",
+      "XOF",
+      "USD",
+      "GBP"
+    ]
   }
 }

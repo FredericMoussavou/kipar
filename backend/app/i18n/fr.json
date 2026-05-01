@@ -57,7 +57,9 @@
     "airport_iata_invalid": "Code IATA {code} non reconnu — utilisez la recherche d'aéroports",
     "oauth_token_invalid": "Token d'authentification invalide",
     "oauth_email_missing": "Aucune adresse email associée à ce compte",
-    "oauth_provider_error": "Erreur lors de la connexion avec {provider}"
+    "oauth_provider_error": "Erreur lors de la connexion avec {provider}",
+    "carrier_cannot_send": "Un transporteur ne peut pas envoyer de colis sur son propre trajet",
+    "cannot_send_to_self": "Vous ne pouvez pas vous envoyer un colis a vous-meme"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -117,6 +119,12 @@
   "currencies": {
     "default": "EUR",
     "symbol": "€",
-    "supported": ["EUR", "XAF", "XOF", "USD", "GBP"]
+    "supported": [
+      "EUR",
+      "XAF",
+      "XOF",
+      "USD",
+      "GBP"
+    ]
   }
 }

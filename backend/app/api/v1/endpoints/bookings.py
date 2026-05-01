@@ -331,6 +331,7 @@ async def get_booking_full(
         destination_airport_code=trip.destination_airport_code if trip else None,
         departure_date=str(trip.departure_date) if trip else None,
         flight_number=trip.flight_number if trip else None,
+        carrier_id=trip.carrier_id if trip else None,
         carrier_first_name=carrier.first_name if carrier else None,
         carrier_last_name=carrier.last_name if carrier else None,
         carrier_trust_score=carrier.trust_score if carrier else None,

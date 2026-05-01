@@ -52,6 +52,7 @@ class BookingDetailResponse(BaseModel):
     departure_date: str | None = None
     flight_number: str | None = None
     # Carrier
+    carrier_id: uuid.UUID | None = None
     carrier_first_name: str | None = None
     carrier_last_name: str | None = None
     carrier_trust_score: float | None = None

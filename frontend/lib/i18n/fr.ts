@@ -94,6 +94,7 @@ export const fr = {
     insurance: 'Assurance colis (3%)',
     total: 'Total',
     pay_btn: 'Payer maintenant →',
+    secure: 'Paiement sécurisé · Fonds débloqués à la livraison',
     simulated: 'Paiement simulé — affichage du suivi',
   },
   tracking: {

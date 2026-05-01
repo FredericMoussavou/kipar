@@ -11,9 +11,9 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import { Button, Input } from '@/components/ui/kipar'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),
@@ -69,32 +69,39 @@ export default function BookPage() {
   })
 
   return (
-    <div style={{ background: '#FBFBFF', minHeight: '100vh' }}>
+    <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      {/* Header */}
-      <div style={{ background: RED, padding: '48px 20px 24px', color: '#fff', position: 'relative' }}>
-        <button
-          onClick={() => router.back()}
-          style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        >
-          <ArrowLeft size={16} color="#fff" />
-        </button>
-        <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, textAlign: 'center' }}>
-          {t.booking.title}
-        </h1>
-        {selectedTrip && (
-          <p style={{ textAlign: 'center', fontSize: 13, opacity: 0.8, marginTop: 4 }}>
-            {selectedTrip.origin_airport_code} → {selectedTrip.destination_airport_code} · {selectedTrip.price_per_kg}€/kg
-          </p>
-        )}
-      </div>
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        minHeight={160}
+        gradient="vertical"
+      >
+        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
+          <button
+            onClick={() => router.back()}
+            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <ArrowLeft size={16} color="#fff" />
+          </button>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
+            {t.booking.title}
+          </h1>
+          {selectedTrip && (
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
+              {selectedTrip.origin_airport_code} → {selectedTrip.destination_airport_code} · {selectedTrip.price_per_kg}€/kg
+            </p>
+          )}
+        </div>
+      </HeroHeader>
 
-      <form onSubmit={handleSubmit((data) => mutation.mutate(data))} style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <form onSubmit={handleSubmit((data) => mutation.mutate(data))}
+        style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}
+        className="md:max-w-2xl md:mx-auto">
 
         {/* Récepteur */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: `1px solid ${BORDER}` }}>
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-            Récepteur
+            {t.booking.receiver_label}
           </p>
           <Input
             label={t.booking.receiver_label}
@@ -106,9 +113,9 @@ export default function BookPage() {
         </div>
 
         {/* Colis */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: 16, border: `1px solid ${BORDER}` }}>
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-            Colis
+            {t.booking.content_label}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Input
@@ -140,7 +147,7 @@ export default function BookPage() {
 
         {/* Assurance */}
         <div
-          style={{ background: '#fff', borderRadius: 16, padding: 16, border: `1px solid ${withInsurance ? RED : BORDER}`, cursor: 'pointer', transition: 'all 0.2s' }}
+          style={{ background: WHITE, borderRadius: 16, padding: 16, border: `1px solid ${withInsurance ? RED : BORDER}`, cursor: 'pointer', transition: 'all 0.2s' }}
           onClick={() => setWithInsurance(!withInsurance)}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -149,7 +156,7 @@ export default function BookPage() {
               <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>3% de la valeur déclarée · {insurance > 0 ? `+${insurance.toFixed(2)}€` : 'Entrez une valeur'}</p>
             </div>
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${withInsurance ? RED : BORDER}`, background: withInsurance ? RED : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-              {withInsurance && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
+              {withInsurance && <div style={{ width: 8, height: 8, borderRadius: '50%', background: WHITE }} />}
             </div>
           </div>
         </div>
@@ -157,7 +164,7 @@ export default function BookPage() {
         {/* Récapitulatif */}
         <div style={{ background: SAND, borderRadius: 16, padding: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-            Récapitulatif
+            {t.booking.total}
           </p>
           {[
             { label: t.booking.transport_cost, value: transport > 0 ? `${transport.toFixed(2)}€` : '—' },
@@ -169,7 +176,7 @@ export default function BookPage() {
               <span>{value}</span>
             </div>
           ))}
-          <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 10, marginTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
+          <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 10, marginTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
             <span>{t.booking.total}</span>
             <span>{total > 0 ? `${total.toFixed(2)}€` : '—'}</span>
           </div>

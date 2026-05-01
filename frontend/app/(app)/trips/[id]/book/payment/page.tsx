@@ -7,9 +7,9 @@ import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/kipar'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
 export default function PaymentPage() {
   const { id } = useParams()
@@ -37,39 +37,42 @@ export default function PaymentPage() {
     onSuccess: () => {
       router.push(`/packages/${bookingId}?success=true`)
     },
-    onError: (err: any) => {
-      // Paiement simulé — redirige quand même
+    onError: () => {
       toast.info(t.payment.simulated)
       setTimeout(() => router.push(`/packages/${bookingId}`), 1200)
     },
   })
 
   return (
-    <div style={{ background: '#FBFBFF', minHeight: '100vh' }}>
+    <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      <div style={{ background: RED, padding: '48px 20px 24px', color: '#fff', position: 'relative' }}>
-        <button
-          onClick={() => router.back()}
-          style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        >
-          <ArrowLeft size={16} color="#fff" />
-        </button>
-        <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, textAlign: 'center' }}>
-          {t.payment.title}
-        </h1>
-          <p style={{ textAlign: 'center', fontSize: 24, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)' }}>
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        minHeight={160}
+        gradient="vertical"
+      >
+        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
+          <button
+            onClick={() => router.back()}
+            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <ArrowLeft size={16} color="#fff" />
+          </button>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
+            {t.payment.title}
+          </h1>
+          <p style={{ textAlign: 'center', fontSize: 28, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)', color: '#fff' }}>
             {totalAmount}€
           </p>
-      </div>
+        </div>
+      </HeroHeader>
 
-      <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}
+        className="md:max-w-2xl md:mx-auto">
 
         {paymentMethods.map(({ id: pmId, icon: Icon, label, desc }) => (
-          <div
-            key={pmId}
-            onClick={() => setSelectedPM(pmId)}
-            style={{ background: '#fff', border: `2px solid ${selectedPM === pmId ? RED : BORDER}`, borderRadius: 16, padding: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.2s' }}
-          >
+          <div key={pmId} onClick={() => setSelectedPM(pmId)}
+            style={{ background: WHITE, border: `2px solid ${selectedPM === pmId ? RED : BORDER}`, borderRadius: 16, padding: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.2s' }}>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: selectedPM === pmId ? '#FFF0F2' : SAND, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Icon size={20} color={selectedPM === pmId ? RED : CHARCOAL2} />
             </div>
@@ -78,7 +81,7 @@ export default function PaymentPage() {
               <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{desc}</p>
             </div>
             <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${selectedPM === pmId ? RED : BORDER}`, background: selectedPM === pmId ? RED : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {selectedPM === pmId && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff' }} />}
+              {selectedPM === pmId && <div style={{ width: 7, height: 7, borderRadius: '50%', background: WHITE }} />}
             </div>
           </div>
         ))}
@@ -93,7 +96,7 @@ export default function PaymentPage() {
         </Button>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: TAUPE }}>
-          🔒 Paiement sécurisé · Fonds débloqués à la livraison
+          🔒 {t.payment.secure}
         </p>
       </div>
     </div>

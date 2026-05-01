@@ -28,7 +28,7 @@ export default function PackagesPage() {
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
       <HeroHeader
-        imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        imageUrl="https://images.unsplash.com/photo-1599658880436-c61792e70672?w=1200&q=80"
         minHeight={160}
       >
         <div style={{ padding: '48px 24px 28px' }} className="md:p-8">

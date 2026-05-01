@@ -94,6 +94,7 @@ export const en = {
     insurance: 'Package insurance (3%)',
     total: 'Total',
     pay_btn: 'Pay now →',
+    secure: 'Secure payment · Funds released on delivery',
     simulated: 'Simulated payment — showing tracking',
   },
   tracking: {

@@ -2,14 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Calendar, Package, Plane, Shield } from 'lucide-react'
+import { ArrowLeft, Calendar, Plane, Shield } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { Button } from '@/components/ui/kipar'
+import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
 function getTrustGradient(score: number) {
   if (score >= 75) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 60%,#16A34A 100%)', color: '#16A34A' }
@@ -42,7 +42,7 @@ export default function TripDetailPage() {
   if (isLoading) return (
     <div style={{ padding: '80px 20px 20px' }}>
       {[1, 2, 3].map(i => (
-        <div key={i} style={{ height: 100, background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, marginBottom: 12 }} />
+        <div key={i} style={{ height: 100, background: WHITE, borderRadius: 16, border: `1px solid ${BORDER}`, marginBottom: 12 }} />
       ))}
     </div>
   )
@@ -57,46 +57,52 @@ export default function TripDetailPage() {
   const { gradient, color } = getTrustGradient(score)
 
   return (
-    <div style={{ background: '#FBFBFF', minHeight: '100vh' }}>
+    <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      {/* Hero */}
-      <div style={{ background: RED, padding: '48px 20px 28px', color: '#fff', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: -30, top: -30, width: 120, height: 120, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
-        <button
-          onClick={() => router.back()}
-          style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        >
-          <ArrowLeft size={16} color="#fff" />
-        </button>
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80"
+        minHeight={200}
+        gradient="vertical"
+      >
+        <div style={{ padding: '48px 20px 28px', position: 'relative' }}>
+          <button
+            onClick={() => router.back()}
+            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <ArrowLeft size={16} color="#fff" />
+          </button>
 
-        <p style={{ textAlign: 'center', fontSize: 12, opacity: 0.7, marginBottom: 12 }}>{t.trip.trip_detail}</p>
+          <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 12 }}>{t.trip.trip_detail}</p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 8 }}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{trip.origin_airport_code}</p>
-            <p style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{trip.origin_city}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 8 }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 36, fontWeight: 800, color: WHITE, lineHeight: 1 }}>{trip.origin_airport_code}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{trip.origin_city}</p>
+            </div>
+            <Plane size={22} color="rgba(255,255,255,0.5)" />
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 36, fontWeight: 800, color: WHITE, lineHeight: 1 }}>{trip.destination_airport_code}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{trip.destination_city}</p>
+            </div>
           </div>
-          <Plane size={22} style={{ opacity: 0.5 }} />
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 36, fontWeight: 800, lineHeight: 1 }}>{trip.destination_airport_code}</p>
-            <p style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>{trip.destination_city}</p>
-          </div>
+
+          {trip.flight_number && (
+            <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 4 }}>
+              ✈ {trip.flight_number} · {trip.departure_date}
+              {trip.departure_time && ` · ${trip.departure_time}`}
+              {trip.arrival_time && ` → ${trip.arrival_time}`}
+            </p>
+          )}
         </div>
+      </HeroHeader>
 
-        {trip.flight_number && (
-          <p style={{ textAlign: 'center', fontSize: 12, opacity: 0.65 }}>
-            ✈ {trip.flight_number} · {trip.departure_date}
-          </p>
-        )}
-      </div>
-
-      <div style={{ padding: '16px 16px 100px' }}>
+      <div style={{ padding: '16px 16px 100px' }} className="md:max-w-2xl md:mx-auto">
 
         {/* Transporteur */}
-        <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: CHARCOAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 700, color: '#fff' }}>K</span>
+              <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 700, color: WHITE }}>K</span>
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{t.trip.kyc_verified}</p>
@@ -125,7 +131,7 @@ export default function TripDetailPage() {
             { label: t.trip.max_per_package, value: `${trip.max_kg_per_package} kg` },
             { label: t.trip.departure, value: trip.departure_date?.slice(5) || '—' },
           ].map(({ label, value }) => (
-            <div key={label} style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>
+            <div key={label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>
               <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 700, color: CHARCOAL2, lineHeight: 1 }}>{value}</p>
               <p style={{ fontSize: 10, color: TAUPE, marginTop: 4 }}>{label}</p>
             </div>
@@ -141,7 +147,6 @@ export default function TripDetailPage() {
           </div>
         </div>
 
-        {/* CTA */}
         <Button fullWidth size="lg" onClick={handleBook}>
           {t.trip.send_package}
         </Button>

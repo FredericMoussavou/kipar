@@ -1,27 +1,37 @@
 'use client'
-import { cn } from '@/lib/utils'
 import { useTranslation } from '@/hooks/useTranslation'
 
-const STATUS_CLASSES: Record<string, string> = {
-  awaiting_receiver: 'bg-k-sand text-k-charcoal-2',
-  pending:           'bg-amber-50 text-amber-700',
-  accepted:          'bg-emerald-50 text-emerald-700',
-  refused:           'bg-red-50 text-red-600',
-  paid:              'bg-emerald-50 text-emerald-700',
-  in_transit:        'bg-blue-50 text-blue-700',
-  delivered:         'bg-emerald-50 text-emerald-700',
-  disputed:          'bg-red-50 text-red-600',
-  refunded:          'bg-k-sand text-k-charcoal-2',
-  open:              'bg-emerald-50 text-emerald-700',
-  full:              'bg-k-sand text-k-charcoal-2',
+const STATUS_STYLES: Record<string, { background: string; color: string }> = {
+  awaiting_receiver: { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
+  pending:           { background: '#FFF8E1', color: '#B45309' },
+  accepted:          { background: '#ECFDF5', color: '#059669' },
+  refused:           { background: '#FEF2F2', color: '#DC2626' },
+  paid:              { background: '#ECFDF5', color: '#059669' },
+  in_transit:        { background: '#EFF6FF', color: '#1D4ED8' },
+  delivered:         { background: '#ECFDF5', color: '#059669' },
+  disputed:          { background: '#FEF2F2', color: '#DC2626' },
+  refunded:          { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
+  open:              { background: '#ECFDF5', color: '#059669' },
+  full:              { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
 }
 
-export default function StatusBadge({ status, className }: { status: string; className?: string }) {
+export default function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation()
   const label = t.statuses[status as keyof typeof t.statuses] || status
-  const cls = STATUS_CLASSES[status] || 'bg-k-sand text-k-charcoal-2'
+  const style = STATUS_STYLES[status] || { background: 'rgba(255,255,255,0.9)', color: '#6B6560' }
+
   return (
-    <span className={cn('inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium', cls, className)}>
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '4px 10px',
+      borderRadius: 99,
+      fontSize: 11,
+      fontWeight: 600,
+      background: style.background,
+      color: style.color,
+      whiteSpace: 'nowrap',
+    }}>
       {label}
     </span>
   )

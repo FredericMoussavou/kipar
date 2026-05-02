@@ -59,7 +59,11 @@
     "oauth_email_missing": "Aucune adresse email associée à ce compte",
     "oauth_provider_error": "Erreur lors de la connexion avec {provider}",
     "carrier_cannot_send": "Un transporteur ne peut pas envoyer de colis sur son propre trajet",
-    "cannot_send_to_self": "Vous ne pouvez pas vous envoyer un colis a vous-meme"
+    "avatar_url_invalid": "URL d'avatar invalide ou non autorisée",
+    "cannot_send_to_self": "Vous ne pouvez pas vous envoyer un colis a vous-meme",
+    "phone_already_used": "Ce numero de telephone est deja utilisé",
+    "password_required": "Mot de passe requis pour cette action",
+    "password_invalid": "Mot de passe incorrect"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -76,7 +80,11 @@
     "insurance_subscribed": "Assurance souscrite — votre colis est couvert jusqu'à {amount}€",
     "insurance_cancelled": "Assurance annulée — remboursement en cours",
     "oauth_login": "Connecté avec {provider}",
-    "oauth_register": "Compte créé avec {provider}"
+    "oauth_register": "Compte créé avec {provider}",
+    "profile_updated": "Profil mis à jour",
+    "avatar_updated": "Avatar mis à jour",
+    "notification_preferences_updated": "Preferences de notifications mises a jour",
+    "account_deleted": "Compte supprime"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

@@ -45,6 +45,12 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
 
+    # Cloudinary (avatars)
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+    CLOUDINARY_UPLOAD_PRESET: str = "kipar_avatars"
+
     SENTRY_DSN: str = ""
 
     SUPPORT_EMAIL: str = "support@kipar.app"

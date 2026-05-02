@@ -94,7 +94,7 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     lang = user.language if user else "fr"
-    if not user or not verify_password(payload.password, user.hashed_password):
+    if not user or not user.is_active or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
     return TokenResponse(
         access_token=create_access_token(str(user.id)),

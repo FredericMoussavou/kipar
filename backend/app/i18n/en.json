@@ -58,7 +58,13 @@
     "oauth_email_missing": "No email address associated with this account",
     "oauth_provider_error": "Error connecting with {provider}",
     "carrier_cannot_send": "A carrier cannot send packages on their own trip",
-    "cannot_send_to_self": "You cannot send a package to yourself"
+    "avatar_url_invalid": "Invalid or unauthorized avatar URL",
+    "cannot_send_to_self": "You cannot send a package to yourself",
+    "profile_updated": "Profile updated",
+    "avatar_updated": "Avatar updated",
+    "phone_already_used": "This phone number is already in use",
+    "password_required": "Password required for this action",
+    "password_invalid": "Incorrect password"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -76,7 +82,9 @@
     "insurance_cancelled": "Insurance cancelled — refund in progress",
     "airport_not_found": "Airport {code} not found",
     "oauth_login": "Connected with {provider}",
-    "oauth_register": "Account created with {provider}"
+    "oauth_register": "Account created with {provider}",
+    "notification_preferences_updated": "Notification preferences updated",
+    "account_deleted": "Account deleted"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

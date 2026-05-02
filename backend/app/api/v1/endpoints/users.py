@@ -1,21 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from pydantic import BaseModel
-from datetime import datetime
+from pydantic import BaseModel, field_validator
+from datetime import datetime, timezone
+import re
 import uuid
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.lang import get_lang
+from app.core.security import verify_password
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
 from app.models.review import Review
+from app.services.cloudinary_service import (
+    generate_avatar_upload_signature,
+    validate_avatar_url,
+)
 from app.i18n.loader import t, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+
+# ─── Schemas ────────────────────────────────────────────────────────────────
 
 class FCMTokenRequest(BaseModel):
     fcm_token: str
@@ -23,6 +31,45 @@ class FCMTokenRequest(BaseModel):
 
 class LanguageRequest(BaseModel):
     language: str
+
+
+class UpdateMeRequest(BaseModel):
+    """Champs modifiables sur le profil perso. Tous optionnels."""
+    phone: str | None = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str | None) -> str | None:
+        if v is None or v == "":
+            return None
+        v = v.strip().replace(" ", "").replace(".", "").replace("-", "")
+        if not re.match(r"^(\+|00)?\d{8,15}$", v):
+            raise ValueError("Format téléphone invalide")
+        return v
+
+
+class AvatarUrlRequest(BaseModel):
+    avatar_url: str
+
+
+class AvatarSignatureResponse(BaseModel):
+    signature: str
+    timestamp: int
+    api_key: str
+    cloud_name: str
+    folder: str
+    public_id: str
+    upload_preset: str
+
+
+class NotificationPreferencesRequest(BaseModel):
+    notify_by_email: bool | None = None
+    notify_by_push: bool | None = None
+    notify_by_sms: bool | None = None
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
 
 
 class PublicUserResponse(BaseModel):
@@ -43,6 +90,8 @@ class PublicUserResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
+# ─── Endpoints existants ────────────────────────────────────────────────────
 
 @router.patch("/me/fcm-token")
 async def update_fcm_token(
@@ -67,21 +116,172 @@ async def update_language(
     return {"message": t("success.language_updated", lang), "language": new_lang}
 
 
+@router.patch("/me")
+async def update_me(
+    payload: UpdateMeRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Met à jour les champs modifiables du profil perso.
+    Pour l'instant : uniquement le téléphone.
+
+    L'email, le nom, le prénom, le KYC status, le trust score
+    ne sont PAS modifiables via cet endpoint (sécurité / cohérence).
+    """
+    # Le champ phone explicite (None ou valeur) declenche la mise a jour
+    if 'phone' in payload.model_fields_set:
+        new_phone = payload.phone  # peut etre None apres validation
+
+        # Vérifie qu'aucun autre user n'a déjà ce numéro (contrainte UNIQUE en DB)
+        if new_phone and new_phone != current_user.phone:
+            existing = await db.execute(
+                select(User).where(
+                    User.phone == new_phone,
+                    User.id != current_user.id,
+                )
+            )
+            if existing.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=409,
+                    detail=t("errors.phone_already_used", lang),
+                )
+
+        current_user.phone = new_phone
+
+    return {
+        "message": t("success.profile_updated", lang),
+        "user": _serialize_me(current_user),
+    }
+
+
+@router.post("/me/avatar/sign", response_model=AvatarSignatureResponse)
+async def get_avatar_upload_signature(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Génère une signature Cloudinary pour autoriser l'upload de l'avatar.
+    Le frontend uploade directement à Cloudinary, sans transit par notre backend.
+    """
+    try:
+        return generate_avatar_upload_signature(current_user.id)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.patch("/me/avatar")
+async def update_avatar(
+    payload: AvatarUrlRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Persiste l'URL de l'avatar après upload réussi côté Cloudinary.
+    Vérification anti-spoofing : l'URL doit appartenir au folder de l'user.
+    """
+    if not validate_avatar_url(payload.avatar_url, current_user.id):
+        raise HTTPException(
+            status_code=400,
+            detail=t("errors.avatar_url_invalid", lang),
+        )
+
+    current_user.avatar_url = payload.avatar_url
+    return {
+        "message": t("success.avatar_updated", lang),
+        "avatar_url": current_user.avatar_url,
+    }
+
+
+# ─── Nouveaux endpoints — Phase 2 ───────────────────────────────────────────
+
+@router.patch("/me/notification-preferences")
+async def update_notification_preferences(
+    payload: NotificationPreferencesRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Met à jour les préférences de notifications de l'utilisateur connecté.
+    Tous les champs sont optionnels — seuls ceux fournis sont modifiés.
+    """
+    if payload.notify_by_email is not None:
+        current_user.notify_by_email = payload.notify_by_email
+    if payload.notify_by_push is not None:
+        current_user.notify_by_push = payload.notify_by_push
+    if payload.notify_by_sms is not None:
+        current_user.notify_by_sms = payload.notify_by_sms
+
+    return {
+        "message": t("success.notification_preferences_updated", lang),
+        "notify_by_email": current_user.notify_by_email,
+        "notify_by_push": current_user.notify_by_push,
+        "notify_by_sms": current_user.notify_by_sms,
+    }
+
+
+@router.delete("/me")
+async def delete_my_account(
+    payload: DeleteAccountRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Soft delete du compte de l'utilisateur connecté.
+
+    Sécurité :
+      - Demande le mot de passe actuel (anti vol-de-session)
+      - Anonymise les données perso (RGPD-compliant)
+      - Préserve l'ID, kyc_status, trust_score, created_at pour les stats agrégées
+      - Désactive le compte (is_active=False) → login refusé
+      - Marque deleted_at=now()
+
+    Les bookings, trips et reviews historiques restent intacts mais référencent
+    désormais un user "Utilisateur supprimé".
+    """
+    if not payload.password:
+        raise HTTPException(
+            status_code=400,
+            detail=t("errors.password_required", lang),
+        )
+
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=403,
+            detail=t("errors.password_invalid", lang),
+        )
+
+    # Anonymisation RGPD
+    short_id = str(current_user.id).split("-")[0]
+    current_user.email = f"deleted_{short_id}@kipar.deleted"
+    current_user.phone = None
+    current_user.first_name = "Utilisateur"
+    current_user.last_name = "supprimé"
+    current_user.avatar_url = None
+    # Hash impossible à déverrouiller (le ! n'est pas un caractère valide en bcrypt)
+    current_user.hashed_password = "!"
+    current_user.google_id = None
+    current_user.apple_id = None
+    current_user.fcm_token = None
+    current_user.onfido_applicant_id = None
+    current_user.stripe_account_id = None
+    current_user.flutterwave_account_id = None
+
+    # Désactivation + timestamp
+    current_user.is_active = False
+    current_user.deleted_at = datetime.now(timezone.utc)
+
+    return {"message": t("success.account_deleted", lang)}
+
+
+# ─── GET endpoints ──────────────────────────────────────────────────────────
+
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
-    return {
-        "id": str(current_user.id),
-        "email": current_user.email,
-        "first_name": current_user.first_name,
-        "last_name": current_user.last_name,
-        "phone": current_user.phone,
-        "kyc_status": current_user.kyc_status,
-        "trust_score": current_user.trust_score,
-        "language": current_user.language,
-        "is_sender": current_user.is_sender,
-        "is_carrier": current_user.is_carrier,
-        "is_receiver": current_user.is_receiver,
-    }
+    return _serialize_me(current_user)
 
 
 @router.get("/{user_id}", response_model=PublicUserResponse)
@@ -91,13 +291,12 @@ async def get_public_user(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """Profil public d'un utilisateur — auth requise, données sensibles non exposées."""
+    """Profil public — auth requise, données sensibles non exposées."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
         raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
 
-    # Livraisons en tant qu'expéditeur
     sender_q = await db.execute(
         select(func.count(Booking.id)).where(
             Booking.sender_id == user.id,
@@ -106,7 +305,6 @@ async def get_public_user(
     )
     deliveries_as_sender = sender_q.scalar() or 0
 
-    # Livraisons en tant que transporteur (via Trip.carrier_id)
     carrier_q = await db.execute(
         select(func.count(Booking.id))
         .join(Trip, Booking.trip_id == Trip.id)
@@ -117,13 +315,11 @@ async def get_public_user(
     )
     deliveries_as_carrier = carrier_q.scalar() or 0
 
-    # Trajets postés
     trips_q = await db.execute(
         select(func.count(Trip.id)).where(Trip.carrier_id == user.id)
     )
     trips_count = trips_q.scalar() or 0
 
-    # Avis reçus + moyenne
     reviews_q = await db.execute(
         select(func.count(Review.id), func.avg(Review.score)).where(
             Review.reviewed_id == user.id
@@ -148,3 +344,26 @@ async def get_public_user(
         reviews_count=reviews_count,
         avg_rating=avg_rating,
     )
+
+
+# ─── Helpers internes ───────────────────────────────────────────────────────
+
+def _serialize_me(user: User) -> dict:
+    """Format de l'user complet pour les réponses /me et PATCH /me."""
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone": user.phone,
+        "avatar_url": user.avatar_url,
+        "kyc_status": user.kyc_status,
+        "trust_score": user.trust_score,
+        "language": user.language,
+        "is_sender": user.is_sender,
+        "is_carrier": user.is_carrier,
+        "is_receiver": user.is_receiver,
+        "notify_by_email": user.notify_by_email,
+        "notify_by_push": user.notify_by_push,
+        "notify_by_sms": user.notify_by_sms,
+    }

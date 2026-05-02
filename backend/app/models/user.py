@@ -44,6 +44,16 @@ class User(Base):
     language: Mapped[str] = mapped_column(String(5), default="fr")
     fcm_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Preferences notifications (Phase 2)
+    notify_by_email: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_by_push: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_by_sms: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Soft delete (Phase 2)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)

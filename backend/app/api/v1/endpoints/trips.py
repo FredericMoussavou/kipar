@@ -52,13 +52,13 @@ async def search_trips(
     if mine and current_user:
         query = select(Trip).where(Trip.carrier_id == current_user.id).order_by(Trip.created_at.desc())
     else:
-        query = select(Trip).where(Trip.status == "open")
+        from datetime import date as dclass
+        query = select(Trip).where(Trip.status == "open", Trip.departure_date >= dclass.today())
         if origin:
             query = query.where(Trip.origin_airport_code == origin.upper())
         if destination:
             query = query.where(Trip.destination_airport_code == destination.upper())
         if date:
-            from datetime import date as dclass
             query = query.where(Trip.departure_date == dclass.fromisoformat(date))
         if sort_by == "price_asc":
             query = query.order_by(Trip.price_per_kg.asc())

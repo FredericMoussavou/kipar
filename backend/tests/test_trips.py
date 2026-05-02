@@ -62,3 +62,29 @@ async def test_get_trip_not_found(client):
     """Un trajet inexistant retourne 404."""
     res = await client.get("/api/v1/trips/00000000-0000-0000-0000-000000000000")
     assert res.status_code == 404
+
+async def test_create_trip_past_date_rejected(client, db_session):
+    """Un trip avec une date passee est refuse a la creation."""
+    from sqlalchemy import update
+    from app.models.user import User as UserModel
+    carrier = await register_and_login(client, "carrier_past@kipar.com")
+    await db_session.execute(update(UserModel).where(UserModel.email == "carrier_past@kipar.com").values(kyc_status="verified"))
+    await db_session.commit()
+    yesterday = str(date.today() - timedelta(days=1))
+    payload = {**TRIP_PAYLOAD, "departure_date": yesterday}
+    res = await client.post(
+        "/api/v1/trips",
+        json=payload,
+        headers={"Authorization": f"Bearer {carrier}"}
+    )
+    assert res.status_code == 422
+
+async def test_search_trips_excludes_past(client):
+    """Les trips avec departure_date < today n apparaissent pas dans la recherche publique."""
+    res = await client.get("/api/v1/trips")
+    assert res.status_code == 200
+    trips = res.json()
+    today = str(date.today())
+    for trip in trips:
+        assert trip["departure_date"] >= today
+

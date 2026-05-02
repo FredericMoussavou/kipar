@@ -37,7 +37,7 @@ export default function PackagesPage() {
             {t.packages.title}
           </h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-            {bookings.length} réservation{bookings.length > 1 ? 's' : ''}
+            {bookings.length > 1 ? t.packages.booking_count_many.replace('{n}', bookings.length) : t.packages.booking_count_one.replace('{n}', bookings.length)}
           </p>
         </div>
       </HeroHeader>
@@ -77,7 +77,7 @@ export default function PackagesPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {booking.content_description || 'Colis'}
+                      {booking.content_description || t.packages.default_content}
                     </p>
                     <StatusBadge status={booking.status} />
                   </div>

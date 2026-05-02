@@ -49,7 +49,7 @@ export default function TripDetailPage() {
 
   if (!trip) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <p style={{ color: TAUPE }}>Trajet introuvable</p>
+      <p style={{ color: TAUPE }}>{t.trip.not_found}</p>
     </div>
   )
 
@@ -106,7 +106,7 @@ export default function TripDetailPage() {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{t.trip.kyc_verified}</p>
-              <p style={{ fontSize: 12, color: TAUPE }}>Transporteur vérifié Kipar</p>
+              <p style={{ fontSize: 12, color: TAUPE }}>{t.trip.verified_carrier}</p>
             </div>
             <div style={{ textAlign: 'right' }}>
               <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>{trip.price_per_kg}€</p>
@@ -142,8 +142,8 @@ export default function TripDetailPage() {
         <div style={{ background: SAND, borderRadius: 14, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
           <Shield size={18} color={CHARCOAL2} />
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL }}>Assurance colis disponible</p>
-            <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>Protégez votre colis — 3% de la valeur déclarée</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL }}>{t.trip.insurance_available}</p>
+            <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.trip.insurance_desc}</p>
           </div>
         </div>
 

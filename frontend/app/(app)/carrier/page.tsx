@@ -210,8 +210,8 @@ export default function CarrierPage() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: SAND, marginBottom: 16 }}>
                   <Package size={32} color={TAUPE} strokeWidth={1.5} />
                 </div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>Aucune réservation traitée</p>
-                <p style={{ fontSize: 13, color: TAUPE }}>Les réservations acceptées et refusées apparaîtront ici</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.no_treated_bookings}</p>
+                <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_treated_bookings_sub}</p>
               </div>
             ) : (
               <>

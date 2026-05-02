@@ -31,9 +31,9 @@ function InfoRow({ label, value }: { label: string; value: string | number | nul
   )
 }
 
-function PersonCard({ firstName, lastName, email, kycStatus, trustScore, role, onPress }: {
+function PersonCard({ firstName, lastName, email, kycStatus, trustScore, role, onPress, t }: {
   firstName?: string; lastName?: string; email?: string
-  kycStatus?: string; trustScore?: number; role: string; onPress?: () => void
+  kycStatus?: string; trustScore?: number; role: string; onPress?: () => void; t: any
 }) {
   const score = Math.round(trustScore || 50)
   const { gradient, color } = getTrustGradient(score)
@@ -54,10 +54,10 @@ function PersonCard({ firstName, lastName, email, kycStatus, trustScore, role, o
       <div style={{ flex: 1 }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>
           {firstName} {lastName}
-          {onPress && <span style={{ fontSize: 11, color: RED, marginLeft: 6 }}>→ Profil</span>}
+          {onPress && <span style={{ fontSize: 11, color: RED, marginLeft: 6 }}>{t.package_detail.see_profile}</span>}
         </p>
         <p style={{ fontSize: 12, color: kycStatus === 'verified' ? '#059669' : TAUPE }}>
-          {role} {kycStatus === 'verified' ? '· ✓ KYC Vérifié' : ''}
+          {role} {kycStatus === 'verified' ? t.package_detail.kyc_verified : ''}
         </p>
         {email && <p style={{ fontSize: 11, color: TAUPE }}>{email}</p>}
       </div>
@@ -97,7 +97,7 @@ export default function BookingDetailPage() {
 
   if (!booking) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <p style={{ color: TAUPE }}>Réservation introuvable</p>
+      <p style={{ color: TAUPE }}>{t.package_detail.not_found}</p>
     </div>
   )
 
@@ -140,61 +140,64 @@ export default function BookingDetailPage() {
       <div style={{ padding: '16px 16px 80px' }} className="md:max-w-2xl md:mx-auto">
 
         {/* Colis */}
-        <Section title="Colis">
-          <InfoRow label="Contenu" value={booking.content_description} />
-          <InfoRow label="Poids" value={booking.weight_kg ? `${booking.weight_kg} kg` : null} />
-          <InfoRow label="Valeur déclarée" value={booking.declared_value ? `${booking.declared_value}€` : null} />
-          <InfoRow label="Montant payé" value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
-          <InfoRow label="Assurance" value={booking.insurance_subscribed ? 'Oui' : 'Non'} />
+        <Section title={t.package_detail.section_package}>
+          <InfoRow label={t.package_detail.field_content} value={booking.content_description} />
+          <InfoRow label={t.package_detail.field_weight} value={booking.weight_kg ? `${booking.weight_kg} kg` : null} />
+          <InfoRow label={t.package_detail.field_declared_value} value={booking.declared_value ? `${booking.declared_value}€` : null} />
+          <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
+          <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
           {booking.ai_prohibited_flag && (
             <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '8px 12px', marginTop: 8 }}>
-              <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 500 }}>⚠️ Contenu signalé par KiparScan</p>
+              <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 500 }}>{t.package_detail.ai_flag_warning}</p>
             </div>
           )}
         </Section>
 
         {/* Transporteur — visible par expéditeur et récepteur */}
         {(isSender || isReceiver) && (booking.carrier_first_name || booking.carrier_last_name) && (
-          <Section title="Transporteur">
+          <Section title={t.package_detail.section_carrier}>
             <PersonCard
               firstName={booking.carrier_first_name}
               lastName={booking.carrier_last_name}
               kycStatus={booking.carrier_kyc_status}
               trustScore={booking.carrier_trust_score}
-              role="Transporteur"
+              role={t.package_detail.role_carrier}
               onPress={() => router.push(`/profile/${booking.carrier_id}`)}
+              t={t}
             />
           </Section>
         )}
 
         {/* Expéditeur — visible par transporteur et récepteur */}
         {(isCarrier || isReceiver) && booking.sender_first_name && (
-          <Section title="Expéditeur">
+          <Section title={t.package_detail.section_sender}>
             <PersonCard
               firstName={booking.sender_first_name}
               lastName={booking.sender_last_name}
               email={booking.sender_email}
-              role="Expéditeur"
+              role={t.package_detail.role_sender}
               onPress={() => router.push(`/profile/${booking.sender_id}`)}
+              t={t}
             />
           </Section>
         )}
 
         {/* Récepteur — visible par transporteur et expéditeur */}
         {(isCarrier || isSender) && booking.receiver_email && (
-          <Section title="Récepteur">
+          <Section title={t.package_detail.section_receiver}>
             <PersonCard
               firstName={booking.receiver_first_name}
               lastName={booking.receiver_last_name}
               email={booking.receiver_email}
-              role="Récepteur"
+              role={t.package_detail.role_receiver}
               onPress={() => router.push(`/profile/${booking.receiver_id}`)}
+              t={t}
             />
           </Section>
         )}
 
         {booking.ai_scan_result?.photos?.length > 0 && (
-          <Section title="Photos KiparScan">
+          <Section title={t.package_detail.section_photos}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {booking.ai_scan_result.photos.map((url: string, i: number) => (
                 <img key={i} src={url} alt={`Photo ${i + 1}`}

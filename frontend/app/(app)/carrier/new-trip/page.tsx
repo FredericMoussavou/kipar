@@ -78,7 +78,7 @@ export default function NewTripPage() {
         max_kg_per_package: parseFloat(data.max_kg_per_package),
         price_per_kg: parseFloat(data.price_per_kg),
       })
-      toast.success('Annonce publiée !')
+      toast.success(t.carrier.trip_published)
       router.push('/carrier')
     } catch (err: any) {
       const detail = err.response?.data?.detail
@@ -132,7 +132,7 @@ export default function NewTripPage() {
         {/* Départ + Destination */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Départ</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_departure}</p>
             <div style={{ position: 'relative' }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.origin_label}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
@@ -148,14 +148,14 @@ export default function NewTripPage() {
                   </button>
                 )}
               </div>
-              {originSelected && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>✓ Sélectionné</p>}
+              {originSelected && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>{t.carrier.airport_selected}</p>}
               {errors.origin_airport_code && <p style={{ fontSize: 11, color: RED, marginTop: 4 }}>{errors.origin_airport_code.message}</p>}
               {originSuggestions.length > 0 && airportDropdown(originSuggestions, selectOrigin)}
             </div>
           </div>
 
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Destination</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_destination}</p>
             <div style={{ position: 'relative' }}>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.dest_label}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
@@ -171,7 +171,7 @@ export default function NewTripPage() {
                   </button>
                 )}
               </div>
-              {destSelected && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>✓ Sélectionné</p>}
+              {destSelected && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>{t.carrier.airport_selected}</p>}
               {errors.destination_airport_code && <p style={{ fontSize: 11, color: RED, marginTop: 4 }}>{errors.destination_airport_code.message}</p>}
               {destSuggestions.length > 0 && airportDropdown(destSuggestions, selectDest)}
             </div>
@@ -180,7 +180,7 @@ export default function NewTripPage() {
 
         {/* Vol */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Vol</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <Input label={t.carrier.date_label} type="date" error={errors.departure_date?.message} {...register('departure_date')} />
             <Input label={t.carrier.flight_label} placeholder="AF502" {...register('flight_number')} />
@@ -193,7 +193,7 @@ export default function NewTripPage() {
 
         {/* Capacité et Prix */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Capacité et Prix</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_capacity}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <Input label={t.carrier.kg_label} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
             <Input label={t.carrier.max_kg_label} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />

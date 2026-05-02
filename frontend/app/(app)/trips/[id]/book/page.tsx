@@ -152,8 +152,8 @@ export default function BookPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>Assurance colis</p>
-              <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>3% de la valeur déclarée · {insurance > 0 ? `+${insurance.toFixed(2)}€` : 'Entrez une valeur'}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{t.booking.insurance_label}</p>
+              <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{t.booking.insurance_desc} · {insurance > 0 ? `+${insurance.toFixed(2)}€` : t.booking.insurance_enter_value}</p>
             </div>
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${withInsurance ? RED : BORDER}`, background: withInsurance ? RED : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
               {withInsurance && <div style={{ width: 8, height: 8, borderRadius: '50%', background: WHITE }} />}
@@ -169,7 +169,7 @@ export default function BookPage() {
           {[
             { label: t.booking.transport_cost, value: transport > 0 ? `${transport.toFixed(2)}€` : '—' },
             { label: t.booking.commission, value: commission > 0 ? `${commission.toFixed(2)}€` : '—' },
-            ...(withInsurance ? [{ label: 'Assurance', value: `${insurance.toFixed(2)}€` }] : []),
+            ...(withInsurance ? [{ label: t.booking.insurance_line, value: `${insurance.toFixed(2)}€` }] : []),
           ].map(({ label, value }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, color: CHARCOAL2 }}>
               <span>{label}</span>

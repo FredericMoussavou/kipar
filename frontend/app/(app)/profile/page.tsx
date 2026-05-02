@@ -26,7 +26,7 @@ import {
 
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
-import { usePreferencesStore } from '@/stores/preferences.store'
+import { useTheme } from 'next-themes'
 import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
 import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
@@ -51,14 +51,14 @@ import {
   BG,
 } from '@/lib/theme'
 
-type Theme = 'light' | 'dark' | 'auto'
+type Theme = 'light' | 'dark' | 'system'
 type ToastType = 'success' | 'error'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user, logout, refreshUser, patchUser } = useAuthStore()
-  const { theme, setTheme } = usePreferencesStore()
+  const { theme, setTheme } = useTheme()
 
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
 
@@ -351,9 +351,9 @@ export default function ProfilePage() {
               options={[
                 { value: 'light', label: t.profile_edit.theme_light, icon: <Sun size={12} /> },
                 { value: 'dark', label: t.profile_edit.theme_dark, icon: <Moon size={12} /> },
-                { value: 'auto', label: t.profile_edit.theme_auto, icon: <Monitor size={12} /> },
+                { value: 'system', label: t.profile_edit.theme_auto, icon: <Monitor size={12} /> },
               ]}
-              value={theme}
+              value={theme ?? 'system'}
               onChange={(v) => setTheme(v as Theme)}
             />
           </div>

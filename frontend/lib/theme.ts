@@ -8,6 +8,9 @@ export const COLORS = {
   sand: '#F0EDE8',
   border: '#EEEBE6',
   green: '#16A34A',
+  amber: '#F59E0B',
+  lime: '#4ADE80',
+  orange: '#F97316',
 } as const
 
 export const {
@@ -20,4 +23,7 @@ export const {
   sand: SAND,
   border: BORDER,
   green: GREEN,
+  amber: AMBER,
+  lime: LIME,
+  orange: ORANGE,
 } = COLORS

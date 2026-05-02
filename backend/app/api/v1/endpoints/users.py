@@ -49,7 +49,7 @@ class UpdateMeRequest(BaseModel):
 
 
 class AvatarUrlRequest(BaseModel):
-    avatar_url: str
+    avatar_url: str | None
 
 
 class AvatarSignatureResponse(BaseModel):
@@ -181,13 +181,16 @@ async def update_avatar(
     Persiste l'URL de l'avatar après upload réussi côté Cloudinary.
     Vérification anti-spoofing : l'URL doit appartenir au folder de l'user.
     """
-    if not validate_avatar_url(payload.avatar_url, current_user.id):
-        raise HTTPException(
-            status_code=400,
-            detail=t("errors.avatar_url_invalid", lang),
-        )
-
-    current_user.avatar_url = payload.avatar_url
+    if payload.avatar_url is None:
+        # Retrait de la photo
+        current_user.avatar_url = None
+    else:
+        if not validate_avatar_url(payload.avatar_url, current_user.id):
+            raise HTTPException(
+                status_code=400,
+                detail=t("errors.avatar_url_invalid", lang),
+            )
+        current_user.avatar_url = payload.avatar_url
     return {
         "message": t("success.avatar_updated", lang),
         "avatar_url": current_user.avatar_url,

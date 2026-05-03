@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Plus, Plane, Check, X, ChevronRight, Package } from 'lucide-react'
+import { Plus, Plane, Check, X, ChevronRight, Package, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/kipar'
+import Modal from '@/components/ui/kipar/Modal'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
@@ -21,6 +22,8 @@ export default function CarrierPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'pending' | 'treated' | 'trips'>('pending')
+  const [tripToDelete, setTripToDelete] = useState<{id: string, label: string} | null>(null)
+  const [deletingTrip, setDeletingTrip] = useState(false)
 
   const { data: myTrips = [], isLoading: loadingTrips } = useQuery({
     queryKey: ['my-trips'],
@@ -43,6 +46,7 @@ export default function CarrierPage() {
   const pendingBookings = allBookings.filter((b: any) => b.status === 'pending')
   const acceptedBookings = allBookings.filter((b: any) => b.status === 'accepted')
   const refusedBookings = allBookings.filter((b: any) => b.status === 'refused')
+  const cancelledBookings = allBookings.filter((b: any) => b.status === 'cancelled')
 
   const activateMutation = useMutation({
     mutationFn: () => api.patch('/users/me', { is_carrier: true }),
@@ -252,6 +256,26 @@ export default function CarrierPage() {
                     ))}
                   </>
                 )}
+                {cancelledBookings.length > 0 && (
+                  <>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 4px' }}>
+                      {t.statuses.cancelled} ({cancelledBookings.length})
+                    </p>
+                    {cancelledBookings.map((booking: any) => (
+                      <div key={booking.id} onClick={() => router.push(`/packages/${booking.id}`)}
+                        style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, opacity: 0.6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || t.packages.default_content}</p>
+                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <StatusBadge status={booking.status} />
+                          <ChevronRight size={16} color={TAUPE} />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -282,10 +306,19 @@ export default function CarrierPage() {
                       <Plane size={14} color={TAUPE} />
                       <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.destination_airport_code}</span>
                     </div>
-                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {trip.remaining_kg} kg dispo · {trip.price_per_kg}€/kg</p>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {t.trip.kg_available.replace('{n}', String(trip.remaining_kg))} · {trip.price_per_kg}€/kg</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <StatusBadge status={trip.status} />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTripToDelete({ id: trip.id, label: `${trip.origin_airport_code} → ${trip.destination_airport_code}` })
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                    >
+                      <Trash2 size={15} color={RED} />
+                    </button>
                     <ChevronRight size={16} color={TAUPE} />
                   </div>
                 </div>
@@ -294,6 +327,45 @@ export default function CarrierPage() {
           )
         )}
       </div>
+
+      <Modal
+        isOpen={!!tripToDelete}
+        onClose={() => setTripToDelete(null)}
+        title={t.carrier.trip_delete_confirm}
+      >
+        <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>
+          {tripToDelete?.label}
+        </p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button
+            onClick={() => setTripToDelete(null)}
+            disabled={deletingTrip}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            {t.profile_edit.cancel}
+          </button>
+          <button
+            onClick={async () => {
+              if (!tripToDelete) return
+              setDeletingTrip(true)
+              try {
+                await api.delete(`/trips/${tripToDelete.id}`)
+                toast.success(t.carrier.trip_deleted)
+                queryClient.invalidateQueries({ queryKey: ['my-trips'] })
+                setTripToDelete(null)
+              } catch {
+                toast.error(t.errors.generic)
+              } finally {
+                setDeletingTrip(false)
+              }
+            }}
+            disabled={deletingTrip}
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: deletingTrip ? 'not-allowed' : 'pointer', opacity: deletingTrip ? 0.5 : 1, minWidth: 100 }}
+          >
+            {deletingTrip ? '...' : t.profile_edit.delete_confirm}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

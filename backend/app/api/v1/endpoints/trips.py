@@ -50,10 +50,10 @@ async def search_trips(
     current_user: User | None = Depends(get_optional_user),
 ):
     if mine and current_user:
-        query = select(Trip).where(Trip.carrier_id == current_user.id).order_by(Trip.created_at.desc())
+        query = select(Trip).where(Trip.carrier_id == current_user.id, Trip.deleted_at.is_(None)).order_by(Trip.created_at.desc())
     else:
         from datetime import date as dclass
-        query = select(Trip).where(Trip.status == "open", Trip.departure_date >= dclass.today())
+        query = select(Trip).where(Trip.status == "open", Trip.departure_date >= dclass.today(), Trip.deleted_at.is_(None))
         if origin:
             query = query.where(Trip.origin_airport_code == origin.upper())
         if destination:
@@ -93,6 +93,43 @@ async def search_trips(
         }
         enriched.append(trip_dict)
     return enriched
+
+
+@router.delete("/{trip_id}", status_code=204)
+async def delete_trip(
+    trip_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    from datetime import datetime, timezone
+    from sqlalchemy import update
+    from app.models.booking import Booking
+
+    result = await db.execute(select(Trip).where(Trip.id == trip_id))
+    trip = result.scalar_one_or_none()
+    if not trip:
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
+    if trip.carrier_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if trip.deleted_at is not None:
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
+
+    # Annuler les bookings actifs
+    await db.execute(
+        update(Booking)
+        .where(
+            Booking.trip_id == trip.id,
+            Booking.status.in_(["pending", "accepted", "paid", "in_transit"])
+        )
+        .values(status="cancelled")
+    )
+
+    # Soft delete du trip
+    trip.deleted_at = datetime.now(timezone.utc)
+    trip.status = "cancelled"
+    await db.flush()
+    return None
 
 
 @router.get("/{trip_id}", response_model=TripResponse)

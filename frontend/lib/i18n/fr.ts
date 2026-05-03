@@ -198,6 +198,8 @@ export const fr = {
   section_capacity: 'Capacité et Prix',
   airport_selected: '✓ Sélectionné',
   trip_published: 'Annonce publiée !',
+  trip_delete_confirm: 'Supprimer cette annonce ?',
+  trip_deleted: 'Annonce supprimée',
 },
 profile_public: {
     member_since: 'Membre depuis',

@@ -200,6 +200,8 @@ export const es = {
     section_capacity: 'Capacidad y Precio',
     airport_selected: '✓ Seleccionado',
     trip_published: '¡Anuncio publicado!',
+  trip_delete_confirm: '¿Eliminar este anuncio?',
+  trip_deleted: 'Anuncio eliminado',
     success_carrier_mode: '¡Modo transportista activado!',
   },
   profile_public: {

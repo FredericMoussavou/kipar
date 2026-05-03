@@ -38,6 +38,9 @@ class Trip(Base):
     # Statut : open / full / in_transit / completed / cancelled
     status: Mapped[str] = mapped_column(String(20), default="open", index=True)
 
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)

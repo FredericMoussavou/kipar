@@ -411,4 +411,13 @@ profile_public: {
     delete_confirm: 'Delete this listing?',
     deleted: 'Listing deleted',
   },
+  notifications: {
+    title: 'Notifications',
+    empty: 'No notifications',
+    mark_all_read: 'Mark all as read',
+    trip_match: 'New trip available',
+    new_application: 'New application',
+    just_now: 'Just now',
+  },
+
 }

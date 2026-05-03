@@ -13,6 +13,7 @@ from app.models.booking import Booking
 from app.models.package import Package
 from app.schemas.package_request import PackageRequestCreate, PackageRequestResponse, ApplicationResponse
 from app.i18n.loader import t
+from app.services.notif_db_service import notify_new_application
 
 router = APIRouter(prefix="/requests", tags=["requests"])
 
@@ -158,6 +159,18 @@ async def apply_to_request(
     )
     db.add(app)
     await db.flush()
+
+    # Notifie l'expéditeur de la nouvelle candidature
+    await notify_new_application(
+        db=db,
+        user_id=req.sender_id,
+        request_id=req.id,
+        carrier_name=current_user.full_name,
+        lang=lang,
+    )
+
+    await db.commit()
+    await db.refresh(app)
     return _enrich_application(app, current_user, trip)
 
 

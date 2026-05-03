@@ -2,10 +2,11 @@
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane } from 'lucide-react'
-import { useState } from 'react'
+import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
+import { useSSE } from '@/hooks/useSSE'
 
 export default function TopNav() {
   const pathname = usePathname()
@@ -13,6 +14,20 @@ export default function TopNav() {
   const { t } = useTranslation()
   const { user, logout } = useAuthStore()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+  const token = useAuthStore(s => s.token)
+  const { notifications, unreadCount, markAllRead, markOneRead } = useSSE(token)
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const items = [
     { href: '/dashboard', icon: Home,    label: t.nav.home },
@@ -73,9 +88,46 @@ export default function TopNav() {
 
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button style={{ width: 36, height: 36, borderRadius: '50%', background: SAND, border: '1px solid ' + BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: TAUPE }}>
-            <Bell size={16} />
-          </button>
+          <div ref={notifRef} style={{ position: 'relative' }}>
+            <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: SAND, border: '1px solid ' + BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: TAUPE }}>
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: 4, right: 4, width: 16, height: 16, borderRadius: '50%', background: RED, color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid ' + WHITE }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 320, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.10)', zIndex: 50, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid ' + BORDER }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL }}>{t.notifications.title}</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: RED, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <CheckCheck size={13} />
+                      {t.notifications.mark_all_read}
+                    </button>
+                  )}
+                </div>
+                <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <p style={{ padding: '24px 16px', textAlign: 'center', fontSize: 13, color: TAUPE, margin: 0 }}>{t.notifications.empty}</p>
+                  ) : notifications.map(n => (
+                    <div key={n.id} onClick={() => { markOneRead(n.id); if (n.link) router.push(n.link); setNotifOpen(false) }}
+                      style={{ padding: '12px 16px', borderBottom: '1px solid ' + BORDER, cursor: 'pointer', background: n.is_read ? WHITE : 'rgba(220,0,41,0.03)', display: 'flex', gap: 10, alignItems: 'flex-start' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = SAND)}
+                      onMouseLeave={e => (e.currentTarget.style.background = n.is_read ? WHITE : 'rgba(220,0,41,0.03)')}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.is_read ? 'transparent' : RED, marginTop: 5, flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL, margin: '0 0 2px' }}>{n.title}</p>
+                        <p style={{ fontSize: 11, color: TAUPE, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(!menuOpen)} style={{

@@ -411,6 +411,16 @@ profile_public: {
     delete_confirm: 'Supprimer cette annonce ?',
     deleted: 'Annonce supprimée',
   },
+  notifications: {
+    title: 'Notifications',
+    empty: 'Aucune notification',
+    mark_all_read: 'Tout marquer comme lu',
+    trip_match: 'Nouveau trajet disponible',
+    new_application: 'Nouvelle candidature',
+    just_now: "A l'instant",
+  },
+
+
 }
 
 export type Translations = typeof fr

@@ -401,4 +401,12 @@ export const es = {
     delete_confirm: '¿Eliminar este anuncio?',
     deleted: 'Anuncio eliminado',
   },
+  notifications: {
+    title: 'Notificaciones',
+    empty: 'Sin notificaciones',
+    mark_all_read: 'Marcar todo como leido',
+    trip_match: 'Nuevo viaje disponible',
+    new_application: 'Nueva candidatura',
+    just_now: 'Ahora mismo',
+  },
 };

@@ -9,6 +9,8 @@ from app.models.user import User
 from app.models.trip import Trip
 from app.schemas.trip import TripCreate, TripResponse
 from app.i18n.loader import t
+from app.models.package_request import PackageRequest
+from app.services.notif_db_service import notify_trip_match
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -36,6 +38,29 @@ async def create_trip(
     )
     db.add(trip)
     await db.flush()
+
+    # Matching — notifie les expéditeurs dont l'annonce correspond à ce trajet
+    matching = await db.execute(
+        select(PackageRequest).where(
+            PackageRequest.origin_airport_code == payload.origin_airport_code,
+            PackageRequest.destination_airport_code == payload.destination_airport_code,
+            PackageRequest.status == "open",
+        )
+    )
+    matched_requests = matching.scalars().all()
+    route = f"{payload.origin_airport_code} -> {payload.destination_airport_code}"
+    for req in matched_requests:
+        if req.sender_id != current_user.id:
+            await notify_trip_match(
+                db=db,
+                user_id=req.sender_id,
+                route=route,
+                trip_id=trip.id,
+                lang=lang,
+            )
+
+    await db.commit()
+    await db.refresh(trip)
     return trip
 
 

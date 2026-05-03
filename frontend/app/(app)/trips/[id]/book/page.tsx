@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -13,7 +13,7 @@ import { useBookingStore } from '@/stores/booking.store'
 import { Button, Input } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),
@@ -30,6 +30,32 @@ export default function BookPage() {
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const [withInsurance, setWithInsurance] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handlePhotoUpload = async (files: FileList | null) => {
+    if (!files) return
+    const remaining = 3 - photos.length
+    const toUpload = Array.from(files).slice(0, remaining)
+    setUploading(true)
+    try {
+      const urls: string[] = []
+      for (const file of toUpload) {
+        const fd = new FormData()
+        fd.append('file', file)
+        fd.append('upload_preset', 'kipar_package_photos')
+        const res = await fetch('https://api.cloudinary.com/v1_1/dzlhxae2z/image/upload', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (data.secure_url) urls.push(data.secure_url)
+      }
+      setPhotos(prev => [...prev, ...urls].slice(0, 3))
+    } catch {
+      toast.error(t.errors.generic)
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -45,7 +71,7 @@ export default function BookPage() {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await api.post('/bookings', {
+      const res = await api.post('/bookings', { photos,
         trip_id: id,
         receiver_email_or_phone: data.receiver_email_or_phone,
         content_description: data.content_description,
@@ -143,6 +169,32 @@ export default function BookPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Photos */}
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+            {t.requests.field_photos}
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {photos.map((url, i) => (
+              <div key={i} style={{ position: 'relative', width: 80, height: 80 }}>
+                <img src={url} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10 }} />
+                <button type="button" onClick={() => setPhotos(p => p.filter((_, j) => j !== i))}
+                  style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: RED, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={10} color={WHITE} />
+                </button>
+              </div>
+            ))}
+            {photos.length < 3 && (
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed ' + BORDER, background: SAND, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' }}>
+                {uploading ? <span style={{ fontSize: 10, color: TAUPE }}>...</span> : <><Upload size={16} color={TAUPE} /><span style={{ fontSize: 10, color: TAUPE }}>+</span></>}
+              </button>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+            onChange={e => handlePhotoUpload(e.target.files)} />
         </div>
 
         {/* Assurance */}

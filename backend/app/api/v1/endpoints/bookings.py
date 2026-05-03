@@ -74,6 +74,7 @@ async def create_booking(
         weight_kg=payload.weight_kg,
         content_description=payload.content_description,
         declared_value=payload.declared_value,
+        photo_urls=payload.photos or [],
     )
     db.add(package)
     await db.flush()

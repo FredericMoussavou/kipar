@@ -10,6 +10,7 @@ class BookingCreate(BaseModel):
     content_description: str
     declared_value: float = 0.0
     insurance_subscribed: bool = False
+    photos: list[str] = []
 
 
 class BookingResponse(BaseModel):
@@ -46,6 +47,7 @@ class BookingDetailResponse(BaseModel):
     declared_value: float | None = None
     ai_scan_result: dict | None = None
     ai_prohibited_flag: bool | None = None
+    photo_urls: list | None = None
     # Trip
     origin_airport_code: str | None = None
     destination_airport_code: str | None = None

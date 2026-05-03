@@ -27,6 +27,36 @@ class ScanResponse(BaseModel):
     simulated: bool = False
 
 
+@router.post("/analyze", response_model=ScanResponse)
+async def analyze_only(
+    file: UploadFile = File(...),
+    destination_country: str = "SN",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Analyse une photo sans package_id — retourne le résultat IA sans sauvegarder.
+    Utilisé dans le flow booking pour pré-remplir les champs.
+    """
+    image_bytes = await file.read()
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail=t("errors.kiparscan_no_image", lang))
+    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+    scan_result = await analyze_package_image(image_base64, destination_country)
+    if not scan_result:
+        raise HTTPException(status_code=500, detail=t("errors.kiparscan_failed", lang))
+    return ScanResponse(
+        package_id=uuid.UUID("00000000-0000-0000-0000-000000000000"),
+        content_description=scan_result.get("content_description", ""),
+        estimated_weight_kg=scan_result.get("estimated_weight_kg"),
+        dimensions_estimate=scan_result.get("dimensions_estimate"),
+        prohibited_flag=scan_result.get("prohibited_flag", False),
+        prohibited_reason=scan_result.get("prohibited_reason"),
+        confidence=scan_result.get("confidence", "low"),
+        simulated=scan_result.get("simulated", False),
+    )
+
 @router.post("/{package_id}", response_model=ScanResponse)
 async def scan_package(
     package_id: str,

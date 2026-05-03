@@ -50,11 +50,11 @@ export default function CarrierPage() {
 
   const activateMutation = useMutation({
     mutationFn: () => api.patch('/users/me', { is_carrier: true }),
-    onSuccess: async () => {
-      const me = await api.get('/users/me')
-      setUser(me.data)
+    onSuccess: (res) => {
+      setUser(res.data.user)
       toast.success('Mode transporteur activé !')
       queryClient.invalidateQueries({ queryKey: ['my-trips'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
     onError: () => toast.error(t.errors.generic),
   })

@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.review import Review
+from app.models.trip import Trip
 
 
 BASE_SCORE = 50.0
@@ -42,10 +43,10 @@ async def compute_trust_score(user: User, db: AsyncSession) -> float:
         months = max(0, (now.year - created.year) * 12 + (now.month - created.month))
         score += min(months, 10)
 
-    # +1pt par livraison réussie (max +15)
+    # +1pt par livraison réussie en tant que transporteur (max +15)
     delivered = await db.execute(
-        select(func.count(Booking.id)).where(
-            Booking.sender_id == user.id,
+        select(func.count(Booking.id)).join(Trip, Trip.id == Booking.trip_id).where(
+            Trip.carrier_id == user.id,
             Booking.status == "delivered"
         )
     )
@@ -60,7 +61,7 @@ async def compute_trust_score(user: User, db: AsyncSession) -> float:
     if avg_score:
         score += round((avg_score / 5.0) * 10, 1)
 
-    # -10pts par litige ouvert
+    # -10pts par litige ouvert (en tant qu'expéditeur)
     disputes = await db.execute(
         select(func.count(Booking.id)).where(
             Booking.sender_id == user.id,
@@ -72,8 +73,8 @@ async def compute_trust_score(user: User, db: AsyncSession) -> float:
 
     # -5pts par réservation refusée côté transporteur (max -15)
     refused = await db.execute(
-        select(func.count(Booking.id)).where(
-            Booking.receiver_id == user.id,
+        select(func.count(Booking.id)).join(Trip, Trip.id == Booking.trip_id).where(
+            Trip.carrier_id == user.id,
             Booking.status == "refused"
         )
     )

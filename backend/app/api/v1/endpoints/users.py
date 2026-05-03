@@ -36,6 +36,7 @@ class LanguageRequest(BaseModel):
 class UpdateMeRequest(BaseModel):
     """Champs modifiables sur le profil perso. Tous optionnels."""
     phone: str | None = None
+    is_carrier: bool | None = None
 
     @field_validator("phone")
     @classmethod
@@ -149,6 +150,11 @@ async def update_me(
                 )
 
         current_user.phone = new_phone
+
+    if payload.is_carrier is True:
+        if current_user.kyc_status != "verified":
+            raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
+        current_user.is_carrier = True
 
     return {
         "message": t("success.profile_updated", lang),

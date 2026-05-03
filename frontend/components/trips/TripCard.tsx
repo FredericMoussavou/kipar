@@ -92,10 +92,10 @@ export default function TripCard({ trip, onClick, className }: {
       {/* Tags */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
-          {trip.remaining_kg} kg dispo
+          {t.trip.kg_available.replace('{n}', String(trip.remaining_kg))}
         </span>
         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 500 }}>
-          Max {trip.max_kg_per_package} kg
+          {t.trip.max_kg.replace('{n}', String(trip.max_kg_per_package))}
         </span>
       </div>
 

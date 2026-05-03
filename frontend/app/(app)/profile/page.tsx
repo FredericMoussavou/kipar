@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
+import { getT } from '@/lib/i18n'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTheme } from 'next-themes'
 import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
@@ -95,13 +96,14 @@ export default function ProfilePage() {
   const avatarUrl = getAvatarUrl(user.avatar_url, 200)
   const isKycVerified = user.kyc_status === 'verified'
 
-  const handleLanguageChange = async (newLang: 'fr' | 'en') => {
+  const handleLanguageChange = async (newLang: 'fr' | 'en' | 'es') => {
     if (user.language === newLang) return
     const previousLang = user.language
     patchUser({ language: newLang })
     try {
       await api.patch('/users/me/language', { language: newLang })
-      showToast(t.profile_edit.success_language_updated, 'success')
+      const newT = getT(newLang)
+      showToast(newT.profile_edit.success_language_updated, 'success')
     } catch {
       patchUser({ language: previousLang })
       showToast(t.errors.generic, 'error')
@@ -329,6 +331,7 @@ export default function ProfilePage() {
               options={[
                 { value: 'fr', label: t.profile_edit.lang_fr },
                 { value: 'en', label: t.profile_edit.lang_en },
+                { value: 'es', label: t.profile_edit.lang_es },
               ]}
               value={user.language}
               onChange={(v) => handleLanguageChange(v as 'fr' | 'en')}

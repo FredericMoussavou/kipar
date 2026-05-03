@@ -64,6 +64,8 @@ export const en = {
     max_per_package: 'Max/package',
     departure: 'Departure',
     price_per_kg: '€/kg',
+    kg_available: '{n} kg avail.',
+    max_kg: 'Max {n} kg',
     trust_score: 'KiparTrust',
     kyc_verified: '✓ KYC Verified',
     send_package: 'Send a package →',
@@ -282,6 +284,7 @@ profile_public: {
     pref_language_desc: 'Interface language',
     lang_fr: 'Français',
     lang_en: 'English',
+    lang_es: 'Español',
     success_language_updated: 'Language updated',
 
     // Theme preference

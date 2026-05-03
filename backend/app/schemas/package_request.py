@@ -1,0 +1,88 @@
+from pydantic import BaseModel, field_validator
+from datetime import date, datetime
+import uuid
+from app.services.airport_service import validate_iata
+
+
+class ApplicationResponse(BaseModel):
+    id: uuid.UUID
+    package_request_id: uuid.UUID
+    carrier_id: uuid.UUID
+    trip_id: uuid.UUID
+    status: str
+    created_at: datetime
+    carrier_first_name: str | None = None
+    carrier_last_name: str | None = None
+    carrier_trust_score: float | None = None
+    carrier_kyc_status: str | None = None
+    trip_departure_date: date | None = None
+    trip_price_per_kg: float | None = None
+    trip_flight_number: str | None = None
+    model_config = {"from_attributes": False}
+
+
+class PackageRequestCreate(BaseModel):
+    origin_city: str
+    origin_airport_code: str
+    destination_city: str
+    destination_airport_code: str
+    content_description: str
+    weight_kg: float
+    declared_value: float | None = None
+    budget_per_kg: float
+    photos: list[str] = []
+    receiver_email_or_phone: str
+    deadline_date: date
+
+    @field_validator("origin_airport_code", "destination_airport_code")
+    @classmethod
+    def validate_iata_code(cls, v: str) -> str:
+        code = v.upper().strip()
+        if not validate_iata(code):
+            raise ValueError(f"IATA_INVALID:{code}")
+        return code
+
+    @field_validator("deadline_date")
+    @classmethod
+    def future_date(cls, v: date) -> date:
+        from datetime import date as d
+        if v <= d.today():
+            raise ValueError("La date limite doit etre dans le futur")
+        return v
+
+    @field_validator("weight_kg", "budget_per_kg")
+    @classmethod
+    def positive_values(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("La valeur doit etre positive")
+        return v
+
+    @field_validator("photos")
+    @classmethod
+    def max_photos(cls, v: list) -> list:
+        if len(v) > 3:
+            raise ValueError("Maximum 3 photos")
+        return v
+
+
+class PackageRequestResponse(BaseModel):
+    id: uuid.UUID
+    sender_id: uuid.UUID
+    origin_city: str
+    origin_airport_code: str
+    destination_city: str
+    destination_airport_code: str
+    content_description: str
+    weight_kg: float
+    declared_value: float | None = None
+    budget_per_kg: float
+    photos: list[str] = []
+    receiver_email_or_phone: str
+    deadline_date: date
+    status: str
+    created_at: datetime
+    sender_first_name: str | None = None
+    sender_last_name: str | None = None
+    sender_trust_score: float | None = None
+    applications_count: int = 0
+    model_config = {"from_attributes": False}

@@ -2,13 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Package, ChevronRight } from 'lucide-react'
+import { Package, ChevronRight, Plus } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
 
 export default function PackagesPage() {
   const { t } = useTranslation()
@@ -39,6 +39,13 @@ export default function PackagesPage() {
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
             {bookings.length > 1 ? t.packages.booking_count_many.replace('{n}', bookings.length) : t.packages.booking_count_one.replace('{n}', bookings.length)}
           </p>
+          <button
+            onClick={() => router.push('/requests/new')}
+            style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            <Plus size={14} />
+            {t.requests.create_alert_btn}
+          </button>
         </div>
       </HeroHeader>
 
@@ -60,6 +67,12 @@ export default function PackagesPage() {
             <p style={{ fontSize: 13, color: TAUPE }}>
               {t.packages.empty_sub}
             </p>
+            <button
+              onClick={() => router.push('/requests/new')}
+              style={{ marginTop: 16, padding: '12px 24px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              {t.requests.post_btn}
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

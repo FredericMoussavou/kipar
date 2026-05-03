@@ -133,18 +133,20 @@ export default function CarrierPage() {
 
       <HeroHeader imageUrl={HERO_IMG} minHeight={180}>
         <div style={{ padding: '48px 24px 28px' }} className="md:p-8">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} className="md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}
-                className="md:text-3xl">
-                {t.carrier.dashboard_title}
-              </h1>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-                {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
-              </p>
-            </div>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}
+            className="md:text-3xl">
+            {t.carrier.dashboard_title}
+          </h1>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 12 }}>
+            {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => router.push('/carrier/requests')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 600, color: WHITE, cursor: 'pointer' }}>
+              {t.requests.carrier_requests}
+            </button>
             <button onClick={() => router.push('/carrier/new-trip')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 99, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', alignSelf: 'flex-start' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
               <Plus size={14} />
               {t.carrier.new_trip}
             </button>

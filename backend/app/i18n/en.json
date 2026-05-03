@@ -64,7 +64,11 @@
     "avatar_updated": "Avatar updated",
     "phone_already_used": "This phone number is already in use",
     "password_required": "Password required for this action",
-    "password_invalid": "Incorrect password"
+    "password_invalid": "Incorrect password",
+    "not_found": "Resource not found",
+    "price_above_budget": "Carrier price exceeds your budget",
+    "insufficient_kg": "Insufficient capacity for this package",
+    "already_applied": "You have already applied for this listing"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

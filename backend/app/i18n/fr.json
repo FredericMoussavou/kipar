@@ -63,7 +63,11 @@
     "cannot_send_to_self": "Vous ne pouvez pas vous envoyer un colis a vous-meme",
     "phone_already_used": "Ce numero de telephone est deja utilisé",
     "password_required": "Mot de passe requis pour cette action",
-    "password_invalid": "Mot de passe incorrect"
+    "password_invalid": "Mot de passe incorrect",
+    "not_found": "Ressource introuvable",
+    "price_above_budget": "Le prix du transporteur depasse votre budget",
+    "insufficient_kg": "Capacite insuffisante pour ce colis",
+    "already_applied": "Vous avez deja candidat pour cette annonce"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

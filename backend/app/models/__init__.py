@@ -10,10 +10,12 @@ from app.models.receiver_invitation import ReceiverInvitation
 from app.models.password_reset import PasswordReset
 from app.models.pir_report import PIRReport
 from app.models.insurance import Insurance
+from app.models.package_request import PackageRequest, Application
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
     "Conversation", "Message", "FlightTracking",
     "Review", "Claim", "ReceiverInvitation",
     "PasswordReset", "PIRReport", "Insurance",
+    "PackageRequest", "Application",
 ]

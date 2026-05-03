@@ -63,7 +63,11 @@
     "cannot_send_to_self": "No puedes enviarte un paquete a ti mismo",
     "phone_already_used": "Este número de teléfono ya está en uso",
     "password_required": "Se requiere contraseña para esta acción",
-    "password_invalid": "Contraseña incorrecta"
+    "password_invalid": "Contraseña incorrecta",
+    "not_found": "Recurso no encontrado",
+    "price_above_budget": "El precio del transportista supera su presupuesto",
+    "insufficient_kg": "Capacidad insuficiente para este paquete",
+    "already_applied": "Ya has solicitado este anuncio"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

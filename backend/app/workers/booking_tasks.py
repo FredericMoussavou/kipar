@@ -121,3 +121,35 @@ def auto_release_escrow():
             logger.info(f"Auto-released {len(bookings)} escrows")
 
     asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.expire_package_requests")
+def expire_package_requests():
+    """
+    Passe les annonces expéditeur en 'expired' si deadline_date < today.
+    Planifié toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from datetime import date
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.package_request import PackageRequest
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            today = date.today()
+            result = await db.execute(
+                select(PackageRequest).where(
+                    PackageRequest.status == "open",
+                    PackageRequest.deadline_date < today,
+                    PackageRequest.deleted_at.is_(None),
+                )
+            )
+            requests = result.scalars().all()
+            for req in requests:
+                req.status = "expired"
+                logger.info(f"PackageRequest {req.id} expired")
+            await db.commit()
+            logger.info(f"Expired {len(requests)} package requests")
+
+    asyncio.run(_run())

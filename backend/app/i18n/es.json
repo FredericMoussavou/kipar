@@ -67,7 +67,11 @@
     "not_found": "Recurso no encontrado",
     "price_above_budget": "El precio del transportista supera su presupuesto",
     "insufficient_kg": "Capacidad insuficiente para este paquete",
-    "already_applied": "Ya has solicitado este anuncio"
+    "already_applied": "Ya has solicitado este anuncio",
+    "already_verified": "Ya verificado",
+    "invalid_code": "Código incorrecto o expirado",
+    "code_expired": "Código expirado — solicite uno nuevo",
+    "no_phone": "No hay número de teléfono en su perfil"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",
@@ -88,7 +92,10 @@
     "profile_updated": "Perfil actualizado",
     "avatar_updated": "Avatar actualizado",
     "notification_preferences_updated": "Preferencias de notificación actualizadas",
-    "account_deleted": "Cuenta eliminada"
+    "account_deleted": "Cuenta eliminada",
+    "code_sent": "Código enviado",
+    "email_verified": "Email verificado con éxito",
+    "phone_verified": "Teléfono verificado con éxito"
   },
   "notifications": {
     "booking_received": "Nueva solicitud de paquete en tu viaje {route}",

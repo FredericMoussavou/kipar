@@ -68,6 +68,44 @@ export default function ProfilePage() {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [avatarModalOpen, setAvatarModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  // Vérification email/phone
+  const [verifyEmailOpen, setVerifyEmailOpen] = useState(false)
+  const [verifyPhoneOpen, setVerifyPhoneOpen] = useState(false)
+  const [verifyCode, setVerifyCode] = useState('')
+  const [verifyStep, setVerifyStep] = useState<'send' | 'confirm'>('send')
+  const [verifyLoading, setVerifyLoading] = useState(false)
+
+  const handleSendCode = async (channel: 'email' | 'phone') => {
+    setVerifyLoading(true)
+    try {
+      await api.post(`/verify/${channel}/send`)
+      setVerifyStep('confirm')
+      setVerifyCode('')
+      showToast(t.verify.code_sent, 'success')
+    } catch {
+      showToast(t.errors.generic, 'error')
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
+
+  const handleConfirmCode = async (channel: 'email' | 'phone') => {
+    if (verifyCode.length !== 6) return
+    setVerifyLoading(true)
+    try {
+      await api.post(`/verify/${channel}/confirm`, { code: verifyCode })
+      await refreshUser()
+      showToast(channel === 'email' ? t.verify.email_verified : t.verify.phone_verified, 'success')
+      if (channel === 'email') { setVerifyEmailOpen(false) }
+      else { setVerifyPhoneOpen(false) }
+      setVerifyStep('send')
+      setVerifyCode('')
+    } catch {
+      showToast(t.verify.invalid_code, 'error')
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
 
   useEffect(() => {
     refreshUser()
@@ -95,6 +133,8 @@ export default function ProfilePage() {
   const initials = `${user.first_name[0] || ''}${user.last_name[0] || ''}`
   const avatarUrl = getAvatarUrl(user.avatar_url, 200)
   const isKycVerified = user.kyc_status === 'verified'
+  const isEmailVerified = user.email_verified ?? false
+  const isPhoneVerified = user.phone_verified ?? false
 
   const handleLanguageChange = async (newLang: 'fr' | 'en' | 'es') => {
     if (user.language === newLang) return
@@ -310,6 +350,40 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
+
+          {/* Email verification */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
+            <div style={{ color: TAUPE, display: 'flex' }}><Mail size={16} /></div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>{t.verify.email_label}</p>
+              <p style={{ fontSize: 13, fontWeight: 500, color: isEmailVerified ? GREEN : TAUPE, margin: 0 }}>
+                {isEmailVerified ? `✓ ${t.verify.verified}` : t.verify.not_verified}
+              </p>
+            </div>
+            {!isEmailVerified && (
+              <button onClick={() => { setVerifyEmailOpen(true); setVerifyStep('send') }}
+                style={{ fontSize: 12, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                {t.verify.verify_btn}
+              </button>
+            )}
+          </div>
+
+          {/* Phone verification */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
+            <div style={{ color: TAUPE, display: 'flex' }}><Phone size={16} /></div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>{t.verify.phone_label}</p>
+              <p style={{ fontSize: 13, fontWeight: 500, color: isPhoneVerified ? GREEN : TAUPE, margin: 0 }}>
+                {isPhoneVerified ? `✓ ${t.verify.verified}` : t.verify.not_verified}
+              </p>
+            </div>
+            {!isPhoneVerified && user.phone && (
+              <button onClick={() => { setVerifyPhoneOpen(true); setVerifyStep('send') }}
+                style={{ fontSize: 12, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                {t.verify.verify_btn}
+              </button>
+            )}
+          </div>
         </Card>
 
         {/* Section Préférences */}
@@ -516,6 +590,28 @@ export default function ProfilePage() {
           }, 1500)
         }}
         onError={(msg) => showToast(msg, 'error')}
+      />
+      <VerifyCodeModal
+        isOpen={verifyEmailOpen}
+        channel="email"
+        step={verifyStep}
+        code={verifyCode}
+        loading={verifyLoading}
+        onClose={() => { setVerifyEmailOpen(false); setVerifyStep('send'); setVerifyCode('') }}
+        onSend={() => handleSendCode('email')}
+        onCodeChange={setVerifyCode}
+        onConfirm={() => handleConfirmCode('email')}
+      />
+      <VerifyCodeModal
+        isOpen={verifyPhoneOpen}
+        channel="phone"
+        step={verifyStep}
+        code={verifyCode}
+        loading={verifyLoading}
+        onClose={() => { setVerifyPhoneOpen(false); setVerifyStep('send'); setVerifyCode('') }}
+        onSend={() => handleSendCode('phone')}
+        onCodeChange={setVerifyCode}
+        onConfirm={() => handleConfirmCode('phone')}
       />
     </div>
   )
@@ -1159,6 +1255,162 @@ function DeleteAccountModal({
         confirmDisabled={!password}
         confirmVariant="danger"
       />
+    </Modal>
+  )
+}
+
+// ─── Modal: Vérification email / téléphone ─────────────────────────────────
+
+function VerifyCodeModal({
+  isOpen, channel, step, code, loading,
+  onClose, onSend, onCodeChange, onConfirm,
+}: {
+  isOpen: boolean
+  channel: 'email' | 'phone'
+  step: 'send' | 'confirm'
+  code: string
+  loading: boolean
+  onClose: () => void
+  onSend: () => void
+  onCodeChange: (val: string) => void
+  onConfirm: () => void
+}) {
+  const { t } = useTranslation()
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([])
+
+  const title = channel === 'email' ? t.verify.modal_email_title : t.verify.modal_phone_title
+  const desc  = channel === 'email' ? t.verify.modal_email_desc  : t.verify.modal_phone_desc
+
+  // Split code string → array of 6 chars
+  const digits = Array.from({ length: 6 }, (_, i) => code[i] ?? '')
+
+  const handleDigit = (index: number, val: string) => {
+    const char = val.replace(/\D/g, '').slice(-1)
+    const arr = Array.from({ length: 6 }, (_, i) => code[i] ?? '')
+    arr[index] = char
+    const next = arr.join('')
+    onCodeChange(next)
+    if (char && index < 5) {
+      inputsRef.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      const arr = Array.from({ length: 6 }, (_, i) => code[i] ?? '')
+      arr[index - 1] = ''
+      onCodeChange(arr.join(''))
+      inputsRef.current[index - 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    onCodeChange(pasted.padEnd(6, '').slice(0, 6))
+    e.preventDefault()
+    inputsRef.current[Math.min(pasted.length, 5)]?.focus()
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={title} description={desc} closeDisabled={loading}>
+      {step === 'send' ? (
+        <>
+          <button
+            type="button"
+            onClick={onSend}
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: RED,
+              color: WHITE,
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? t.verify.sending : (channel === 'email' ? t.verify.verify_btn + ' par email' : t.verify.verify_btn + ' par SMS')}
+          </button>
+        </>
+      ) : (
+        <>
+          <p style={{ fontSize: 12, color: TAUPE, margin: '0 0 16px', textAlign: 'center' }}>
+            {t.verify.enter_code}
+          </p>
+          {/* 6 inputs OTP */}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20 }} onPaste={handlePaste}>
+            {digits.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => { inputsRef.current[i] = el }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={d}
+                onChange={(e) => handleDigit(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                autoFocus={i === 0}
+                style={{
+                  width: 44,
+                  height: 52,
+                  textAlign: 'center',
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: CHARCOAL,
+                  background: BG,
+                  border: `2px solid ${d ? RED : BORDER}`,
+                  borderRadius: 10,
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  transition: 'border-color 0.15s',
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={onSend}
+              disabled={loading}
+              style={{
+                padding: '10px 16px',
+                background: 'transparent',
+                color: TAUPE,
+                border: `1px solid ${BORDER}`,
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.5 : 1,
+              }}
+            >
+              {t.verify.resend}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={loading || code.replace(/\D/g, '').length !== 6}
+              style={{
+                padding: '10px 20px',
+                background: RED,
+                color: WHITE,
+                border: 'none',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: (loading || code.replace(/\D/g, '').length !== 6) ? 'not-allowed' : 'pointer',
+                opacity: (loading || code.replace(/\D/g, '').length !== 6) ? 0.5 : 1,
+                minWidth: 100,
+              }}
+            >
+              {loading ? t.verify.confirming : t.verify.confirm_btn}
+            </button>
+          </div>
+        </>
+      )}
     </Modal>
   )
 }

@@ -44,6 +44,14 @@ class User(Base):
     language: Mapped[str] = mapped_column(String(5), default="fr")
     fcm_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Vérifications Phase 4-bis
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Vérifications Phase 4-bis
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Preferences notifications (Phase 2)
     notify_by_email: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_by_push: Mapped[bool] = mapped_column(Boolean, default=True)

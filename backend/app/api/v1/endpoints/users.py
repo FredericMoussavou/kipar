@@ -154,6 +154,8 @@ async def update_me(
     if payload.is_carrier is True:
         if current_user.kyc_status != "verified":
             raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
+        if not current_user.email_verified:
+            raise HTTPException(status_code=403, detail=t("errors.already_verified", lang))
         current_user.is_carrier = True
 
     return {
@@ -375,4 +377,6 @@ def _serialize_me(user: User) -> dict:
         "notify_by_email": user.notify_by_email,
         "notify_by_push": user.notify_by_push,
         "notify_by_sms": user.notify_by_sms,
+        "email_verified": user.email_verified,
+        "phone_verified": user.phone_verified,
     }

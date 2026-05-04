@@ -12,6 +12,7 @@ from app.models.pir_report import PIRReport
 from app.models.insurance import Insurance
 from app.models.package_request import PackageRequest, Application
 from app.models.notification import Notification
+from app.models.verification_code import VerificationCode
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
@@ -20,4 +21,5 @@ __all__ = [
     "PasswordReset", "PIRReport", "Insurance",
     "PackageRequest", "Application",
     "Notification",
+    "VerificationCode",
 ]

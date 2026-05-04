@@ -18,6 +18,8 @@ interface User {
   notify_by_email: boolean
   notify_by_push: boolean
   notify_by_sms: boolean
+  email_verified: boolean
+  phone_verified: boolean
 }
 
 interface AuthStore {

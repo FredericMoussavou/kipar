@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     auth, trips, bookings, messages,
     delivery, tracking, payments, users, kyc, reviews,
-    kiparscan, claims, pir, insurance, airports, oauth, requests, notifications
+    kiparscan, claims, pir, insurance, airports, oauth, requests, notifications, verify
 )
 
 api_router = APIRouter()
@@ -24,3 +24,4 @@ api_router.include_router(pir.router)
 api_router.include_router(insurance.router)
 api_router.include_router(requests.router)
 api_router.include_router(notifications.router)
+api_router.include_router(verify.router)

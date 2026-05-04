@@ -67,7 +67,11 @@
     "not_found": "Ressource introuvable",
     "price_above_budget": "Le prix du transporteur depasse votre budget",
     "insufficient_kg": "Capacite insuffisante pour ce colis",
-    "already_applied": "Vous avez deja candidat pour cette annonce"
+    "already_applied": "Vous avez deja candidat pour cette annonce",
+    "already_verified": "Déjà vérifié",
+    "invalid_code": "Code incorrect ou expiré",
+    "code_expired": "Code expiré — demandez-en un nouveau",
+    "no_phone": "Aucun numéro de téléphone sur votre profil"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -88,7 +92,10 @@
     "profile_updated": "Profil mis à jour",
     "avatar_updated": "Avatar mis à jour",
     "notification_preferences_updated": "Preferences de notifications mises a jour",
-    "account_deleted": "Compte supprime"
+    "account_deleted": "Compte supprime",
+    "code_sent": "Code envoyé",
+    "email_verified": "Email vérifié avec succès",
+    "phone_verified": "Téléphone vérifié avec succès"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

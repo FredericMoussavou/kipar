@@ -21,6 +21,12 @@ from app.services.notif_db_service import (
     notify_booking_accepted_db,
     notify_booking_refused_db,
     notify_in_transit_db,
+)
+from app.services.notif_db_service import (
+    notify_booking_received_db,
+    notify_booking_accepted_db,
+    notify_booking_refused_db,
+    notify_in_transit_db,
     notify_delivery_confirmed_db,
 )
 
@@ -145,6 +151,14 @@ async def create_booking(
         lang=carrier.language or "fr",
     )
 
+    await notify_booking_received_db(
+        db=db,
+        carrier_id=carrier.id,
+        route=route,
+        booking_id=booking.id,
+        lang=carrier.language or "fr",
+    )
+
     return booking
 
 
@@ -213,6 +227,13 @@ async def accept_booking(
         lang=sender.language or "fr",
     )
 
+    await notify_booking_accepted_db(
+        db=db,
+        sender_id=sender.id,
+        booking_id=booking.id,
+        lang=sender.language or "fr",
+    )
+
     return booking
 
 
@@ -236,6 +257,15 @@ async def refuse_booking(
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
     booking.status = "refused"
+    sender_ref_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_ref = sender_ref_result.scalar_one_or_none()
+    if sender_ref:
+        await notify_booking_refused_db(
+            db=db,
+            sender_id=sender_ref.id,
+            booking_id=booking.id,
+            lang=sender_ref.language or "fr",
+        )
     sender_ref_result = await db.execute(select(User).where(User.id == booking.sender_id))
     sender_ref = sender_ref_result.scalar_one_or_none()
     if sender_ref:
@@ -473,7 +503,17 @@ async def mark_in_transit(
     booking.status = "in_transit"
     sender_t_result = await db.execute(select(User).where(User.id == booking.sender_id))
     sender_t = sender_t_result.scalar_one_or_none()
+    sender_t_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_t = sender_t_result.scalar_one_or_none()
     await db.commit()
+    if sender_t:
+        await notify_in_transit_db(
+            db=db,
+            sender_id=booking.sender_id,
+            receiver_id=booking.receiver_id,
+            booking_id=booking.id,
+            lang=sender_t.language or "fr",
+        )
     if sender_t:
         await notify_in_transit_db(
             db=db,

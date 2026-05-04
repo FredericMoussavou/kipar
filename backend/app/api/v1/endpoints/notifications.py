@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import get_db, AsyncSessionLocal
 from app.core.deps import get_current_user
 from app.core.security import decode_token
 from app.models.notification import Notification
@@ -20,34 +20,37 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 # ── SSE stream ──
 
-async def notification_generator(user_id: str, db: AsyncSession) -> AsyncGenerator[str, None]:
-    """Génère un flux SSE : ping toutes les 15s + notifs non lues."""
+async def notification_generator(user_id: str) -> AsyncGenerator[str, None]:
+    """Génère un flux SSE : ping toutes les 15s + notifs non lues.
+    Crée une nouvelle session DB à chaque poll pour éviter le cache de session.
+    """
     last_check = datetime.now(timezone.utc)
     while True:
         await asyncio.sleep(15)
         try:
-            result = await db.execute(
-                select(Notification)
-                .where(Notification.user_id == uuid.UUID(user_id))
-                .where(Notification.is_read == False)
-                .where(Notification.created_at > last_check)
-                .order_by(Notification.created_at.desc())
-            )
-            notifs = result.scalars().all()
-            last_check = datetime.now(timezone.utc)
-            if notifs:
-                for n in notifs:
-                    data = json.dumps({
-                        "id": str(n.id),
-                        "type": n.type,
-                        "title": n.title,
-                        "body": n.body,
-                        "link": n.link,
-                        "created_at": n.created_at.isoformat(),
-                    })
-                    yield f"data: {data}\n\n"
-            else:
-                yield f"data: ping\n\n"
+            async with AsyncSessionLocal() as db:
+                result = await db.execute(
+                    select(Notification)
+                    .where(Notification.user_id == uuid.UUID(user_id))
+                    .where(Notification.is_read == False)
+                    .where(Notification.created_at > last_check)
+                    .order_by(Notification.created_at.desc())
+                )
+                notifs = result.scalars().all()
+                last_check = datetime.now(timezone.utc)
+                if notifs:
+                    for n in notifs:
+                        data = json.dumps({
+                            "id": str(n.id),
+                            "type": n.type,
+                            "title": n.title,
+                            "body": n.body,
+                            "link": n.link,
+                            "created_at": n.created_at.isoformat(),
+                        })
+                        yield f"data: {data}\n\n"
+                else:
+                    yield f"data: ping\n\n"
         except asyncio.CancelledError:
             break
         except Exception:
@@ -67,7 +70,7 @@ async def stream_notifications(
     user_id = payload.get("sub")
 
     return StreamingResponse(
-        notification_generator(user_id, db),
+        notification_generator(user_id),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

@@ -20,6 +20,7 @@ from app.services.delivery_service import (
     code_expires_at,
 )
 from app.services.notification_service import notify_delivery_code, notify_delivery_confirmed
+from app.services.notif_db_service import notify_delivery_confirmed_db
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/delivery", tags=["delivery"])
@@ -107,6 +108,12 @@ async def validate_delivery(
             user_fcm_token=sender.fcm_token,
             user_phone=sender.phone,
             user_email=sender.email,
+            lang=sender.language or "fr",
+        )
+        await notify_delivery_confirmed_db(
+            db=db,
+            sender_id=sender.id,
+            booking_id=booking.id,
             lang=sender.language or "fr",
         )
 

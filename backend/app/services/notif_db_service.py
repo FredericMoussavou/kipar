@@ -78,3 +78,111 @@ async def notify_new_application(
         body=bodies.get(lang, bodies["fr"]),
         link=f"/requests/{request_id}",
     )
+
+async def notify_booking_received_db(
+    db: AsyncSession,
+    carrier_id: uuid.UUID,
+    route: str,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie le transporteur d'une nouvelle demande de booking."""
+    titles = {"fr": "Nouvelle demande", "en": "New booking request", "es": "Nueva solicitud"}
+    bodies = {
+        "fr": f"Un expéditeur souhaite vous confier un colis pour {route}.",
+        "en": f"A sender wants to entrust you with a package for {route}.",
+        "es": f"Un remitente quiere confiarle un paquete para {route}.",
+    }
+    await create_notification(
+        db=db, user_id=carrier_id, type="booking_received",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/carrier",
+    )
+
+
+async def notify_booking_accepted_db(
+    db: AsyncSession,
+    sender_id: uuid.UUID,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie l'expéditeur que sa demande a été acceptée."""
+    titles = {"fr": "Demande acceptée !", "en": "Request accepted!", "es": "¡Solicitud aceptada!"}
+    bodies = {
+        "fr": "Votre demande de transport a été acceptée. Le transporteur prendra en charge votre colis.",
+        "en": "Your transport request has been accepted. The carrier will handle your package.",
+        "es": "Su solicitud de transporte fue aceptada. El transportista se encargará de su paquete.",
+    }
+    await create_notification(
+        db=db, user_id=sender_id, type="booking_accepted",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/packages/{booking_id}",
+    )
+
+
+async def notify_booking_refused_db(
+    db: AsyncSession,
+    sender_id: uuid.UUID,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie l'expéditeur que sa demande a été refusée."""
+    titles = {"fr": "Demande refusée", "en": "Request declined", "es": "Solicitud rechazada"}
+    bodies = {
+        "fr": "Votre demande de transport a été refusée par le transporteur.",
+        "en": "Your transport request has been declined by the carrier.",
+        "es": "Su solicitud de transporte fue rechazada por el transportista.",
+    }
+    await create_notification(
+        db=db, user_id=sender_id, type="booking_refused",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/packages/{booking_id}",
+    )
+
+
+async def notify_in_transit_db(
+    db: AsyncSession,
+    sender_id: uuid.UUID,
+    receiver_id: uuid.UUID | None,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie expéditeur et récepteur que le colis est en route."""
+    titles = {"fr": "Colis en route !", "en": "Package on its way!", "es": "¡Paquete en camino!"}
+    bodies = {
+        "fr": "Le transporteur a pris en charge votre colis. Il est en route vers le récepteur.",
+        "en": "The carrier has picked up your package. It is on its way to the receiver.",
+        "es": "El transportista recogió su paquete. Está en camino al receptor.",
+    }
+    for uid in [sender_id, receiver_id]:
+        if uid:
+            await create_notification(
+                db=db, user_id=uid, type="in_transit",
+                title=titles.get(lang, titles["fr"]),
+                body=bodies.get(lang, bodies["fr"]),
+                link=f"/packages/{booking_id}",
+            )
+
+
+async def notify_delivery_confirmed_db(
+    db: AsyncSession,
+    sender_id: uuid.UUID,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie l'expéditeur que son colis a été livré."""
+    titles = {"fr": "Colis livré !", "en": "Package delivered!", "es": "¡Paquete entregado!"}
+    bodies = {
+        "fr": "Votre colis a été remis au récepteur. Les fonds seront débloqués sous 24h.",
+        "en": "Your package has been delivered to the receiver. Funds will be released within 24h.",
+        "es": "Su paquete fue entregado al receptor. Los fondos se liberarán en 24h.",
+    }
+    await create_notification(
+        db=db, user_id=sender_id, type="delivery_confirmed",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/packages/{booking_id}",
+    )

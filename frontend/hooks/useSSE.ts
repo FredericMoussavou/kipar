@@ -18,7 +18,7 @@ export function useSSE(token: string | null) {
   // Charge les notifs existantes au montage
   useEffect(() => {
     if (!token) return
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -32,7 +32,7 @@ export function useSSE(token: string | null) {
   // SSE — nouvelles notifs en temps réel
   useEffect(() => {
     if (!token) return
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/stream?token=${token}`
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/notifications/stream?token=${token}`
     const es = new EventSource(url)
     esRef.current = es
 
@@ -56,7 +56,7 @@ export function useSSE(token: string | null) {
 
   const markAllRead = async () => {
     if (!token) return
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/read-all`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read-all`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -66,7 +66,7 @@ export function useSSE(token: string | null) {
 
   const markOneRead = async (id: string) => {
     if (!token) return
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/${id}/read`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}/read`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     })

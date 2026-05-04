@@ -16,6 +16,13 @@ from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailRes
 from app.i18n.loader import t
 from app.services.notification_service import notify_booking_received, notify_booking_accepted, notify_delivery_confirmed, notify_delivery_code
 from app.services.resend_service import send_receiver_invitation
+from app.services.notif_db_service import (
+    notify_booking_received_db,
+    notify_booking_accepted_db,
+    notify_booking_refused_db,
+    notify_in_transit_db,
+    notify_delivery_confirmed_db,
+)
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -130,6 +137,14 @@ async def create_booking(
         lang=carrier.language,
     )
 
+    await notify_booking_received_db(
+        db=db,
+        carrier_id=carrier.id,
+        route=route,
+        booking_id=booking.id,
+        lang=carrier.language or "fr",
+    )
+
     return booking
 
 
@@ -173,7 +188,7 @@ async def accept_booking(
                     receiver_fcm_token=receiver.fcm_token,
                     receiver_phone=receiver.phone,
                     receiver_email=receiver.email,
-                    code=code,
+                    code=booking.delivery_code_plain or "",
                     carrier_name=current_user.full_name,
                     flight_number=trip.flight_number,
                     lang=receiver.language,
@@ -189,6 +204,13 @@ async def accept_booking(
         sender_phone=sender.phone,
         sender_email=sender.email,
         lang=sender.language,
+    )
+
+    await notify_booking_accepted_db(
+        db=db,
+        sender_id=sender.id,
+        booking_id=booking.id,
+        lang=sender.language or "fr",
     )
 
     return booking
@@ -214,6 +236,15 @@ async def refuse_booking(
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
     booking.status = "refused"
+    sender_ref_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_ref = sender_ref_result.scalar_one_or_none()
+    if sender_ref:
+        await notify_booking_refused_db(
+            db=db,
+            sender_id=sender_ref.id,
+            booking_id=booking.id,
+            lang=sender_ref.language or "fr",
+        )
     return booking
 
 
@@ -440,5 +471,15 @@ async def mark_in_transit(
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
     booking.status = "in_transit"
+    sender_t_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_t = sender_t_result.scalar_one_or_none()
     await db.commit()
+    if sender_t:
+        await notify_in_transit_db(
+            db=db,
+            sender_id=booking.sender_id,
+            receiver_id=booking.receiver_id,
+            booking_id=booking.id,
+            lang=sender_t.language or "fr",
+        )
     return {"status": "in_transit"}

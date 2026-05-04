@@ -493,6 +493,16 @@ profile_public: {
   },
 
 
+  chat: {
+    title: 'Messagerie',
+    placeholder: 'Votre message...',
+    readonly_notice: 'Conversation archivée — lecture seule',
+    send: 'Envoyer',
+    you: 'Vous',
+    loading: 'Chargement...',
+    error_connect: 'Impossible de se connecter au chat',
+    error_send: "Erreur lors de l'envoi",
+  },
 }
 
 export type Translations = typeof fr

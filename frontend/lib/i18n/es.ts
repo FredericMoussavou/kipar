@@ -481,4 +481,14 @@ export const es = {
     new_application: 'Nueva candidatura',
     just_now: 'Ahora mismo',
   },
+  chat: {
+    title: 'Mensajería',
+    placeholder: 'Tu mensaje...',
+    readonly_notice: 'Conversación archivada — solo lectura',
+    send: 'Enviar',
+    you: 'Tú',
+    loading: 'Cargando...',
+    error_connect: 'No se puede conectar al chat',
+    error_send: 'Error al enviar el mensaje',
+  },
 };

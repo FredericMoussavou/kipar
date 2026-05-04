@@ -491,5 +491,14 @@ profile_public: {
     new_application: 'New application',
     just_now: 'Just now',
   },
-
+  chat: {
+    title: 'Messaging',
+    placeholder: 'Your message...',
+    readonly_notice: 'Archived conversation — read only',
+    send: 'Send',
+    you: 'You',
+    loading: 'Loading...',
+    error_connect: 'Unable to connect to chat',
+    error_send: 'Error sending message',
+  },
 }

@@ -76,7 +76,8 @@
     "invitation_not_found": "Invitation not found",
     "invitation_expired": "This link has expired",
     "invitation_already_actioned": "This invitation has already been processed",
-    "delivery_code_unavailable": "Delivery code not available"
+    "delivery_code_unavailable": "Delivery code not available",
+    "conversation_readonly": "This conversation is read-only"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -99,7 +100,8 @@
     "account_deleted": "Account deleted",
     "code_sent": "Code sent",
     "email_verified": "Email successfully verified",
-    "phone_verified": "Phone successfully verified"
+    "phone_verified": "Phone successfully verified",
+    "message_sent": "Message sent"
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",
@@ -151,5 +153,12 @@
       "USD",
       "GBP"
     ]
+  },
+  "chat": {
+    "title": "Messaging",
+    "placeholder": "Your message...",
+    "readonly_notice": "This conversation is archived — read only",
+    "send": "Send",
+    "you": "You"
   }
 }

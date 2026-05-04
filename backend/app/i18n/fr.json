@@ -75,7 +75,8 @@
     "invitation_not_found": "Invitation introuvable",
     "invitation_expired": "Ce lien a expiré",
     "invitation_already_actioned": "Cette invitation a déjà été traitée",
-    "delivery_code_unavailable": "Code de remise non disponible"
+    "delivery_code_unavailable": "Code de remise non disponible",
+    "conversation_readonly": "Cette conversation est en lecture seule"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -99,7 +100,8 @@
     "account_deleted": "Compte supprime",
     "code_sent": "Code envoyé",
     "email_verified": "Email vérifié avec succès",
-    "phone_verified": "Téléphone vérifié avec succès"
+    "phone_verified": "Téléphone vérifié avec succès",
+    "message_sent": "Message envoyé"
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",
@@ -151,5 +153,12 @@
       "USD",
       "GBP"
     ]
+  },
+  "chat": {
+    "title": "Messagerie",
+    "placeholder": "Votre message...",
+    "readonly_notice": "Cette conversation est archivée — lecture seule",
+    "send": "Envoyer",
+    "you": "Vous"
   }
 }

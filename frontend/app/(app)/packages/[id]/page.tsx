@@ -2,7 +2,8 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Plane, User, RefreshCw, MessageCircle } from 'lucide-react'
+import ChatModal from '@/components/ui/kipar/ChatModal'
 import QRCode from 'qrcode'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -84,6 +85,7 @@ export default function BookingDetailPage() {
   const queryClient = useQueryClient()
   const [deliveryData, setDeliveryData] = useState<{qr_token: string; code?: string; expires_at: string} | null>(null)
   const [generating, setGenerating] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const { data: booking, isLoading } = useQuery({
@@ -294,6 +296,31 @@ export default function BookingDetailPage() {
           </Section>
         )}
       </div>
+
+      {/* Bulle messagerie flottante */}
+      {['accepted','paid','in_transit','delivered','refused','cancelled'].includes(booking.status) && (
+        <button
+          onClick={() => setChatOpen(true)}
+          style={{
+            position: 'fixed', bottom: 88, right: 20, zIndex: 100,
+            width: 52, height: 52, borderRadius: '50%',
+            background: CHARCOAL, border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          }}
+          aria-label={t.chat.title}
+        >
+          <MessageCircle size={22} color={WHITE} />
+        </button>
+      )}
+
+      {chatOpen && (
+        <ChatModal
+          bookingId={String(id)}
+          bookingStatus={booking.status}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </div>
   )
 }

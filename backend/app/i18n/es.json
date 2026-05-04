@@ -75,7 +75,8 @@
     "invitation_not_found": "Invitación no encontrada",
     "invitation_expired": "Este enlace ha expirado",
     "invitation_already_actioned": "Esta invitación ya ha sido procesada",
-    "delivery_code_unavailable": "Código de entrega no disponible"
+    "delivery_code_unavailable": "Código de entrega no disponible",
+    "conversation_readonly": "Esta conversación es de solo lectura"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",
@@ -99,7 +100,8 @@
     "account_deleted": "Cuenta eliminada",
     "code_sent": "Código enviado",
     "email_verified": "Email verificado con éxito",
-    "phone_verified": "Teléfono verificado con éxito"
+    "phone_verified": "Teléfono verificado con éxito",
+    "message_sent": "Mensaje enviado"
   },
   "notifications": {
     "booking_received": "Nueva solicitud de paquete en tu viaje {route}",
@@ -151,5 +153,12 @@
       "USD",
       "GBP"
     ]
+  },
+  "chat": {
+    "title": "Mensajería",
+    "placeholder": "Tu mensaje...",
+    "readonly_notice": "Esta conversación está archivada — solo lectura",
+    "send": "Enviar",
+    "you": "Tú"
   }
 }

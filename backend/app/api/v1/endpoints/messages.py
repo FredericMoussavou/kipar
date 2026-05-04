@@ -42,9 +42,17 @@ async def create_conversation(
     booking = result.scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-    if booking.status != "accepted":
+    WRITABLE_STATUSES = ("accepted", "paid", "in_transit")
+    READONLY_STATUSES = ("delivered", "refused", "cancelled")
+    if booking.status not in WRITABLE_STATUSES + READONLY_STATUSES:
         raise HTTPException(status_code=400, detail=t("errors.conversation_booking_not_accepted", lang))
-    if current_user.id not in (booking.sender_id, booking.receiver_id):
+
+    result_trip = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip_for_check = result_trip.scalar_one_or_none()
+    carrier_id_for_check = trip_for_check.carrier_id if trip_for_check else None
+
+    allowed = [booking.sender_id, booking.receiver_id, carrier_id_for_check]
+    if current_user.id not in allowed:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
     result = await db.execute(
@@ -56,13 +64,10 @@ async def create_conversation(
     if existing:
         return existing
 
-    result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-    trip = result.scalar_one_or_none()
-
     conversation = Conversation(
         booking_id=booking.id,
         sender_id=booking.sender_id,
-        carrier_id=trip.carrier_id,
+        carrier_id=carrier_id_for_check,
     )
     db.add(conversation)
     await db.flush()
@@ -90,7 +95,11 @@ async def get_conversation(
     conv = result.scalar_one_or_none()
     if not conv:
         raise HTTPException(status_code=404, detail=t("errors.conversation_not_found", lang))
-    if current_user.id not in (conv.sender_id, conv.carrier_id):
+    booking_result = await db.execute(select(Booking).where(Booking.id == conv.booking_id))
+    booking_for_access = booking_result.scalar_one_or_none()
+    receiver_id_for_access = booking_for_access.receiver_id if booking_for_access else None
+    allowed_get = [conv.sender_id, conv.carrier_id, receiver_id_for_access]
+    if current_user.id not in allowed_get:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     return conv
 
@@ -117,9 +126,20 @@ async def websocket_chat(
         select(Conversation).where(Conversation.id == conversation_id)
     )
     conv = result.scalar_one_or_none()
-    if not conv or str(user_id) not in (str(conv.sender_id), str(conv.carrier_id)):
+    if not conv:
         await websocket.close(code=1008)
         return
+
+    booking_ws_result = await db.execute(select(Booking).where(Booking.id == conv.booking_id))
+    booking_ws = booking_ws_result.scalar_one_or_none()
+    receiver_id_ws = booking_ws.receiver_id if booking_ws else None
+    allowed_ws = [str(conv.sender_id), str(conv.carrier_id), str(receiver_id_ws)]
+    if str(user_id) not in allowed_ws:
+        await websocket.close(code=1008)
+        return
+
+    READONLY_WS = ("delivered", "refused", "cancelled")
+    is_readonly = booking_ws and booking_ws.status in READONLY_WS
 
     # Récupère les langues des deux participants pour la traduction
     result = await db.execute(select(User).where(User.id == conv.sender_id))
@@ -131,14 +151,23 @@ async def websocket_chat(
     try:
         while True:
             data = await websocket.receive_text()
+            if is_readonly:
+                await websocket.send_json({"error": "conversation_readonly"})
+                continue
             clean_content = mask_sensitive(data)
 
             # Détermine la langue du destinataire pour la traduction
             is_sender = str(user_id) == str(conv.sender_id)
-            recipient = carrier if is_sender else sender
+            is_carrier = str(user_id) == str(conv.carrier_id)
+            if is_sender:
+                recipient = carrier
+            elif is_carrier:
+                recipient = sender
+            else:
+                # récepteur : destinataire principal = sender
+                recipient = sender
             recipient_lang = recipient.language if recipient else "fr"
 
-            # Traduit si les langues sont différentes
             sender_user = sender if is_sender else carrier
             sender_lang = sender_user.language if sender_user else "fr"
 

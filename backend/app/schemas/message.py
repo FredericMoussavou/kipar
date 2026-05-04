@@ -19,6 +19,10 @@ class ConversationResponse(BaseModel):
     booking_id: uuid.UUID
     sender_id: uuid.UUID
     carrier_id: uuid.UUID
+    receiver_id: uuid.UUID | None = None
+    sender_first_name: str | None = None
+    carrier_first_name: str | None = None
+    receiver_first_name: str | None = None
     created_at: datetime
     messages: list[MessageResponse] = []
 

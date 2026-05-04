@@ -22,6 +22,10 @@ interface Conversation {
   booking_id: string
   sender_id: string
   carrier_id: string
+  receiver_id?: string
+  sender_first_name?: string
+  carrier_first_name?: string
+  receiver_first_name?: string
   messages: Array<{
     id: string
     sender_id: string
@@ -47,6 +51,7 @@ export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatMod
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [wsError, setWsError] = useState(false)
+  const [participants, setParticipants] = useState<Record<string, string>>({})
   const wsRef = useRef<WebSocket | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const isReadonly = READONLY_STATUSES.includes(bookingStatus)
@@ -66,6 +71,11 @@ export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatMod
         const res = await api.post(`/conversations/${bookingId}`)
         const data: Conversation = res.data
         setConv(data)
+        const p: Record<string, string> = {}
+        if (data.sender_id && data.sender_first_name) p[data.sender_id] = data.sender_first_name
+        if (data.carrier_id && data.carrier_first_name) p[data.carrier_id] = data.carrier_first_name
+        if (data.receiver_id && data.receiver_first_name) p[data.receiver_id] = data.receiver_first_name
+        setParticipants(p)
         setMessages(data.messages.map(m => ({
           id: m.id,
           sender_id: m.sender_id,
@@ -86,9 +96,8 @@ export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatMod
   // Connexion WebSocket
   useEffect(() => {
     if (!conv || !token || isReadonly) return
-    const wsBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
-      .replace('http://', 'ws://')
-      .replace('https://', 'wss://')
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/v1$/, '')
+    const wsBase = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://')
     const ws = new WebSocket(`${wsBase}/api/v1/conversations/${conv.id}/ws?token=${token}`)
     wsRef.current = ws
 
@@ -97,8 +106,15 @@ export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatMod
         const msg = JSON.parse(e.data)
         if (msg.error) return
         setMessages(prev => {
-          // Évite les doublons (message local déjà affiché)
+          // Évite les doublons par id réel
           if (prev.find(m => m.id === msg.id)) return prev
+          // Remplace le message optimiste local si c'est notre propre message
+          const localIdx = prev.findIndex(m => m.local && m.sender_id === msg.sender_id)
+          if (localIdx !== -1) {
+            const next = [...prev]
+            next[localIdx] = msg
+            return next
+          }
           return [...prev, msg]
         })
         scrollToBottom()
@@ -187,10 +203,16 @@ export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatMod
           {!loading && messages.length === 0 && (
             <p style={{ textAlign: 'center', fontSize: 13, color: TAUPE, margin: 'auto' }}>—</p>
           )}
-          {messages.map((msg) => {
+          {messages.map((msg, idx) => {
             const isMe = msg.sender_id === user?.id
+            const prevMsg = idx > 0 ? messages[idx - 1] : null
+            const showName = !isMe && (!prevMsg || prevMsg.sender_id !== msg.sender_id)
+            const senderName = participants[msg.sender_id] || null
             return (
               <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                {showName && senderName && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 2, paddingLeft: 4 }}>{senderName}</span>
+                )}
                 <div style={{
                   maxWidth: '75%', padding: '9px 13px',
                   background: isMe ? CHARCOAL : SAND,

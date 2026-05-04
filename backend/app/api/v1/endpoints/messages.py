@@ -20,6 +20,37 @@ from app.i18n.loader import t
 
 router = APIRouter(prefix="/conversations", tags=["messages"])
 
+
+async def enrich_conversation(conv, db: AsyncSession) -> dict:
+    """Retourne un dict ConversationResponse enrichi avec les prénoms."""
+    booking_result = await db.execute(select(Booking).where(Booking.id == conv.booking_id))
+    booking = booking_result.scalar_one_or_none()
+    receiver_id = booking.receiver_id if booking else None
+
+    sender, carrier, receiver = None, None, None
+    if conv.sender_id:
+        r = await db.execute(select(User).where(User.id == conv.sender_id))
+        sender = r.scalar_one_or_none()
+    if conv.carrier_id:
+        r = await db.execute(select(User).where(User.id == conv.carrier_id))
+        carrier = r.scalar_one_or_none()
+    if receiver_id:
+        r = await db.execute(select(User).where(User.id == receiver_id))
+        receiver = r.scalar_one_or_none()
+
+    return {
+        "id": conv.id,
+        "booking_id": conv.booking_id,
+        "sender_id": conv.sender_id,
+        "carrier_id": conv.carrier_id,
+        "receiver_id": receiver_id,
+        "sender_first_name": sender.first_name if sender else None,
+        "carrier_first_name": carrier.first_name if carrier else None,
+        "receiver_first_name": receiver.first_name if receiver else None,
+        "created_at": conv.created_at,
+        "messages": conv.messages,
+    }
+
 SENSITIVE_PATTERN = re.compile(
     r'[\w.+-]+@[\w-]+\.[\w.]+'
     r'|(\+?\d[\d\s\-().]{7,}\d)',
@@ -62,7 +93,7 @@ async def create_conversation(
     )
     existing = result.scalar_one_or_none()
     if existing:
-        return existing
+        return await enrich_conversation(existing, db)
 
     conversation = Conversation(
         booking_id=booking.id,
@@ -77,7 +108,8 @@ async def create_conversation(
         .where(Conversation.id == conversation.id)
         .options(selectinload(Conversation.messages))
     )
-    return result.scalar_one()
+    fresh = result.scalar_one()
+    return await enrich_conversation(fresh, db)
 
 
 @router.get("/{conversation_id}", response_model=ConversationResponse)
@@ -101,7 +133,7 @@ async def get_conversation(
     allowed_get = [conv.sender_id, conv.carrier_id, receiver_id_for_access]
     if current_user.id not in allowed_get:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    return conv
+    return await enrich_conversation(conv, db)
 
 
 @router.websocket("/{conversation_id}/ws")

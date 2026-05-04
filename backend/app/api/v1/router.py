@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from app.api.v1.endpoints.receiver import router as receiver_router
 from app.api.v1.endpoints import (
     auth, trips, bookings, messages,
     delivery, tracking, payments, users, kyc, reviews,
@@ -25,3 +26,4 @@ api_router.include_router(insurance.router)
 api_router.include_router(requests.router)
 api_router.include_router(notifications.router)
 api_router.include_router(verify.router)
+api_router.include_router(receiver_router)

@@ -47,10 +47,7 @@ class User(Base):
     # Vérifications Phase 4-bis
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    # Vérifications Phase 4-bis
-    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_temporary_password: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Preferences notifications (Phase 2)
     notify_by_email: Mapped[bool] = mapped_column(Boolean, default=True)

@@ -71,7 +71,10 @@
     "already_verified": "Ya verificado",
     "invalid_code": "Código incorrecto o expirado",
     "code_expired": "Código expirado — solicite uno nuevo",
-    "no_phone": "No hay número de teléfono en su perfil"
+    "no_phone": "No hay número de teléfono en su perfil",
+    "invitation_not_found": "Invitación no encontrada",
+    "invitation_expired": "Este enlace ha expirado",
+    "invitation_already_actioned": "Esta invitación ya ha sido procesada"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

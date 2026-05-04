@@ -72,7 +72,10 @@
     "already_verified": "Already verified",
     "invalid_code": "Invalid or expired code",
     "code_expired": "Code expired — request a new one",
-    "no_phone": "No phone number on your profile"
+    "no_phone": "No phone number on your profile",
+    "invitation_not_found": "Invitation not found",
+    "invitation_expired": "This link has expired",
+    "invitation_already_actioned": "This invitation has already been processed"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

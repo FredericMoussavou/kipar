@@ -71,7 +71,10 @@
     "already_verified": "Déjà vérifié",
     "invalid_code": "Code incorrect ou expiré",
     "code_expired": "Code expiré — demandez-en un nouveau",
-    "no_phone": "Aucun numéro de téléphone sur votre profil"
+    "no_phone": "Aucun numéro de téléphone sur votre profil",
+    "invitation_not_found": "Invitation introuvable",
+    "invitation_expired": "Ce lien a expiré",
+    "invitation_already_actioned": "Cette invitation a déjà été traitée"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

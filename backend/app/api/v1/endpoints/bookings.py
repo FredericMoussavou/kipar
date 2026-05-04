@@ -15,12 +15,14 @@ from app.models.receiver_invitation import ReceiverInvitation
 from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse
 from app.i18n.loader import t
 from app.services.notification_service import notify_booking_received, notify_booking_accepted
+from app.services.resend_service import send_receiver_invitation
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
 async def find_or_invite_receiver(
-    contact: str, sender_id: uuid.UUID, booking_id: uuid.UUID, db: AsyncSession
+    contact: str, sender_id: uuid.UUID, booking_id: uuid.UUID,
+    db: AsyncSession, sender: User, trip: "Trip", pkg: "Package",
 ) -> uuid.UUID | None:
     result = await db.execute(select(User).where(User.email == contact))
     user = result.scalar_one_or_none()
@@ -29,14 +31,30 @@ async def find_or_invite_receiver(
         user = result.scalar_one_or_none()
     if user:
         return user.id
+    token = ReceiverInvitation.generate_token()
     invitation = ReceiverInvitation(
         booking_id=booking_id,
         sender_id=sender_id,
         contact=contact,
-        token=ReceiverInvitation.generate_token(),
+        token=token,
         expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
     )
     db.add(invitation)
+    # Envoi email lien magique (best-effort, ne bloque pas le booking)
+    try:
+        await send_receiver_invitation(
+            to_email=contact,
+            receiver_first_name=contact.split("@")[0].capitalize(),
+            sender_full_name=sender.full_name,
+            origin=trip.origin_airport_code,
+            destination=trip.destination_airport_code,
+            content_description=pkg.content_description,
+            token=token,
+            temp_password=None,
+            lang=sender.language,
+        )
+    except Exception as e:
+        print(f"[RESEND] Erreur envoi invitation: {e}")
     return None
 
 
@@ -91,7 +109,8 @@ async def create_booking(
     await db.flush()
 
     receiver_id = await find_or_invite_receiver(
-        payload.receiver_email_or_phone, current_user.id, booking.id, db
+        payload.receiver_email_or_phone, current_user.id, booking.id,
+        db, current_user, trip, package,
     )
     if receiver_id:
         booking.receiver_id = receiver_id

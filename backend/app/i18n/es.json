@@ -18,8 +18,8 @@
     "conversation_not_found": "Conversación no encontrada",
     "delivery_code_already_generated": "Código ya generado",
     "delivery_no_code": "No se ha generado ningún código de entrega",
-    "delivery_code_expired": "Código expirado",
-    "delivery_code_invalid": "Código incorrecto",
+    "delivery_code_expired": "Código de entrega expirado",
+    "delivery_code_invalid": "Código inválido",
     "delivery_qr_invalid": "Token QR inválido",
     "payment_required": "El pago debe ser confirmado",
     "flight_not_found": "No hay seguimiento de vuelo para este trayecto",
@@ -74,7 +74,8 @@
     "no_phone": "No hay número de teléfono en su perfil",
     "invitation_not_found": "Invitación no encontrada",
     "invitation_expired": "Este enlace ha expirado",
-    "invitation_already_actioned": "Esta invitación ya ha sido procesada"
+    "invitation_already_actioned": "Esta invitación ya ha sido procesada",
+    "delivery_code_unavailable": "Código de entrega no disponible"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",
@@ -136,7 +137,9 @@
     "boarding": "Embarque",
     "in_air": "En vuelo",
     "landed": "Aterrizado",
-    "delayed": "Retrasado"
+    "delayed": "Retrasado",
+    "cancelled_by_sender": "Cancelado por el remitente",
+    "cancelled_by_carrier": "Cancelado por el transportista"
   },
   "currencies": {
     "default": "EUR",

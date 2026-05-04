@@ -18,8 +18,8 @@
     "conversation_not_found": "Conversation introuvable",
     "delivery_code_already_generated": "Code déjà généré",
     "delivery_no_code": "Aucun code de remise généré",
-    "delivery_code_expired": "Code expiré",
-    "delivery_code_invalid": "Code incorrect",
+    "delivery_code_expired": "Code de remise expiré",
+    "delivery_code_invalid": "Code invalide",
     "delivery_qr_invalid": "QR token invalide",
     "payment_required": "Le paiement doit être confirmé",
     "flight_not_found": "Aucun suivi de vol pour ce trajet",
@@ -74,7 +74,8 @@
     "no_phone": "Aucun numéro de téléphone sur votre profil",
     "invitation_not_found": "Invitation introuvable",
     "invitation_expired": "Ce lien a expiré",
-    "invitation_already_actioned": "Cette invitation a déjà été traitée"
+    "invitation_already_actioned": "Cette invitation a déjà été traitée",
+    "delivery_code_unavailable": "Code de remise non disponible"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -136,7 +137,9 @@
     "boarding": "Embarquement",
     "in_air": "En vol",
     "landed": "Atterri",
-    "delayed": "Retardé"
+    "delayed": "Retardé",
+    "cancelled_by_sender": "Annulé par l'expéditeur",
+    "cancelled_by_carrier": "Annulé par le transporteur"
   },
   "currencies": {
     "default": "EUR",

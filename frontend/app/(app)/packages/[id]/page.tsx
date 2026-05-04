@@ -1,14 +1,16 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User } from 'lucide-react'
+import { ArrowLeft, Plane, User, RefreshCw } from 'lucide-react'
+import QRCode from 'qrcode'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
+import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED, GREEN } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -79,6 +81,11 @@ export default function BookingDetailPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
 
+  const queryClient = useQueryClient()
+  const [deliveryData, setDeliveryData] = useState<{qr_token: string; code?: string; expires_at: string} | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
   const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', id],
     queryFn: async () => {
@@ -86,6 +93,36 @@ export default function BookingDetailPage() {
       return res.data
     },
   })
+
+  const isSender_ = user?.id === booking?.sender_id
+  const isReceiver_ = user?.id === booking?.receiver_id
+
+  useEffect(() => {
+    if (!deliveryData?.qr_token || !canvasRef.current) return
+    QRCode.toCanvas(canvasRef.current, deliveryData.qr_token, {
+      width: 180,
+      margin: 2,
+      color: { dark: '#1a1a1a', light: '#f5f3f0' },
+    }).catch(console.error)
+  }, [deliveryData])
+
+  const canSeeCode = !!(booking && user?.id === booking?.receiver_id && booking.status === 'in_transit')
+
+
+
+  const generateCode = async () => {
+    if (!booking) return
+    setGenerating(true)
+    try {
+      const res = await api.post(`/delivery/${booking.id}/generate-code`)
+      setDeliveryData(res.data)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch {
+      // erreur silencieuse
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   if (isLoading) return (
     <div style={{ padding: 20, paddingTop: 80 }}>
@@ -102,9 +139,10 @@ export default function BookingDetailPage() {
   )
 
   // Détermine le rôle de l'utilisateur connecté
-  const isSender = user?.id === booking.sender_id
-  const isReceiver = user?.id === booking.receiver_id
+  const isSender = isSender_
+  const isReceiver = isReceiver_
   const isCarrier = !isSender && !isReceiver
+
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
@@ -193,6 +231,55 @@ export default function BookingDetailPage() {
               onPress={() => router.push(`/profile/${booking.receiver_id}`)}
               t={t}
             />
+          </Section>
+        )}
+
+        {/* Section code de remise — récepteur uniquement */}
+        {isReceiver && (canSeeCode || booking.status === 'delivered') && (
+          <Section title={t.delivery.section_code}>
+            {deliveryData ? (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 12, color: TAUPE, marginBottom: 8 }}>{t.delivery.code_label}</p>
+                {deliveryData.code && (
+                  <div style={{ background: SAND, borderRadius: 12, padding: '12px 16px', marginBottom: 12, display: 'inline-block' }}>
+                    <p style={{ fontSize: 36, fontWeight: 900, color: CHARCOAL, fontFamily: 'monospace', letterSpacing: 8, margin: 0 }}>
+                      {deliveryData.code}
+                    </p>
+                  </div>
+                )}
+                <p style={{ fontSize: 12, color: TAUPE, marginBottom: 8 }}>{t.delivery.qr_label}</p>
+                <canvas ref={canvasRef} style={{ border: '1px solid ' + BORDER, borderRadius: 8, display: 'block', margin: '0 auto 8px' }} />
+                {deliveryData.expires_at && (
+                  <p style={{ fontSize: 11, color: TAUPE }}>
+                    {t.delivery.expires} {new Date(deliveryData.expires_at).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            ) : booking.status === 'in_transit' ? (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <p style={{ fontSize: 13, color: TAUPE, marginBottom: 16 }}>{t.delivery.generate_hint}</p>
+                <button
+                  onClick={generateCode}
+                  disabled={generating}
+                  style={{ background: CHARCOAL, color: WHITE, border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.6 : 1 }}
+                >
+                  {generating ? t.delivery.generating : t.delivery.generate_btn}
+                </button>
+              </div>
+            ) : (
+              <p style={{ fontSize: 14, fontWeight: 700, color: GREEN, textAlign: 'center', padding: '8px 0' }}>
+                {t.delivery.status_delivered}
+              </p>
+            )}
+          </Section>
+        )}
+
+        {/* Confirmation livraison — expéditeur */}
+        {isSender && booking.status === 'delivered' && (
+          <Section title={t.delivery.section_code}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: GREEN, textAlign: 'center', padding: '8px 0' }}>
+              {t.delivery.status_delivered}
+            </p>
           </Section>
         )}
 

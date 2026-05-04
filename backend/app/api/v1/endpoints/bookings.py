@@ -14,7 +14,7 @@ from app.models.booking import Booking
 from app.models.receiver_invitation import ReceiverInvitation
 from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse
 from app.i18n.loader import t
-from app.services.notification_service import notify_booking_received, notify_booking_accepted
+from app.services.notification_service import notify_booking_received, notify_booking_accepted, notify_delivery_confirmed, notify_delivery_code
 from app.services.resend_service import send_receiver_invitation
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
@@ -162,6 +162,24 @@ async def accept_booking(
 
     booking.status = "accepted"
     booking.accepted_at = datetime.now(timezone.utc)
+
+    # Notifie le récepteur que la réservation est acceptée
+    if booking.receiver_id:
+        recv_result = await db.execute(select(User).where(User.id == booking.receiver_id))
+        receiver = recv_result.scalar_one_or_none()
+        if receiver:
+            try:
+                await notify_delivery_code(
+                    receiver_fcm_token=receiver.fcm_token,
+                    receiver_phone=receiver.phone,
+                    receiver_email=receiver.email,
+                    code=code,
+                    carrier_name=current_user.full_name,
+                    flight_number=trip.flight_number,
+                    lang=receiver.language,
+                )
+            except Exception as e:
+                print(f"[NOTIF] Erreur code remise: {e}")
 
     # Notifie l'expéditeur
     result = await db.execute(select(User).where(User.id == booking.sender_id))
@@ -363,3 +381,64 @@ async def get_booking_full(
         sender_last_name=sender.last_name if sender else None,
         sender_email=sender.email if sender else None,
     )
+
+
+@router.patch("/{booking_id}/cancel")
+async def cancel_booking(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Annulation par l'expéditeur ou le transporteur."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status not in ("pending", "awaiting_receiver", "accepted", "paid"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+
+    is_sender = booking.sender_id == current_user.id
+    is_carrier = trip and trip.carrier_id == current_user.id
+
+    if not is_sender and not is_carrier:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    if is_sender:
+        booking.status = "cancelled_by_sender"
+        # TODO Phase 10-bis : remboursement 50% si annulation tardive
+        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement simulé")
+    else:
+        booking.status = "cancelled_by_carrier"
+        # TODO Phase 10-bis : KiparTrust downgrade
+        print(f"[TRUST] Annulation transporteur booking {booking_id} — downgrade simulé")
+
+    await db.commit()
+    return {"status": booking.status}
+
+@router.patch("/{booking_id}/in-transit")
+async def mark_in_transit(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Le transporteur confirme avoir récupéré le colis — passe à in_transit."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status not in ("accepted", "paid"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    if not trip or trip.carrier_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    booking.status = "in_transit"
+    await db.commit()
+    return {"status": "in_transit"}

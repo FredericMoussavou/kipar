@@ -30,12 +30,13 @@ async def make_verified_carrier(client, db_session, email: str) -> str:
     return res.json()["access_token"]
 
 
-async def setup_paid_booking(client, db_session, suffix: str) -> tuple:
-    """Crée une réservation en statut 'paid' — prête pour la livraison."""
+async def setup_intransit_booking(client, db_session, suffix: str) -> tuple:
+    """Crée une réservation en statut 'in_transit' — prête pour generate-code."""
     carrier_token = await make_verified_carrier(
         client, db_session, f"carrier_d{suffix}@kipar.com"
     )
     sender_token = await register_and_login(client, f"sender_d{suffix}@kipar.com")
+    receiver_token = await register_and_login(client, f"receiver_d{suffix}@kipar.com")
 
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
@@ -59,22 +60,22 @@ async def setup_paid_booking(client, db_session, suffix: str) -> tuple:
         headers={"Authorization": f"Bearer {carrier_token}"}
     )
 
-    # Force le statut à 'paid' et 'in_transit' directement en DB
+    # Force le statut à in_transit directement en DB
     await db_session.execute(
         update(Booking).where(Booking.id == booking_id)
-        .values(status="paid")
+        .values(status="in_transit")
     )
     await db_session.flush()
 
-    return booking_id, sender_token, carrier_token
+    return booking_id, sender_token, carrier_token, receiver_token
 
 
 async def test_generate_code(client, db_session):
-    """Génère un code de remise sur une réservation payée."""
-    booking_id, sender_token, _ = await setup_paid_booking(client, db_session, "1")
+    """Génère un code de remise sur une réservation in_transit (par le récepteur)."""
+    booking_id, _, _, receiver_token = await setup_intransit_booking(client, db_session, "1")
     res = await client.post(
         f"/api/v1/delivery/{booking_id}/generate-code",
-        headers={"Authorization": f"Bearer {sender_token}"}
+        headers={"Authorization": f"Bearer {receiver_token}"}
     )
     assert res.status_code == 200
     data = res.json()
@@ -85,39 +86,34 @@ async def test_generate_code(client, db_session):
 
 
 async def test_generate_code_twice_fails(client, db_session):
-    """Impossible de générer un code deux fois."""
-    booking_id, sender_token, _ = await setup_paid_booking(client, db_session, "2")
+    """Impossible de générer un code deux fois (booking déjà delivered)."""
+    booking_id, _, _, receiver_token = await setup_intransit_booking(client, db_session, "2")
     await client.post(
         f"/api/v1/delivery/{booking_id}/generate-code",
-        headers={"Authorization": f"Bearer {sender_token}"}
+        headers={"Authorization": f"Bearer {receiver_token}"}
     )
     res = await client.post(
         f"/api/v1/delivery/{booking_id}/generate-code",
-        headers={"Authorization": f"Bearer {sender_token}"}
+        headers={"Authorization": f"Bearer {receiver_token}"}
     )
     assert res.status_code == 400
 
 
 async def test_validate_delivery_correct_code(client, db_session):
-    """Validation de livraison avec le bon code."""
-    booking_id, sender_token, carrier_token = await setup_paid_booking(
+    """Validation de livraison avec le bon code (transporteur valide après generate-code récepteur)."""
+    booking_id, _, carrier_token, receiver_token = await setup_intransit_booking(
         client, db_session, "3"
     )
 
-    # Génère le code
+    # Récepteur génère le code → booking passe à delivered
     code_res = await client.post(
         f"/api/v1/delivery/{booking_id}/generate-code",
-        headers={"Authorization": f"Bearer {sender_token}"}
+        headers={"Authorization": f"Bearer {receiver_token}"}
     )
+    assert code_res.status_code == 200
     code = code_res.json()["code"]
 
-    # Passe en in_transit
-    await db_session.execute(
-        update(Booking).where(Booking.id == booking_id).values(status="in_transit")
-    )
-    await db_session.flush()
-
-    # Valide avec le bon code
+    # Transporteur valide avec le bon code
     res = await client.post(
         f"/api/v1/delivery/{booking_id}/validate",
         json={"code": code},
@@ -129,20 +125,17 @@ async def test_validate_delivery_correct_code(client, db_session):
 
 async def test_validate_delivery_wrong_code(client, db_session):
     """Rejet avec un mauvais code."""
-    booking_id, sender_token, carrier_token = await setup_paid_booking(
+    booking_id, _, carrier_token, receiver_token = await setup_intransit_booking(
         client, db_session, "4"
     )
 
+    # Récepteur génère le code → delivered
     await client.post(
         f"/api/v1/delivery/{booking_id}/generate-code",
-        headers={"Authorization": f"Bearer {sender_token}"}
+        headers={"Authorization": f"Bearer {receiver_token}"}
     )
 
-    await db_session.execute(
-        update(Booking).where(Booking.id == booking_id).values(status="in_transit")
-    )
-    await db_session.flush()
-
+    # Transporteur tente avec mauvais code
     res = await client.post(
         f"/api/v1/delivery/{booking_id}/validate",
         json={"code": "000000"},

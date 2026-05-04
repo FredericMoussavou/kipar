@@ -32,6 +32,7 @@ class Booking(Base):
 
     # Code de remise
     delivery_code_hash: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    delivery_code_plain: Mapped[str | None] = mapped_column(String(10), nullable=True)
     delivery_qr_token: Mapped[str | None] = mapped_column(String(100), nullable=True)
     delivery_code_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

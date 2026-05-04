@@ -22,3 +22,8 @@ def verify_code(plain_code: str, hashed_code: str) -> bool:
 def code_expires_at() -> datetime:
     """Le code expire 30 jours après sa génération."""
     return datetime.now(timezone.utc) + timedelta(days=30)
+
+
+async def get_plain_code_for_receiver(booking) -> str | None:
+    """Retourne le code en clair pour le récepteur — None si déjà livré."""
+    return booking.delivery_code_plain

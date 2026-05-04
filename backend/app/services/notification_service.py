@@ -163,6 +163,26 @@ async def notify_delivery_code(
     )
 
 
+async def notify_delivery_confirmed(
+    user_fcm_token: str | None,
+    user_phone: str | None,
+    user_email: str,
+    lang: str = "fr",
+) -> None:
+    """Notifie l'expéditeur que son colis a été livré."""
+    messages = {
+        "fr": ("Colis livré !", "Votre colis a été remis au récepteur. Les fonds sont débloqués."),
+        "en": ("Package delivered!", "Your package has been handed over. Funds are released."),
+        "es": ("¡Paquete entregado!", "Tu paquete fue entregado. Los fondos están liberados."),
+    }
+    title, body = messages.get(lang, messages["fr"])
+    if user_fcm_token:
+        await send_push(user_fcm_token, title, body, {})
+    if user_phone:
+        await send_sms(user_phone, f"KIPAR. — {body}")
+    await send_email(user_email, f"KIPAR. — {title}", f"<h2>{title}</h2><p>{body}</p>")
+
+
 async def notify_flight_status(
     sender_fcm_token: str | None,
     receiver_fcm_token: str | None,

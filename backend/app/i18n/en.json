@@ -18,7 +18,7 @@
     "conversation_not_found": "Conversation not found",
     "delivery_code_already_generated": "Code already generated",
     "delivery_no_code": "No delivery code generated",
-    "delivery_code_expired": "Code expired",
+    "delivery_code_expired": "Delivery code expired",
     "delivery_code_invalid": "Invalid code",
     "delivery_qr_invalid": "Invalid QR token",
     "payment_required": "Payment must be confirmed first",
@@ -75,7 +75,8 @@
     "no_phone": "No phone number on your profile",
     "invitation_not_found": "Invitation not found",
     "invitation_expired": "This link has expired",
-    "invitation_already_actioned": "This invitation has already been processed"
+    "invitation_already_actioned": "This invitation has already been processed",
+    "delivery_code_unavailable": "Delivery code not available"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -136,7 +137,9 @@
     "boarding": "Boarding",
     "in_air": "In flight",
     "landed": "Landed",
-    "delayed": "Delayed"
+    "delayed": "Delayed",
+    "cancelled_by_sender": "Cancelled by sender",
+    "cancelled_by_carrier": "Cancelled by carrier"
   },
   "currencies": {
     "default": "EUR",

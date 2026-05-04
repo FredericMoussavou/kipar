@@ -23,6 +23,10 @@ export default function CarrierPage() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'pending' | 'treated' | 'trips'>('pending')
   const [tripToDelete, setTripToDelete] = useState<{id: string, label: string} | null>(null)
+  const [deliverModal, setDeliverModal] = useState<{bookingId: string} | null>(null)
+  const [deliverCode, setDeliverCode] = useState('')
+  const [delivering, setDelivering] = useState(false)
+  const [deliverError, setDeliverError] = useState('')
   const [deletingTrip, setDeletingTrip] = useState(false)
 
   const { data: myTrips = [], isLoading: loadingTrips } = useQuery({
@@ -43,10 +47,10 @@ export default function CarrierPage() {
     },
   })
 
-  const pendingBookings = allBookings.filter((b: any) => b.status === 'pending')
-  const acceptedBookings = allBookings.filter((b: any) => b.status === 'accepted')
-  const refusedBookings = allBookings.filter((b: any) => b.status === 'refused')
-  const cancelledBookings = allBookings.filter((b: any) => b.status === 'cancelled')
+  const pendingBookings = allBookings.filter((b: any) => ['pending', 'awaiting_receiver'].includes(b.status))
+  const treatedBookings = allBookings.filter((b: any) => !['pending', 'awaiting_receiver'].includes(b.status))
+  const deliverableBookings = treatedBookings.filter((b: any) => ['accepted', 'paid', 'in_transit'].includes(b.status))
+  const refusedBookings = treatedBookings.filter((b: any) => b.status === 'refused')
 
   const activateMutation = useMutation({
     mutationFn: () => api.patch('/users/me', { is_carrier: true }),
@@ -76,6 +80,32 @@ export default function CarrierPage() {
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
   })
+
+
+  const inTransitMutation = useMutation({
+    mutationFn: (id: string) => api.patch(`/bookings/${id}/in-transit`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
+  })
+  // — Confirm delivery —
+  const handleDeliver = async () => {
+    if (!deliverModal) return
+    setDelivering(true)
+    setDeliverError('')
+    try {
+      await api.post(`/delivery/${deliverModal.bookingId}/validate`, { code: deliverCode })
+      toast.success(t.delivery.delivered_toast)
+      setDeliverModal(null)
+      setDeliverCode('')
+      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
+    } catch {
+      setDeliverError(t.delivery.invalid_code)
+    } finally {
+      setDelivering(false)
+    }
+  }
 
   // — Onboarding —
   if (!user?.is_carrier) {
@@ -124,7 +154,7 @@ export default function CarrierPage() {
 
   const tabs = [
     { key: 'pending' as const, label: t.carrier.tab_pending, count: pendingBookings.length },
-    { key: 'treated' as const, label: t.carrier.tab_treated, count: acceptedBookings.length + refusedBookings.length },
+    { key: 'treated' as const, label: t.carrier.tab_treated, count: treatedBookings.length },
     { key: 'trips' as const, label: t.carrier.tab_trips, count: myTrips.length },
   ]
 
@@ -171,6 +201,43 @@ export default function CarrierPage() {
 
       <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
 
+        {/* Modal confirmer remise */}
+        <Modal
+          isOpen={!!deliverModal}
+          onClose={() => { setDeliverModal(null); setDeliverCode(''); setDeliverError('') }}
+          title={t.delivery.confirm_title}
+          closeDisabled={delivering}
+        >
+          <p style={{ fontSize: 13, color: TAUPE, marginBottom: 12 }}>{t.delivery.enter_code}</p>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={deliverCode}
+            onChange={e => setDeliverCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder={t.delivery.code_placeholder}
+            style={{
+              width: '100%', padding: '12px', textAlign: 'center',
+              fontSize: 28, fontWeight: 800, fontFamily: 'monospace', letterSpacing: 8,
+              background: '#f5f3f0', border: '1px solid ' + BORDER, borderRadius: 12,
+              outline: 'none', boxSizing: 'border-box' as const, marginBottom: 8,
+            }}
+          />
+          {deliverError && <p style={{ fontSize: 12, color: RED, marginBottom: 8 }}>{deliverError}</p>}
+          <button
+            onClick={handleDeliver}
+            disabled={delivering || deliverCode.length !== 6}
+            style={{
+              width: '100%', padding: '12px', background: RED, color: WHITE,
+              border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700,
+              cursor: delivering || deliverCode.length !== 6 ? 'not-allowed' : 'pointer',
+              opacity: delivering || deliverCode.length !== 6 ? 0.6 : 1,
+            }}
+          >
+            {delivering ? t.delivery.confirming : t.delivery.confirm_btn}
+          </button>
+        </Modal>
+
         {/* Onglet : En attente */}
         {activeTab === 'pending' && (
           pendingBookings.length === 0 ? (
@@ -210,80 +277,62 @@ export default function CarrierPage() {
 
         {/* Onglet : Traitées */}
         {activeTab === 'treated' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {acceptedBookings.length === 0 && refusedBookings.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 20px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 20, background: SAND, marginBottom: 16 }}>
-                  <Package size={32} color={TAUPE} strokeWidth={1.5} />
-                </div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.no_treated_bookings}</p>
-                <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_treated_bookings_sub}</p>
-              </div>
-            ) : (
-              <>
-                {acceptedBookings.length > 0 && (
-                  <>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-                      {t.carrier.accepted_bookings} ({acceptedBookings.length})
-                    </p>
-                    {acceptedBookings.map((booking: any) => (
-                      <div key={booking.id} onClick={() => router.push(`/packages/${booking.id}`)}
-                        style={{ background: WHITE, border: '1px solid #6EE7B7', borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
-                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <StatusBadge status={booking.status} />
-                          <ChevronRight size={16} color={TAUPE} />
-                        </div>
+          treatedBookings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.no_treated_bookings}</p>
+              <p style={{ fontSize: 13, color: TAUPE }}>{t.carrier.no_treated_bookings_sub}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {treatedBookings.map((booking: any) => {
+                const canPickup = ['accepted', 'paid'].includes(booking.status)
+                const canDeliver = booking.status === 'in_transit'
+                return (
+                  <div key={booking.id}
+                    onClick={() => router.push(`/packages/${booking.id}`)}
+                    style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: canPickup || canDeliver ? 10 : 0 }}>
+                      <div>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
+                        <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
                       </div>
-                    ))}
-                  </>
-                )}
-                {refusedBookings.length > 0 && (
-                  <>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 4px' }}>
-                      {t.carrier.refused_bookings} ({refusedBookings.length})
-                    </p>
-                    {refusedBookings.map((booking: any) => (
-                      <div key={booking.id}
-                        style={{ background: WHITE, border: '1px solid #FCA5A5', borderRadius: 16, padding: 16, opacity: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
-                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
-                        </div>
-                        <StatusBadge status={booking.status} />
-                      </div>
-                    ))}
-                  </>
-                )}
-                {cancelledBookings.length > 0 && (
-                  <>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '8px 0 4px' }}>
-                      {t.statuses.cancelled} ({cancelledBookings.length})
-                    </p>
-                    {cancelledBookings.map((booking: any) => (
-                      <div key={booking.id} onClick={() => router.push(`/packages/${booking.id}`)}
-                        style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, opacity: 0.6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || t.packages.default_content}</p>
-                          <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <StatusBadge status={booking.status} />
-                          <ChevronRight size={16} color={TAUPE} />
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </>
-            )}
-          </div>
+                      <StatusBadge status={booking.status} />
+                    </div>
+                    {canPickup && (
+                      <button
+                        onClick={e => { e.stopPropagation(); inTransitMutation.mutate(booking.id) }}
+                        disabled={inTransitMutation.isPending}
+                        style={{
+                          padding: '8px 14px', background: '#EFF6FF',
+                          border: '1px solid #93C5FD', borderRadius: 10, fontSize: 13,
+                          fontWeight: 600, color: '#2563EB', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          opacity: inTransitMutation.isPending ? 0.6 : 1,
+                        }}
+                      >
+                        <Plane size={14} /> {t.carrier.pickup_btn}
+                      </button>
+                    )}
+                    {canDeliver && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setDeliverModal({ bookingId: booking.id }); setDeliverError('') }}
+                        style={{
+                          padding: '8px 14px', background: '#ECFDF5',
+                          border: '1px solid #6EE7B7', borderRadius: 10, fontSize: 13,
+                          fontWeight: 600, color: '#059669', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        }}
+                      >
+                        <Check size={14} /> {t.delivery.confirm_btn}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
         )}
 
-        {/* Onglet : Mes annonces */}
         {activeTab === 'trips' && (
           loadingTrips ? (
             <div style={{ height: 80, background: WHITE, borderRadius: 14, border: '1px solid ' + BORDER }} />

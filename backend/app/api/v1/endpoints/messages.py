@@ -16,6 +16,7 @@ from app.models.message import Conversation, Message
 from app.schemas.message import ConversationResponse
 from app.websockets.chat import manager
 from app.services.translation_service import translate_message
+from app.services.notif_db_service import notify_new_message_db
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/conversations", tags=["messages"])
@@ -223,6 +224,24 @@ async def websocket_chat(
                 "sender_lang": sender_lang,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
+
+            # Notif message pour chaque participant sauf l expéditeur
+            sender_user_obj = sender if str(user_id) == str(conv.sender_id) else carrier
+            sender_display = sender_user_obj.first_name if sender_user_obj else "Quelqu un"
+            recipients = [conv.sender_id, conv.carrier_id, receiver_id_ws]
+            for rid in recipients:
+                if rid and str(rid) != str(user_id):
+                    r = await db.execute(select(User).where(User.id == rid))
+                    recipient_user = r.scalar_one_or_none()
+                    recipient_lang = recipient_user.language if recipient_user else "fr"
+                    await notify_new_message_db(
+                        db=db,
+                        recipient_id=rid,
+                        sender_name=sender_display,
+                        excerpt=clean_content,
+                        booking_id=booking_ws.id,
+                        lang=recipient_lang,
+                    )
             await db.commit()
 
     except WebSocketDisconnect:

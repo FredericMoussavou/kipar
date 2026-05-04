@@ -186,3 +186,26 @@ async def notify_delivery_confirmed_db(
         body=bodies.get(lang, bodies["fr"]),
         link=f"/packages/{booking_id}",
     )
+
+
+async def notify_new_message_db(
+    db: AsyncSession,
+    recipient_id: uuid.UUID,
+    sender_name: str,
+    excerpt: str,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie un participant qu'il a recu un nouveau message."""
+    titles = {"fr": "Nouveau message", "en": "New message", "es": "Nuevo mensaje"}
+    bodies = {
+        "fr": f"{sender_name} : {excerpt[:60]}{'...' if len(excerpt) > 60 else ''}",
+        "en": f"{sender_name}: {excerpt[:60]}{'...' if len(excerpt) > 60 else ''}",
+        "es": f"{sender_name}: {excerpt[:60]}{'...' if len(excerpt) > 60 else ''}",
+    }
+    await create_notification(
+        db=db, user_id=recipient_id, type="new_message",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/packages/{booking_id}",
+    )

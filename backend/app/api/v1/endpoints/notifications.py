@@ -143,3 +143,36 @@ async def mark_all_read(
     )
     await db.commit()
     return {"ok": True}
+
+
+@router.delete('/{notif_id}')
+async def delete_notification(
+    notif_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Supprime une notification individuelle."""
+    from sqlalchemy import delete
+    await db.execute(
+        delete(Notification)
+        .where(Notification.id == notif_id)
+        .where(Notification.user_id == current_user.id)
+    )
+    await db.commit()
+    return {"ok": True}
+
+
+@router.delete('/read')
+async def delete_read_notifications(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Supprime toutes les notifications lues."""
+    from sqlalchemy import delete
+    await db.execute(
+        delete(Notification)
+        .where(Notification.user_id == current_user.id)
+        .where(Notification.is_read == True)
+    )
+    await db.commit()
+    return {"ok": True}

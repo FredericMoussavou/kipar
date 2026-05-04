@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import BottomNav from '@/components/layout/BottomNav'
 import TopNav from '@/components/layout/TopNav'
 import { BG } from '@/lib/theme'
+import { NotificationsProvider } from '@/contexts/notifications.context'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
+    <NotificationsProvider>
     <div style={{ minHeight: '100vh', background: BG }}>
       {/* Desktop top nav */}
       <div className="hidden md:block">
@@ -29,5 +31,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <BottomNav />
       </div>
     </div>
+    </NotificationsProvider>
   )
 }

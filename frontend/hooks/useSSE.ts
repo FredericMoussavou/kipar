@@ -74,5 +74,27 @@ export function useSSE(token: string | null) {
     setUnreadCount(prev => Math.max(0, prev - 1))
   }
 
-  return { notifications, unreadCount, markAllRead, markOneRead }
+  const deleteOne = async (id: string) => {
+    if (!token) return
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    setNotifications(prev => {
+      const notif = prev.find(n => n.id === id)
+      if (notif && !notif.is_read) setUnreadCount(c => Math.max(0, c - 1))
+      return prev.filter(n => n.id !== id)
+    })
+  }
+
+  const deleteRead = async () => {
+    if (!token) return
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    setNotifications(prev => prev.filter(n => !n.is_read))
+  }
+
+  return { notifications, unreadCount, markAllRead, markOneRead, deleteOne, deleteRead }
 }

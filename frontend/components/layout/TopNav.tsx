@@ -6,7 +6,7 @@ import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckChe
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
-import { useSSE } from '@/hooks/useSSE'
+import { useNotifications } from '@/contexts/notifications.context'
 
 export default function TopNav() {
   const pathname = usePathname()
@@ -16,13 +16,16 @@ export default function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
-  const token = useAuthStore(s => s.token)
-  const { notifications, unreadCount, markAllRead, markOneRead } = useSSE(token)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications()
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false)
+      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
@@ -112,7 +115,7 @@ export default function TopNav() {
                 <div style={{ maxHeight: 360, overflowY: 'auto' }}>
                   {notifications.length === 0 ? (
                     <p style={{ padding: '24px 16px', textAlign: 'center', fontSize: 13, color: TAUPE, margin: 0 }}>{t.notifications.empty}</p>
-                  ) : notifications.map(n => (
+                  ) : notifications.slice(0, 5).map(n => (
                     <div key={n.id} onClick={() => { markOneRead(n.id); if (n.link) router.push(n.link); setNotifOpen(false) }}
                       style={{ padding: '12px 16px', borderBottom: '1px solid ' + BORDER, cursor: 'pointer', background: n.is_read ? WHITE : 'rgba(220,0,41,0.03)', display: 'flex', gap: 10, alignItems: 'flex-start' }}
                       onMouseEnter={e => (e.currentTarget.style.background = SAND)}
@@ -125,11 +128,14 @@ export default function TopNav() {
                     </div>
                   ))}
                 </div>
+                <div style={{ padding: '10px 16px', borderTop: '1px solid ' + BORDER, textAlign: 'center' }}>
+                  <Link href="/notifications" onClick={() => setNotifOpen(false)} style={{ fontSize: 12, color: RED, fontWeight: 600, textDecoration: 'none' }}>{t.notifications.see_all}</Link>
+                </div>
               </div>
             )}
           </div>
 
-          <div style={{ position: 'relative' }}>
+          <div ref={menuRef} style={{ position: 'relative' }}>
             <button onClick={() => setMenuOpen(!menuOpen)} style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px 4px 4px',
               borderRadius: 99, border: '1px solid ' + BORDER, background: WHITE, cursor: 'pointer',

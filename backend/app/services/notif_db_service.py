@@ -20,7 +20,7 @@ async def create_notification(
         link=link,
     )
     db.add(notif)
-    await db.commit()
+    # Pas de commit ici — c'est à l'appelant de committer
     return notif
 
 

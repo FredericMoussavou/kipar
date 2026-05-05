@@ -209,3 +209,47 @@ async def notify_new_message_db(
         body=bodies.get(lang, bodies["fr"]),
         link=f"/packages/{booking_id}",
     )
+
+async def notify_booking_cancelled_by_sender_db(
+    db: AsyncSession,
+    carrier_id: uuid.UUID,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie le transporteur que l'expéditeur a annulé la réservation."""
+    titles = {"fr": "Réservation annulée", "en": "Booking cancelled", "es": "Reserva cancelada"}
+    bodies = {
+        "fr": "L'expéditeur a annulé la réservation. Le créneau est de nouveau disponible.",
+        "en": "The sender has cancelled the booking. The slot is available again.",
+        "es": "El remitente ha cancelado la reserva. El espacio vuelve a estar disponible.",
+    }
+    await create_notification(
+        db=db, user_id=carrier_id, type="booking_cancelled",
+        title=titles.get(lang, titles["fr"]),
+        body=bodies.get(lang, bodies["fr"]),
+        link=f"/carrier",
+    )
+
+
+async def notify_booking_cancelled_by_carrier_db(
+    db: AsyncSession,
+    sender_id: uuid.UUID,
+    receiver_id: uuid.UUID | None,
+    booking_id: uuid.UUID,
+    lang: str = "fr",
+) -> None:
+    """Notifie expéditeur (et récepteur si existant) que le transporteur a annulé."""
+    titles = {"fr": "Réservation annulée par le transporteur", "en": "Booking cancelled by carrier", "es": "Reserva cancelada por el transportista"}
+    bodies = {
+        "fr": "Le transporteur a annulé la réservation. Vous serez remboursé intégralement.",
+        "en": "The carrier has cancelled the booking. You will be fully refunded.",
+        "es": "El transportista ha cancelado la reserva. Recibirá un reembolso completo.",
+    }
+    for uid in [sender_id, receiver_id]:
+        if uid:
+            await create_notification(
+                db=db, user_id=uid, type="booking_cancelled",
+                title=titles.get(lang, titles["fr"]),
+                body=bodies.get(lang, bodies["fr"]),
+                link=f"/packages/{booking_id}",
+            )

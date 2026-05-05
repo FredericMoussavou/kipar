@@ -44,6 +44,9 @@ class Booking(Base):
         ForeignKey("users.id"), nullable=True
     )
 
+    # Annulation
+    cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # Statut : pending / awaiting_receiver / accepted / refused /
     #          paid / in_transit / delivered / disputed / refunded
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)

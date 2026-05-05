@@ -67,5 +67,7 @@ class BookingDetailResponse(BaseModel):
     sender_first_name: str | None = None
     sender_last_name: str | None = None
     sender_email: str | None = None
+    # Annulation
+    cancellation_reason: str | None = None
 
     model_config = {"from_attributes": False}

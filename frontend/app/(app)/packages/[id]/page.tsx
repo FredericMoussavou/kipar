@@ -2,8 +2,10 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, RefreshCw, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Plane, User, RefreshCw, MessageCircle, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import ChatModal from '@/components/ui/kipar/ChatModal'
+import Modal from '@/components/ui/kipar/Modal'
 import QRCode from 'qrcode'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -86,6 +88,9 @@ export default function BookingDetailPage() {
   const [deliveryData, setDeliveryData] = useState<{qr_token: string; code?: string; expires_at: string} | null>(null)
   const [generating, setGenerating] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const { data: booking, isLoading } = useQuery({
@@ -144,6 +149,37 @@ export default function BookingDetailPage() {
   const isSender = isSender_
   const isReceiver = isReceiver_
   const isCarrier = !isSender && !isReceiver
+
+  const getDaysUntilDeparture = () => {
+    if (!booking?.departure_date) return 999
+    const dep = new Date(booking.departure_date)
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    dep.setHours(0,0,0,0)
+    return Math.floor((dep.getTime() - today.getTime()) / (1000*60*60*24))
+  }
+
+  const getRefundMsg = () => {
+    if (!booking || booking.status === 'pending') return t.packages.refund_full
+    const days = getDaysUntilDeparture()
+    if (days <= 0) return t.packages.refund_none
+    if (days < 3) return t.packages.refund_partial
+    return t.packages.refund_full
+  }
+
+  const handleCancel = async () => {
+    if (!booking) return
+    if (!cancelReason.trim()) { toast.error(t.packages.cancel_reason_required); return }
+    setCancelling(true)
+    try {
+      await api.patch(`/bookings/${booking.id}/cancel`, { reason: cancelReason.trim() })
+      toast.success(t.packages.booking_cancelled)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      setCancelOpen(false)
+      setCancelReason('')
+    } catch { toast.error(t.errors.generic) }
+    finally { setCancelling(false) }
+  }
 
 
   return (
@@ -285,16 +321,30 @@ export default function BookingDetailPage() {
           </Section>
         )}
 
-        {booking.ai_scan_result?.photos?.length > 0 && (
-          <Section title={t.package_detail.section_photos}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {booking.ai_scan_result.photos.map((url: string, i: number) => (
-                <img key={i} src={url} alt={`Photo ${i + 1}`}
-                  style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 10 }} />
-              ))}
-            </div>
+        {booking.cancellation_reason && ['cancelled_by_sender','cancelled_by_carrier'].includes(booking.status) && (
+          <Section title={t.packages.cancel_reason_label}>
+            <p style={{ fontSize: 13, color: CHARCOAL, lineHeight: 1.5 }}>{booking.cancellation_reason}</p>
           </Section>
         )}
+
+        {(() => {
+          const photos = booking.ai_scan_result?.photos?.length > 0
+            ? booking.ai_scan_result.photos
+            : booking.photo_urls?.length > 0
+              ? booking.photo_urls
+              : null
+          if (!photos) return null
+          return (
+            <Section title={t.package_detail.section_photos}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {photos.map((url: string, i: number) => (
+                  <img key={i} src={url} alt={`Photo ${i + 1}`}
+                    style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 10 }} />
+                ))}
+              </div>
+            </Section>
+          )
+        })()}
       </div>
 
       {/* Bulle messagerie flottante */}
@@ -321,6 +371,41 @@ export default function BookingDetailPage() {
           onClose={() => setChatOpen(false)}
         />
       )}
+
+      {(isSender && ['pending','accepted','paid'].includes(booking.status) || isCarrier && booking.status === 'accepted') && (
+        <button onClick={() => setCancelOpen(true)}
+          style={{ position: 'fixed', bottom: 148, right: 20, zIndex: 100,
+            width: 52, height: 52, borderRadius: '50%', background: RED,
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', boxShadow: '0 4px 16px rgba(220,0,41,0.3)' }}
+          aria-label={t.packages.cancel_booking}>
+          <XCircle size={22} color={WHITE} />
+        </button>
+      )}
+
+      <Modal isOpen={cancelOpen} onClose={() => { setCancelOpen(false); setCancelReason('') }} title={t.packages.confirm_cancel}>
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, color: '#92400E', fontWeight: 600, marginBottom: 4 }}>{t.payment.cancel_policy_title}</p>
+          <p style={{ fontSize: 12, color: '#92400E' }}>{isCarrier ? t.packages.refund_full : getRefundMsg()}</p>
+        </div>
+        <textarea
+          value={cancelReason}
+          onChange={e => setCancelReason(e.target.value)}
+          placeholder={t.packages.cancel_reason_placeholder}
+          rows={3}
+          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
+        />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => { setCancelOpen(false); setCancelReason('') }} disabled={cancelling}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handleCancel} disabled={cancelling}
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
+            {cancelling ? '...' : t.packages.cancel_booking}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

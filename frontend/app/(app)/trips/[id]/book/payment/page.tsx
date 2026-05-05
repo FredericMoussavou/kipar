@@ -91,6 +91,16 @@ export default function PaymentPage() {
           <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
         </div>
 
+        {/* Disclaimer politique annulation */}
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: '12px 14px' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', marginBottom: 6 }}>
+            {t.payment.cancel_policy_title}
+          </p>
+          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>✓ {t.payment.cancel_policy_full}</p>
+          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>⚠ {t.payment.cancel_policy_partial}</p>
+          <p style={{ fontSize: 11, color: '#92400E' }}>✗ {t.payment.cancel_policy_none}</p>
+        </div>
+
         <Button fullWidth size="lg" loading={mutation.isPending} onClick={() => mutation.mutate()}>
           {t.payment.pay_btn}
         </Button>

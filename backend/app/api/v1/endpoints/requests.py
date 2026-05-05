@@ -314,3 +314,24 @@ def _enrich_application(app: Application, carrier: User | None, trip: Trip | Non
         "trip_price_per_kg": trip.price_per_kg if trip else None,
         "trip_flight_number": trip.flight_number if trip else None,
     }
+
+
+@router.delete("/{request_id}", status_code=204)
+async def delete_request(
+    request_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Soft delete d'une annonce expéditeur — tous statuts autorisés."""
+    result = await db.execute(
+        select(PackageRequest).where(PackageRequest.id == request_id)
+    )
+    req = result.scalar_one_or_none()
+    if not req:
+        raise HTTPException(status_code=404, detail=t("errors.request_not_found", lang))
+    if req.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    req.deleted_at = datetime.now(timezone.utc)
+    req.status = "cancelled"
+    await db.commit()

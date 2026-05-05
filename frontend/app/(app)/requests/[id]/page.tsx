@@ -1,7 +1,7 @@
 'use client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, Check } from 'lucide-react'
+import { ArrowLeft, Plane, User, Check, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -20,6 +20,8 @@ export default function RequestDetailPage() {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [toDelete, setToDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const { data: req, isLoading: loadingReq } = useQuery({
     queryKey: ['request', id],
@@ -31,6 +33,17 @@ export default function RequestDetailPage() {
     queryFn: async () => (await api.get(`/requests/${id}/applications`)).data,
     enabled: !!req && req.sender_id === user?.id,
   })
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await api.delete(`/requests/${id}`)
+      toast.success(t.requests.deleted)
+      setToDelete(false)
+      router.replace('/requests')
+    } catch { toast.error(t.errors.generic) }
+    finally { setDeleting(false) }
+  }
 
   const acceptMutation = useMutation({
     mutationFn: async (appId: string) => (await api.post(`/requests/${id}/applications/${appId}/accept`)).data,
@@ -61,8 +74,14 @@ export default function RequestDetailPage() {
             <Plane size={20} color="rgba(255,255,255,0.6)" />
             <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 800, color: '#fff' }}>{req.destination_airport_code}</p>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
             <StatusBadge status={req.status} />
+            {isSender && (
+              <button onClick={() => setToDelete(true)}
+                style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Trash2 size={14} color="#fff" />
+              </button>
+            )}
           </div>
         </div>
       </HeroHeader>
@@ -146,6 +165,20 @@ export default function RequestDetailPage() {
           </div>
         )}
       </div>
+
+      <Modal isOpen={toDelete} onClose={() => setToDelete(false)} title={t.requests.delete_confirm}>
+        <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{req?.origin_airport_code} → {req?.destination_airport_code}</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setToDelete(false)} disabled={deleting}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handleDelete} disabled={deleting}
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.5 : 1, minWidth: 100 }}>
+            {deleting ? '...' : t.profile_edit.delete_confirm}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

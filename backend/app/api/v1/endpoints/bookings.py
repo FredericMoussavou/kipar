@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone, timedelta
@@ -21,7 +22,12 @@ from app.services.notif_db_service import (
     notify_booking_accepted_db,
     notify_booking_refused_db,
     notify_in_transit_db,
+    notify_booking_cancelled_by_sender_db,
+    notify_booking_cancelled_by_carrier_db,
 )
+
+class CancelPayload(BaseModel):
+    reason: str = ""
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -410,12 +416,15 @@ async def get_booking_full(
         sender_first_name=sender.first_name if sender else None,
         sender_last_name=sender.last_name if sender else None,
         sender_email=sender.email if sender else None,
+        cancellation_reason=b.cancellation_reason,
+        photo_urls=pkg.photo_urls if pkg else None,
     )
 
 
 @router.patch("/{booking_id}/cancel")
 async def cancel_booking(
     booking_id: str,
+    payload: CancelPayload = CancelPayload(),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
@@ -437,17 +446,56 @@ async def cancel_booking(
     if not is_sender and not is_carrier:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
+    refund_rate = 1.0
     if is_sender:
         booking.status = "cancelled_by_sender"
-        # TODO Phase 10-bis : remboursement 50% si annulation tardive
-        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement simulé")
+        if trip and trip.departure_date:
+            from datetime import date
+            days_until = (trip.departure_date - date.today()).days
+            if days_until < 0:
+                refund_rate = 0.0
+            elif days_until == 0:
+                refund_rate = 0.0
+            elif days_until < 3:
+                refund_rate = 0.5
+            else:
+                refund_rate = 1.0
+        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement {int(refund_rate*100)}%")
     else:
         booking.status = "cancelled_by_carrier"
-        # TODO Phase 10-bis : KiparTrust downgrade
+        refund_rate = 1.0
         print(f"[TRUST] Annulation transporteur booking {booking_id} — downgrade simulé")
 
+    if payload.reason:
+        booking.cancellation_reason = payload.reason
+
     await db.commit()
-    return {"status": booking.status}
+
+    # Notifications annulation
+    carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id)) if trip else None
+    carrier_notif = carrier_result.scalar_one_or_none() if carrier_result else None
+    sender_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_notif = sender_result.scalar_one_or_none()
+
+    if is_sender and carrier_notif:
+        await notify_booking_cancelled_by_sender_db(
+            db=db,
+            carrier_id=carrier_notif.id,
+            booking_id=booking.id,
+            lang=carrier_notif.language or "fr",
+        )
+        await db.commit()
+    elif is_carrier and sender_notif:
+        await notify_booking_cancelled_by_carrier_db(
+            db=db,
+            sender_id=sender_notif.id,
+            receiver_id=booking.receiver_id,
+            booking_id=booking.id,
+            lang=sender_notif.language or "fr",
+        )
+        await db.commit()
+
+    return {"status": booking.status, "refund_rate": refund_rate, "amount": booking.amount}
 
 @router.patch("/{booking_id}/in-transit")
 async def mark_in_transit(

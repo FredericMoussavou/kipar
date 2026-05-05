@@ -1,9 +1,12 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Package, ChevronRight, Plus } from 'lucide-react'
+import { Package, ChevronRight, Plus, X } from 'lucide-react'
+import { toast } from 'sonner'
+import Modal from '@/components/ui/kipar/Modal'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useState } from 'react'
 import { useAuthStore } from '@/stores/auth.store'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
@@ -12,8 +15,30 @@ import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/them
 
 export default function PackagesPage() {
   const { t } = useTranslation()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user: authUser } = useAuthStore()
   const router = useRouter()
+
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const { user } = useAuthStore()
+
+  const queryClient = useQueryClient()
+  const [toCancel, setToCancel] = useState<{id: string; status: string; amount: number} | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+
+  const handleCancel = async () => {
+    if (!toCancel) return
+    if (!cancelReason.trim()) { toast.error(t.packages.cancel_reason_required); return }
+    setCancelling(true)
+    try {
+      await api.patch(`/bookings/${toCancel.id}/cancel`, { reason: cancelReason.trim() })
+      toast.success(t.packages.booking_cancelled)
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] })
+      setToCancel(null)
+      setCancelReason('')
+    } catch { toast.error(t.errors.generic) }
+    finally { setCancelling(false) }
+  }
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['my-bookings'],
@@ -76,7 +101,16 @@ export default function PackagesPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {bookings.map((booking: any) => (
+            {/* Filtre statuts — expéditeur uniquement */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+              {['all','pending','accepted','paid','in_transit','delivered','refused','cancelled'].map(s => (
+                <button key={s} onClick={() => setStatusFilter(s)}
+                  style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, border: '1px solid ' + (statusFilter === s ? CHARCOAL : BORDER), background: statusFilter === s ? CHARCOAL : WHITE, color: statusFilter === s ? WHITE : TAUPE, cursor: 'pointer' }}>
+                  {s === 'all' ? t.packages.filter_all : (t.statuses[s as keyof typeof t.statuses] || s)}
+                </button>
+              ))}
+            </div>
+            {bookings.filter((b: any) => statusFilter === 'all' || b.status === statusFilter).map((booking: any) => (
               <div
                 key={booking.id}
                 onClick={() => router.push(`/packages/${booking.id}`)}
@@ -92,7 +126,6 @@ export default function PackagesPage() {
                     <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {booking.content_description || t.packages.default_content}
                     </p>
-                    <StatusBadge status={booking.status} />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: TAUPE }}>
                     {booking.origin_airport_code && (
@@ -104,12 +137,59 @@ export default function PackagesPage() {
                     <span>{booking.amount?.toFixed(2)}€</span>
                   </div>
                 </div>
-                <ChevronRight size={16} color={TAUPE} />
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <StatusBadge status={booking.status} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {(['pending','accepted','paid'].includes(booking.status)) && (
+                      <button onClick={e => { e.stopPropagation(); setToCancel({ id: booking.id, status: booking.status, amount: booking.amount }) }}
+                        style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(220,0,41,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                        <X size={13} color={RED} />
+                      </button>
+                    )}
+                    <ChevronRight size={16} color={TAUPE} />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <Modal isOpen={!!toCancel} onClose={() => { setToCancel(null); setCancelReason('') }} title={t.packages.confirm_cancel}>
+        {toCancel && (() => {
+          const refundMsg = toCancel.status === 'pending'
+            ? t.packages.refund_full
+            : (() => {
+                if (!toCancel) return t.packages.refund_full
+                return t.packages.refund_full
+              })()
+          return (
+            <div>
+              <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+                <p style={{ fontSize: 12, color: '#92400E', fontWeight: 600, marginBottom: 4 }}>{t.payment.cancel_policy_title}</p>
+                <p style={{ fontSize: 12, color: '#92400E' }}>{refundMsg}</p>
+              </div>
+              <textarea
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder={t.packages.cancel_reason_placeholder}
+                rows={3}
+                style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
+              />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => { setToCancel(null); setCancelReason('') }} disabled={cancelling}
+                  style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  {t.profile_edit.cancel}
+                </button>
+                <button onClick={handleCancel} disabled={cancelling}
+                  style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
+                  {cancelling ? '...' : t.packages.cancel_booking}
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+      </Modal>
     </div>
   )
 }

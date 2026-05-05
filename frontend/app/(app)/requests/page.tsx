@@ -89,12 +89,10 @@ export default function RequestsPage() {
                   <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.requests.deadline_label}: {req.deadline_date} · {t.requests.applications}: {req.applications_count}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {req.status === 'open' && (
-                    <button onClick={e => { e.stopPropagation(); setToDelete({ id: req.id, label: `${req.origin_airport_code} → ${req.destination_airport_code}` }) }}
+                  <button onClick={e => { e.stopPropagation(); setToDelete({ id: req.id, label: `${req.origin_airport_code} → ${req.destination_airport_code}` }) }}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
                       <Trash2 size={15} color={RED} />
                     </button>
-                  )}
                   <ChevronRight size={16} color={TAUPE} />
                 </div>
               </div>

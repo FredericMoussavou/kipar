@@ -273,6 +273,8 @@ profile_public: {
     error_phone_invalid: 'Format de téléphone invalide',
     error_phone_already_used: 'Ce numéro est déjà utilisé',
     success_phone_updated: 'Téléphone mis à jour',
+    edit_btn: 'Modifier',
+    add_btn: 'Ajouter',
 
     // Modal mot de passe
     modal_password_title: 'Changer le mot de passe',

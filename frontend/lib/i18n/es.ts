@@ -271,6 +271,8 @@ export const es = {
     error_phone_invalid: 'Formato de teléfono inválido',
     error_phone_already_used: 'Este número ya está en uso',
     success_phone_updated: 'Teléfono actualizado',
+    edit_btn: 'Editar',
+    add_btn: 'Agregar',
     modal_password_title: 'Cambiar contraseña',
     modal_password_desc: 'Elige una nueva contraseña segura',
     field_old_password: 'Contraseña actual',

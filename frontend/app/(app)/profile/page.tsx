@@ -40,6 +40,8 @@ import {
   CloudinaryErrorCode,
 } from '@/lib/cloudinary'
 import api from '@/lib/api'
+import PhoneInputField, { isValidPhoneNumber } from '@/components/ui/kipar/PhoneInputField'
+import { formatPhoneNumberIntl } from 'react-phone-number-input'
 import {
   CHARCOAL,
   CHARCOAL2,
@@ -317,18 +319,23 @@ export default function ProfilePage() {
         {/* Section Informations */}
         <SectionTitle title={t.profile_edit.section_info} />
         <Card>
-          <InfoRow icon={<Mail size={16} />} label={t.profile_edit.field_email} value={user.email} readonly />
+          {/* Email — affichage + verification fusionnes */}
+          <EmailRow
+            email={user.email}
+            isVerified={isEmailVerified}
+            onVerify={() => { setVerifyEmailOpen(true); setVerifyStep('send') }}
+          />
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_first_name} value={user.first_name} readonly />
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_last_name} value={user.last_name} readonly />
-          <InfoRow
-            icon={<Phone size={16} />}
-            label={t.profile_edit.field_phone}
-            value={user.phone || t.profile_edit.field_phone_empty}
-            valueStyle={{ color: user.phone ? CHARCOAL : TAUPE }}
-            onClick={() => setPhoneModalOpen(true)}
-            isLast={!isKycVerified && false}
+          {/* Telephone — affichage + verification + modification fusionnes */}
+          <PhoneRow
+            phone={user.phone}
+            isVerified={isPhoneVerified}
+            emptyLabel={t.profile_edit.field_phone_empty}
+            onVerify={() => { setVerifyPhoneOpen(true); setVerifyStep('send') }}
+            onEdit={() => setPhoneModalOpen(true)}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
             <div style={{ color: TAUPE, display: 'flex' }}>
               <Lock size={16} />
             </div>
@@ -349,40 +356,6 @@ export default function ProfilePage() {
                   : t.profile_edit.kyc_status_pending}
               </p>
             </div>
-          </div>
-
-          {/* Email verification */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
-            <div style={{ color: TAUPE, display: 'flex' }}><Mail size={16} /></div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>{t.verify.email_label}</p>
-              <p style={{ fontSize: 13, fontWeight: 500, color: isEmailVerified ? GREEN : TAUPE, margin: 0 }}>
-                {isEmailVerified ? `✓ ${t.verify.verified}` : t.verify.not_verified}
-              </p>
-            </div>
-            {!isEmailVerified && (
-              <button onClick={() => { setVerifyEmailOpen(true); setVerifyStep('send') }}
-                style={{ fontSize: 12, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                {t.verify.verify_btn}
-              </button>
-            )}
-          </div>
-
-          {/* Phone verification */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
-            <div style={{ color: TAUPE, display: 'flex' }}><Phone size={16} /></div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>{t.verify.phone_label}</p>
-              <p style={{ fontSize: 13, fontWeight: 500, color: isPhoneVerified ? GREEN : TAUPE, margin: 0 }}>
-                {isPhoneVerified ? `✓ ${t.verify.verified}` : t.verify.not_verified}
-              </p>
-            </div>
-            {!isPhoneVerified && user.phone && (
-              <button onClick={() => { setVerifyPhoneOpen(true); setVerifyStep('send') }}
-                style={{ fontSize: 12, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                {t.verify.verify_btn}
-              </button>
-            )}
           </div>
         </Card>
 
@@ -644,6 +617,135 @@ function Card({ children }: { children: React.ReactNode }) {
   )
 }
 
+function EmailRow({
+  email, isVerified, onVerify,
+}: {
+  email: string
+  isVerified: boolean
+  onVerify: () => void
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid ${SAND}` }}>
+      <div style={{ color: TAUPE, display: 'flex', flexShrink: 0 }}><Mail size={16} /></div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>Email</p>
+        <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {email}
+        </p>
+      </div>
+      {isVerified ? (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          fontSize: 11, fontWeight: 600, color: GREEN,
+          background: 'rgba(34,197,94,0.10)', borderRadius: 99,
+          padding: '3px 10px', whiteSpace: 'nowrap', flexShrink: 0,
+        }}>
+          <Check size={11} /> Verifie
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={onVerify}
+          style={{
+            fontSize: 12, fontWeight: 600, color: RED,
+            background: 'rgba(220,38,38,0.07)', border: 'none',
+            borderRadius: 99, padding: '4px 12px',
+            cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >
+          Verifier
+        </button>
+      )}
+    </div>
+  )
+}
+
+function PhoneRow({
+  phone, isVerified, emptyLabel, onVerify, onEdit,
+}: {
+  phone: string | null
+  isVerified: boolean
+  emptyLabel: string
+  onVerify: () => void
+  onEdit: () => void
+}) {
+  const displayPhone = phone ? (formatPhoneNumberIntl(phone) || phone) : null
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid ${SAND}` }}>
+      <div style={{ color: TAUPE, display: 'flex', flexShrink: 0 }}><Phone size={16} /></div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>Telephone</p>
+        <p style={{ fontSize: 13, fontWeight: 500, color: displayPhone ? CHARCOAL : TAUPE, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {displayPhone ?? emptyLabel}
+        </p>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        {!displayPhone ? (
+          <button
+            type="button"
+            onClick={onEdit}
+            style={{
+              fontSize: 12, fontWeight: 600, color: RED,
+              background: 'rgba(220,38,38,0.07)', border: 'none',
+              borderRadius: 99, padding: '4px 12px', cursor: 'pointer',
+            }}
+          >
+            Ajouter
+          </button>
+        ) : isVerified ? (
+          <>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 600, color: GREEN,
+              background: 'rgba(34,197,94,0.10)', borderRadius: 99,
+              padding: '3px 10px',
+            }}>
+              <Check size={11} /> Verifie
+            </span>
+            <button
+              type="button"
+              onClick={onEdit}
+              style={{
+                fontSize: 12, fontWeight: 600, color: CHARCOAL,
+                background: SAND, border: `1px solid ${BORDER}`,
+                borderRadius: 99, padding: '3px 10px', cursor: 'pointer',
+              }}
+            >
+              Modifier
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={onVerify}
+              style={{
+                fontSize: 12, fontWeight: 600, color: RED,
+                background: 'rgba(220,38,38,0.07)', border: 'none',
+                borderRadius: 99, padding: '4px 10px', cursor: 'pointer',
+              }}
+            >
+              Verifier
+            </button>
+            <button
+              type="button"
+              onClick={onEdit}
+              style={{
+                fontSize: 12, fontWeight: 600, color: CHARCOAL,
+                background: SAND, border: `1px solid ${BORDER}`,
+                borderRadius: 99, padding: '3px 10px', cursor: 'pointer',
+              }}
+            >
+              Modifier
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function InfoRow({
   icon, label, value, valueStyle, onClick, readonly, isLast,
 }: {
@@ -788,16 +890,25 @@ function PhoneModal({
 }) {
   const { t } = useTranslation()
   const [value, setValue] = useState(currentPhone || '')
+  const [phoneError, setPhoneError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isOpen) setValue(currentPhone || '')
+    if (isOpen) {
+      setValue(currentPhone || '')
+      setPhoneError('')
+    }
   }, [isOpen, currentPhone])
 
   const handleSubmit = async () => {
+    if (value && !isValidPhoneNumber(value)) {
+      setPhoneError(t.profile_edit.error_phone_invalid)
+      return
+    }
+    setPhoneError('')
     setLoading(true)
     try {
-      await api.patch('/users/me', { phone: value })
+      await api.patch('/users/me', { phone: value || null })
       onSuccess()
       onClose()
     } catch (err: any) {
@@ -822,17 +933,13 @@ function PhoneModal({
       description={t.profile_edit.modal_phone_desc}
       closeDisabled={loading}
     >
-      <input
-        type="tel"
+      <PhoneInputField
         value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={t.profile_edit.modal_phone_placeholder}
-        autoFocus
-        style={inputStyle()}
+        onChange={(val) => { setValue(val); setPhoneError('') }}
+        error={phoneError}
+        defaultCountry="FR"
       />
-      <p style={{ fontSize: 11, color: TAUPE, margin: '6px 0 16px' }}>
-        {t.profile_edit.modal_phone_format}
-      </p>
+      <div style={{ marginBottom: 16 }} />
       <ModalActions
         onCancel={onClose}
         onConfirm={handleSubmit}

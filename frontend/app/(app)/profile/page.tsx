@@ -326,6 +326,10 @@ export default function ProfilePage() {
             email={user.email}
             isVerified={isEmailVerified}
             onVerify={() => { setVerifyEmailOpen(true); setVerifyStep('send') }}
+            labels={{
+              verifiedLabel: t.verify.email_verified,
+              verifyBtn: t.verify.verify_btn,
+            }}
           />
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_first_name} value={user.first_name} readonly />
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_last_name} value={user.last_name} readonly />
@@ -336,6 +340,13 @@ export default function ProfilePage() {
             emptyLabel={t.profile_edit.field_phone_empty}
             onVerify={() => { setVerifyPhoneOpen(true); setVerifyStep('send') }}
             onEdit={() => setPhoneModalOpen(true)}
+            labels={{
+              phoneLabel: t.profile_edit.field_phone,
+              verifyBtn: t.verify.verify_btn,
+              editBtn: t.profile_edit.edit_btn,
+              addBtn: t.profile_edit.add_btn,
+              verifiedLabel: t.verify.phone_verified,
+            }}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
             <div style={{ color: TAUPE, display: 'flex' }}>
@@ -658,10 +669,12 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function EmailRow({
   email, isVerified, onVerify,
+  labels,
 }: {
   email: string
   isVerified: boolean
   onVerify: () => void
+  labels: { verifiedLabel: string; verifyBtn: string }
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid ${SAND}` }}>
@@ -679,7 +692,7 @@ function EmailRow({
           background: 'rgba(34,197,94,0.10)', borderRadius: 99,
           padding: '3px 10px', whiteSpace: 'nowrap', flexShrink: 0,
         }}>
-          <Check size={11} /> Verifie
+          <Check size={11} /> {labels.verifiedLabel}
         </span>
       ) : (
         <button
@@ -692,7 +705,7 @@ function EmailRow({
             cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
           }}
         >
-          Verifier
+          {labels.verifyBtn}
         </button>
       )}
     </div>
@@ -700,13 +713,14 @@ function EmailRow({
 }
 
 function PhoneRow({
-  phone, isVerified, emptyLabel, onVerify, onEdit,
+  phone, isVerified, emptyLabel, onVerify, onEdit, labels,
 }: {
   phone: string | null
   isVerified: boolean
   emptyLabel: string
   onVerify: () => void
   onEdit: () => void
+  labels: { phoneLabel: string; verifyBtn: string; editBtn: string; addBtn: string; verifiedLabel: string }
 }) {
   const displayPhone = phone ? (formatPhoneNumberIntl(phone) || phone) : null
 
@@ -714,7 +728,7 @@ function PhoneRow({
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid ${SAND}` }}>
       <div style={{ color: TAUPE, display: 'flex', flexShrink: 0 }}><Phone size={16} /></div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>Telephone</p>
+        <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>{labels.phoneLabel}</p>
         <p style={{ fontSize: 13, fontWeight: 500, color: displayPhone ? CHARCOAL : TAUPE, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {displayPhone ?? emptyLabel}
         </p>
@@ -730,7 +744,7 @@ function PhoneRow({
               borderRadius: 99, padding: '4px 12px', cursor: 'pointer',
             }}
           >
-            Ajouter
+            {labels.addBtn}
           </button>
         ) : isVerified ? (
           <>
@@ -740,7 +754,7 @@ function PhoneRow({
               background: 'rgba(34,197,94,0.10)', borderRadius: 99,
               padding: '3px 10px',
             }}>
-              <Check size={11} /> Verifie
+              <Check size={11} /> {labels.verifiedLabel}
             </span>
             <button
               type="button"
@@ -751,7 +765,7 @@ function PhoneRow({
                 borderRadius: 99, padding: '3px 10px', cursor: 'pointer',
               }}
             >
-              Modifier
+              {labels.editBtn}
             </button>
           </>
         ) : (
@@ -765,7 +779,7 @@ function PhoneRow({
                 borderRadius: 99, padding: '4px 10px', cursor: 'pointer',
               }}
             >
-              Verifier
+              {labels.verifyBtn}
             </button>
             <button
               type="button"
@@ -776,7 +790,7 @@ function PhoneRow({
                 borderRadius: 99, padding: '3px 10px', cursor: 'pointer',
               }}
             >
-              Modifier
+              {labels.editBtn}
             </button>
           </>
         )}

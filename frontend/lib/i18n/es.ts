@@ -509,4 +509,11 @@ export const es = {
     error_connect: 'No se puede conectar al chat',
     error_send: 'Error al enviar el mensaje',
   },
+  support: {
+    section_title: 'Soporte',
+    chat_label: 'Contactar soporte',
+    chat_desc: 'Nuestro equipo está disponible para ayudarte',
+    faq_label: 'FAQ',
+    faq_desc: 'Consulta nuestras preguntas frecuentes',
+  },
 };

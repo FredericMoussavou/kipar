@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   User as UserIcon,
   Mail,
@@ -22,6 +23,7 @@ import {
   EyeOff,
   Upload,
   AlertCircle,
+  Headphones,
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -461,6 +463,43 @@ export default function ProfilePage() {
             </span>
             <ChevronRight size={16} color={TAUPE} />
           </button>
+        </Card>
+
+        {/* Section Support */}
+        <SectionTitle title={t.support.section_title} />
+        <Card>
+          <button
+            type="button"
+            onClick={() => { const api = (window as any).Tawk_API; if (api?.toggle) api.toggle() }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '14px 16px', width: '100%',
+              background: 'transparent', border: 'none',
+              borderBottom: `1px solid ${SAND}`,
+              cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            <Headphones size={16} color={TAUPE} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.chat_label}</p>
+              <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.chat_desc}</p>
+            </div>
+            <ChevronRight size={16} color={TAUPE} />
+          </button>
+          <Link
+            href="/faq"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '14px 16px', textDecoration: 'none',
+            }}
+          >
+            <ExternalLink size={16} color={TAUPE} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.faq_label}</p>
+              <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.faq_desc}</p>
+            </div>
+            <ChevronRight size={16} color={TAUPE} />
+          </Link>
         </Card>
 
         {/* Déconnexion */}

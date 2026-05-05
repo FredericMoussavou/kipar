@@ -519,4 +519,11 @@ profile_public: {
     error_connect: 'Unable to connect to chat',
     error_send: 'Error sending message',
   },
+  support: {
+    section_title: 'Support',
+    chat_label: 'Contact support',
+    chat_desc: 'Our team is available to help you',
+    faq_label: 'FAQ',
+    faq_desc: 'Browse our frequently asked questions',
+  },
 }

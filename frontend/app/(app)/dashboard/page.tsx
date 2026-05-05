@@ -63,10 +63,10 @@ export default function DashboardPage() {
               </h1>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button className="md:hidden" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <div style={{ display: 'flex',flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <Link href="/notifications" className="flex md:hidden" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }}>
                 <Bell size={18} color="#fff" />
-              </button>
+              </Link>
               <Link href="/search">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 12, padding: '10px 16px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>
                   <Search size={15} color="rgba(255,255,255,0.9)" />

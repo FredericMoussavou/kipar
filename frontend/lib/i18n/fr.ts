@@ -521,6 +521,13 @@ profile_public: {
     error_connect: 'Impossible de se connecter au chat',
     error_send: "Erreur lors de l'envoi",
   },
+  support: {
+    section_title: 'Support',
+    chat_label: 'Contacter le support',
+    chat_desc: 'Notre équipe est disponible pour vous aider',
+    faq_label: 'FAQ',
+    faq_desc: 'Consultez nos questions fréquentes',
+  },
 }
 
 export type Translations = typeof fr

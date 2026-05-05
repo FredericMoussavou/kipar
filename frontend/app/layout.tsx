@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { Syne, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -38,6 +39,26 @@ export default function RootLayout({
           </Providers>
         </ThemeProvider>
         <Toaster richColors position="top-center" />
+        <Script id="tawk-init" strategy="afterInteractive">
+          {`
+            var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+            Tawk_API.onLoad = function() { Tawk_API.hideWidget(); };
+            Tawk_API.customStyle = {
+              visibility: {
+                desktop: { position: 'br', xOffset: 20, yOffset: 20 },
+                mobile: { position: 'br', xOffset: 10, yOffset: 80 }
+              }
+            };
+            (function(){
+              var s1 = document.createElement('script'), s0 = document.getElementsByTagName('script')[0];
+              s1.async = true;
+              s1.src = 'https://embed.tawk.to/69f9ebcc04c2b71c35758284/1jns425or';
+              s1.charset = 'UTF-8';
+              s1.setAttribute('crossorigin', '*');
+              s0.parentNode.insertBefore(s1, s0);
+            })();
+          `}
+        </Script>
       </body>
     </html>
   )

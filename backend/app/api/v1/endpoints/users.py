@@ -14,6 +14,7 @@ from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
 from app.models.review import Review
+from app.models.package_request import PackageRequest
 from app.services.cloudinary_service import (
     generate_avatar_upload_signature,
     validate_avatar_url,
@@ -37,6 +38,17 @@ class UpdateMeRequest(BaseModel):
     """Champs modifiables sur le profil perso. Tous optionnels."""
     phone: str | None = None
     is_carrier: bool | None = None
+    weight_unit: str | None = None
+
+    @field_validator("weight_unit")
+    @classmethod
+    def validate_weight_unit(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        allowed = {"kg", "g", "mg", "lb", "oz"}
+        if v not in allowed:
+            raise ValueError("Unite invalide. Valeurs acceptees : kg, g, mg, lb, oz")
+        return v
 
     @field_validator("phone")
     @classmethod
@@ -157,6 +169,28 @@ async def update_me(
         if not current_user.email_verified:
             raise HTTPException(status_code=403, detail=t("errors.already_verified", lang))
         current_user.is_carrier = True
+
+    if payload.weight_unit is not None:
+        active_trip = await db.execute(
+            select(Trip.id).where(
+                Trip.carrier_id == current_user.id,
+                Trip.status.in_(["open", "full", "in_transit"]),
+                Trip.deleted_at.is_(None),
+            ).limit(1)
+        )
+        active_request = await db.execute(
+            select(PackageRequest.id).where(
+                PackageRequest.sender_id == current_user.id,
+                PackageRequest.status.in_(["open", "matched"]),
+                PackageRequest.deleted_at.is_(None),
+            ).limit(1)
+        )
+        if active_trip.scalar_one_or_none() or active_request.scalar_one_or_none():
+            raise HTTPException(
+                status_code=409,
+                detail=t("errors.weight_unit_active_listings", lang),
+            )
+        current_user.weight_unit = payload.weight_unit
 
     return {
         "message": t("success.profile_updated", lang),
@@ -379,4 +413,5 @@ def _serialize_me(user: User) -> dict:
         "notify_by_sms": user.notify_by_sms,
         "email_verified": user.email_verified,
         "phone_verified": user.phone_verified,
+        "weight_unit": user.weight_unit or "kg",
     }

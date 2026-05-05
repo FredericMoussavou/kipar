@@ -6,6 +6,7 @@ import BottomNav from '@/components/layout/BottomNav'
 import TopNav from '@/components/layout/TopNav'
 import { BG } from '@/lib/theme'
 import { NotificationsProvider } from '@/contexts/notifications.context'
+import TawkButton from '@/components/ui/kipar/TawkButton'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -31,6 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <BottomNav />
       </div>
     </div>
+      <TawkButton />
     </NotificationsProvider>
   )
 }

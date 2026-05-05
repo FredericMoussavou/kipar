@@ -2,7 +2,7 @@
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck } from 'lucide-react'
+import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck, Headphones } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -159,6 +159,14 @@ export default function TopNav() {
                   <User size={15} />
                   {t.profile.title}
                 </Link>
+                <button
+                  onClick={() => { const api = (window as any).Tawk_API; if (api?.toggle) api.toggle(); setMenuOpen(false) }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: CHARCOAL, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = SAND)}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <Headphones size={15} />
+                  Support
+                </button>
                 <button onClick={() => { logout(); router.replace('/login') }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: RED, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(220,0,41,0.04)')}

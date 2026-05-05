@@ -6,6 +6,7 @@
     "token_type_invalid": "Type de token invalide",
     "user_not_found": "Utilisateur introuvable",
     "kyc_required": "Vérification KYC requise pour effectuer cette action",
+    "trip_duplicate": "Vous avez déjà publié un trajet sur ce corridor à cette date et heure",
     "trip_not_found": "Trajet introuvable",
     "trip_not_open": "Ce trajet n'accepte plus de colis",
     "weight_exceeds_capacity": "Poids demandé ({requested}kg) supérieur au disponible ({available}kg)",

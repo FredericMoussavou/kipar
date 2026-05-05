@@ -6,6 +6,7 @@
     "token_type_invalid": "Invalid token type",
     "user_not_found": "User not found",
     "kyc_required": "KYC verification required to perform this action",
+    "trip_duplicate": "You already have a trip on this route at this date and time",
     "trip_not_found": "Trip not found",
     "trip_not_open": "This trip is no longer accepting packages",
     "weight_exceeds_capacity": "Requested weight ({requested}kg) exceeds available capacity ({available}kg)",

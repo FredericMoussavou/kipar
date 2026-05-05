@@ -22,6 +22,20 @@ async def create_trip(
     current_user: User = Depends(get_verified_user),
     lang: str = Depends(get_lang),
 ):
+    # Contrainte unicite : meme transporteur, meme corridor, meme date+heure
+    dup_query = select(Trip).where(
+        Trip.carrier_id == current_user.id,
+        Trip.origin_airport_code == payload.origin_airport_code,
+        Trip.destination_airport_code == payload.destination_airport_code,
+        Trip.departure_date == payload.departure_date,
+        Trip.deleted_at.is_(None),
+    )
+    if payload.departure_time:
+        dup_query = dup_query.where(Trip.departure_time == payload.departure_time)
+    dup_result = await db.execute(dup_query)
+    if dup_result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail=t("errors.trip_duplicate", lang))
+
     trip = Trip(
         carrier_id=current_user.id,
         origin_city=payload.origin_city,

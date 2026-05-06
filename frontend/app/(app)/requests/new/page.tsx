@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, Search, X, Upload, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Search, X, Upload, Image as ImageIcon, Scan, AlertTriangle, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
@@ -24,7 +24,7 @@ const schema = z.object({
   destination_airport_code: z.string().length(3, '3 lettres'),
   content_description: z.string().min(3, 'Requis'),
   weight_kg: z.string().min(1, 'Requis'),
-  declared_value: z.string().optional(),
+  declared_value: z.string().optional().refine(v => !v || parseFloat(v) >= 0, { message: 'Requis' }),
   budget_per_kg: z.string().min(1, 'Requis'),
   receiver_email_or_phone: z.string().min(3, 'Requis'),
   deadline_date: z.string().min(1, 'Requis'),
@@ -46,6 +46,9 @@ export default function NewRequestPage() {
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const scanRef = useRef<HTMLInputElement>(null)
+  const [scanResult, setScanResult] = useState<any>(null)
+  const [scanning, setScanning] = useState(false)
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -57,6 +60,24 @@ export default function NewRequestPage() {
       const res = await api.get('/airports?q=' + encodeURIComponent(q) + '&limit=6', { headers: {} })
       setSuggestions(res.data?.results || [])
     } catch { setSuggestions([]) }
+  }
+
+  const handleKiparScan = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setScanning(true)
+    setScanResult(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', files[0])
+      const res = await api.post('/api/v1/kiparscan/analyze', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      setScanResult(res.data)
+    } catch {
+      toast.error(t.kiparscan.error)
+    } finally {
+      setScanning(false)
+    }
   }
 
   const handlePhotoUpload = async (files: FileList | null) => {
@@ -211,17 +232,61 @@ export default function NewRequestPage() {
 
         {/* Colis */}
         <div style={sectionStyle}>
-          <p style={labelStyle}>{t.package_detail.section_package}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <p style={labelStyle}>{t.package_detail.section_package}</p>
+            <button type="button" onClick={() => scanRef.current?.click()}
+              disabled={scanning}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: scanning ? SAND : RED, color: WHITE, border: 'none', borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: scanning ? 'not-allowed' : 'pointer', opacity: scanning ? 0.7 : 1 }}>
+              <Scan size={13} />
+              {scanning ? t.kiparscan.scanning : t.kiparscan.btn}
+            </button>
+            <input ref={scanRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+              onChange={e => handleKiparScan(e.target.files)} />
+          </div>
+          {scanResult && (
+            <div style={{ background: scanResult.prohibited_flag ? '#FEF2F2' : '#F0FDF4', border: `1px solid ${scanResult.prohibited_flag ? '#FCA5A5' : '#86EFAC'}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                {scanResult.prohibited_flag
+                  ? <AlertTriangle size={14} color="#DC2626" />
+                  : <CheckCircle size={14} color="#16A34A" />}
+                <p style={{ fontSize: 12, fontWeight: 700, color: scanResult.prohibited_flag ? '#DC2626' : '#16A34A' }}>
+                  {t.kiparscan.result_title}
+                  {scanResult.simulated && <span style={{ fontWeight: 400, marginLeft: 6 }}>({t.kiparscan.simulated})</span>}
+                </p>
+              </div>
+              {[
+                { label: t.kiparscan.description, value: scanResult.content_description },
+                { label: t.kiparscan.weight, value: scanResult.estimated_weight_kg ? `${scanResult.estimated_weight_kg} kg` : null },
+                { label: t.kiparscan.confidence, value: scanResult.confidence === 'high' ? t.kiparscan.confidence_high : scanResult.confidence === 'medium' ? t.kiparscan.confidence_medium : t.kiparscan.confidence_low },
+                ...(scanResult.prohibited_flag ? [{ label: t.kiparscan.prohibited_reason, value: scanResult.prohibited_reason }] : []),
+              ].filter(r => r.value).map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: CHARCOAL, marginBottom: 4 }}>
+                  <span style={{ color: TAUPE }}>{label}</span>
+                  <span style={{ fontWeight: 600, maxWidth: '60%', textAlign: 'right' }}>{value}</span>
+                </div>
+              ))}
+              {!scanResult.prohibited_flag && (
+                <button type="button"
+                  onClick={() => {
+                    if (scanResult.content_description) setValue('content_description', scanResult.content_description)
+                    if (scanResult.estimated_weight_kg) setValue('weight_kg', String(scanResult.estimated_weight_kg))
+                  }}
+                  style={{ marginTop: 8, width: '100%', padding: '8px', background: '#16A34A', color: WHITE, border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  {t.kiparscan.apply_btn}
+                </button>
+              )}
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Input label={t.requests.field_content} placeholder={t.requests.field_content_placeholder}
               error={errors.content_description?.message} {...register('content_description')} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1"
+              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1" min="0.1"
                 error={errors.weight_kg?.message} {...register('weight_kg')} />
-              <Input label={t.requests.field_value} type="number" placeholder="100"
+              <Input label={t.requests.field_value} type="number" placeholder="100" min="0"
                 {...register('declared_value')} />
             </div>
-            <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5"
+            <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5" min="0.1"
               error={errors.budget_per_kg?.message} {...register('budget_per_kg')} />
           </div>
         </div>

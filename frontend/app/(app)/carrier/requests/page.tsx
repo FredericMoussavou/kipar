@@ -1,6 +1,7 @@
 'use client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ArrowLeft, Inbox, ChevronRight, Plane } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -102,7 +103,10 @@ export default function CarrierRequestsPage() {
                       <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', background: gradient, borderRadius: 99 }} />
                     </div>
                     <span style={{ fontSize: 10, fontWeight: 700, color, minWidth: 24 }}>{score}</span>
-                    <span style={{ fontSize: 11, color: TAUPE }}>{req.sender_first_name} {req.sender_last_name}</span>
+                    <Link href={`/profile/${req.sender_id}`} onClick={e => e.stopPropagation()}
+                      style={{ fontSize: 11, color: TAUPE, textDecoration: 'none' }}>
+                      {req.sender_first_name} {req.sender_last_name}
+                    </Link>
                   </div>
 
                   {alreadyApplied ? (

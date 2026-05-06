@@ -7,6 +7,7 @@ import { Search, Bell, Package2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useNotifications } from '@/contexts/notifications.context'
 import { useBookingStore } from '@/stores/booking.store'
 import TripCard from '@/components/trips/TripCard'
 import HeroHeader from '@/components/layout/HeroHeader'
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
+  const { unreadCount } = useNotifications()
   const [activeCorr, setActiveCorr] = useState(0)
   const corridor = CORRIDORS[activeCorr]
 
@@ -64,8 +66,13 @@ export default function DashboardPage() {
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
             </div>
             <div style={{ display: 'flex',flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <Link href="/notifications" className="flex md:hidden" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }}>
+              <Link href="/notifications" className="flex md:hidden" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }}>
                 <Bell size={18} color="#fff" />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#DC0029', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,0.3)' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link href="/search">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 12, padding: '10px 16px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>

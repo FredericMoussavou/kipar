@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Upload, X, Scan, AlertTriangle, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import { Button, Input } from '@/components/ui/kipar'
@@ -29,6 +29,17 @@ export default function BookPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
+
+  const { data: tripData } = useQuery({
+    queryKey: ['trip', id],
+    queryFn: async () => {
+      const res = await api.get(`/trips/${id}`)
+      return res.data
+    },
+    enabled: !!id,
+  })
+
+  const trip = tripData || selectedTrip
   const [withInsurance, setWithInsurance] = useState(false)
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
@@ -44,7 +55,7 @@ export default function BookPage() {
     try {
       const fd = new FormData()
       fd.append('file', files[0])
-      const res = await api.post('/api/v1/kiparscan/analyze', fd, {
+      const res = await api.post('/kiparscan/analyze', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setScanResult(res.data)
@@ -84,7 +95,7 @@ export default function BookPage() {
 
   const weight = parseFloat(watch('weight_kg') || '0') || 0
   const value = parseFloat(watch('declared_value') || '0') || 0
-  const pricePerKg = selectedTrip?.price_per_kg || 0
+  const pricePerKg = trip?.price_per_kg || 0
   const transport = weight * pricePerKg
   const commission = transport * 0.13
   const insurance = withInsurance ? value * 0.03 : 0
@@ -133,9 +144,9 @@ export default function BookPage() {
           <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
             {t.booking.title}
           </h1>
-          {selectedTrip && (
+          {trip && (
             <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
-              {selectedTrip.origin_airport_code} → {selectedTrip.destination_airport_code} · {selectedTrip.price_per_kg}€/kg
+              {trip.origin_airport_code} → {trip.destination_airport_code} · {trip.price_per_kg}€/kg
             </p>
           )}
         </div>

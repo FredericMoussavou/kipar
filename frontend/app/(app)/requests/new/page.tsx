@@ -69,7 +69,7 @@ export default function NewRequestPage() {
     try {
       const fd = new FormData()
       fd.append('file', files[0])
-      const res = await api.post('/api/v1/kiparscan/analyze', fd, {
+      const res = await api.post('/kiparscan/analyze', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setScanResult(res.data)

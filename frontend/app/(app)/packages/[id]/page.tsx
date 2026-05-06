@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Plane, User, RefreshCw, MessageCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
@@ -13,7 +13,8 @@ import { useAuthStore } from '@/stores/auth.store'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
-import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED, GREEN } from '@/lib/theme'
+import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED, GREEN, AMBER } from '@/lib/theme'
+import { CRITERIA_I18N_MAP } from '@/lib/review'
 import { getTrustGradient } from '@/lib/trust'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -91,6 +92,10 @@ export default function BookingDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+  const [reviewOpen, setReviewOpen] = useState(false)
+  const [reviewTargetId, setReviewTargetId] = useState<string | null>(null)
+  const [criteriaScores, setCriteriaScores] = useState<Record<string, number>>({})
+  const reviewCommentRef = useRef<HTMLTextAreaElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const { data: booking, isLoading } = useQuery({
@@ -103,6 +108,33 @@ export default function BookingDetailPage() {
 
   const isSender_ = user?.id === booking?.sender_id
   const isReceiver_ = user?.id === booking?.receiver_id
+
+  const reviewTargetIdForQuery = booking ? (
+    isSender_ ? booking.carrier_id :
+    isReceiver_ ? booking.carrier_id :
+    booking.sender_id
+  ) : null
+
+  const { data: canReviewData } = useQuery({
+    queryKey: ['can-review', id, reviewTargetIdForQuery],
+    enabled: !!booking && !!reviewTargetIdForQuery && ['delivered','cancelled_by_carrier','cancelled_by_sender'].includes(booking.status),
+    queryFn: async () => (await api.get(`/reviews/booking/${id}/can-review?reviewed_id=${reviewTargetIdForQuery}`)).data,
+  })
+
+  const reviewMutation = useMutation({
+    mutationFn: async () => api.post('/reviews', {
+      booking_id: id,
+      reviewed_id: reviewTargetId,
+      criteria: criteriaScores,
+      comment: reviewCommentRef.current?.value || null,
+    }),
+    onSuccess: () => {
+      setReviewOpen(false)
+      setCriteriaScores({})
+      if (reviewCommentRef.current) reviewCommentRef.current.value = ''
+      queryClient.invalidateQueries({ queryKey: ['can-review', id, reviewTargetIdForQuery] })
+    },
+  })
 
   useEffect(() => {
     if (!deliveryData?.qr_token || !canvasRef.current) return
@@ -320,6 +352,15 @@ export default function BookingDetailPage() {
             </p>
           </Section>
         )}
+        {canReviewData?.can_review && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <button
+              onClick={() => { setReviewTargetId(reviewTargetIdForQuery); setReviewOpen(true) }}
+              style={{ padding: '12px 28px', background: 'rgb(245,158,11)', color: WHITE, border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              ⭐ {t.profile_edit.review_btn}
+            </button>
+          </div>
+        )}
 
         {booking.cancellation_reason && ['cancelled_by_sender','cancelled_by_carrier'].includes(booking.status) && (
           <Section title={t.packages.cancel_reason_label}>
@@ -404,6 +445,45 @@ export default function BookingDetailPage() {
             style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
             {cancelling ? '...' : t.packages.cancel_booking}
           </button>
+        </div>
+      </Modal>
+
+      {/* Modal notation */}
+      <Modal isOpen={reviewOpen} onClose={() => setReviewOpen(false)} title={t.profile_edit.section_review}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {canReviewData?.criteria?.map((criterion: string) => (
+            <div key={criterion}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, marginBottom: 8 }}>
+                {(t.profile_edit as any)[CRITERIA_I18N_MAP[criterion]] || criterion}
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[1,2,3,4,5].map(star => (
+                  <button key={star} type="button" onClick={() => setCriteriaScores(prev => ({ ...prev, [criterion]: star }))}
+                    style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', opacity: (criteriaScores[criterion] ?? 0) >= star ? 1 : 0.3 }}>
+                    ⭐
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <textarea
+            ref={reviewCommentRef}
+            placeholder={t.profile_edit.review_comment_placeholder}
+            rows={3}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+          />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button onClick={() => setReviewOpen(false)}
+              style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              {t.profile_edit.cancel}
+            </button>
+            <button
+              onClick={() => reviewMutation.mutate()}
+              disabled={reviewMutation.isPending || !canReviewData?.criteria?.every((c: string) => criteriaScores[c])}
+              style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: reviewMutation.isPending ? 0.5 : 1, minWidth: 120 }}>
+              {reviewMutation.isPending ? '...' : t.profile_edit.review_submit_btn}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>

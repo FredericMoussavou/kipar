@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Float, Text, DateTime, ForeignKey
+from sqlalchemy import Float, Text, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
@@ -16,7 +17,9 @@ class Review(Base):
     reviewer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     reviewed_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
 
-    score: Mapped[float] = mapped_column(Float)  # 1.0 à 5.0
+    score: Mapped[float] = mapped_column(Float)  # 1.0 à 5.0 (moyenne des critères)
+    criteria: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # {"ponctualite": 4, "communication": 5, ...}
+    reviewer_role: Mapped[str | None] = mapped_column(String(20), nullable=True)  # sender/carrier/receiver
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

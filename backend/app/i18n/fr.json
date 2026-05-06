@@ -31,6 +31,7 @@
     "kyc_already_verified": "KYC déjà vérifié",
     "kyc_applicant_creation_failed": "Erreur lors de la création du dossier KYC",
     "kyc_token_generation_failed": "Erreur lors de la génération du token KYC",
+    "review_not_allowed": "Vous n'\u00eates pas autoris\u00e9 \u00e0 noter cet utilisateur",
     "review_already_submitted": "Avis déjà soumis",
     "review_booking_not_delivered": "La livraison doit être confirmée avant de laisser un avis",
     "rate_limit_exceeded": "Trop de requêtes — réessayez dans {seconds} secondes",

@@ -31,6 +31,7 @@
     "kyc_already_verified": "KYC already verified",
     "kyc_applicant_creation_failed": "Error creating KYC application",
     "kyc_token_generation_failed": "Error generating KYC token",
+    "review_not_allowed": "You are not allowed to review this user",
     "review_already_submitted": "Review already submitted",
     "review_booking_not_delivered": "Delivery must be confirmed before leaving a review",
     "rate_limit_exceeded": "Too many requests — please retry in {seconds} seconds",

@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, User as UserIcon, Star, Calendar, Package, Plane, MessageCircle } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useAuthStore } from '@/stores/auth.store'
 import HeroHeader from '@/components/layout/HeroHeader'
 import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
@@ -165,7 +166,10 @@ export default function PublicProfilePage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuthStore()
-  const [showAllReviews, setShowAllReviews] = useState(false)
+  const [reviewPage, setReviewPage] = useState(1)
+  const [accumulatedReviews, setAccumulatedReviews] = useState<ReviewItem[]>([])
+  const isMobile = useIsMobile()
+  const REVIEWS_PER_PAGE = 5
 
   // Redirection si c'est mon propre profil
   useEffect(() => {
@@ -184,13 +188,20 @@ export default function PublicProfilePage() {
     enabled: !!id && user?.id !== id,
   })
 
-  // Avis (limit 5 par défaut, 50 si "Voir tous")
+  // Avis paginés
   const { data: reviews } = useQuery<ReviewList>({
-    queryKey: ['public-profile-reviews', id, showAllReviews],
+    queryKey: ['public-profile-reviews', id, reviewPage, isMobile],
     queryFn: async () => {
-      const limit = showAllReviews ? 50 : 5
-      const res = await api.get(`/reviews/user/${id}?limit=${limit}`)
-      return res.data
+      if (isMobile) {
+        // Mobile : charge toujours depuis le debut avec offset 0, limit = page * 5
+        const res = await api.get(`/reviews/user/${id}?limit=${reviewPage * REVIEWS_PER_PAGE}&offset=0`)
+        return res.data
+      } else {
+        // Desktop : pagination classique
+        const offset = (reviewPage - 1) * REVIEWS_PER_PAGE
+        const res = await api.get(`/reviews/user/${id}?limit=${REVIEWS_PER_PAGE}&offset=${offset}`)
+        return res.data
+      }
     },
     enabled: !!id && user?.id !== id,
   })
@@ -440,27 +451,38 @@ export default function PublicProfilePage() {
                 <ReviewCard key={review.id} review={review} />
               ))}
 
-              {/* Bouton "Voir tous" — uniquement si total > 5 et qu'on n'affiche pas déjà tout */}
-              {reviews.total > 5 && (
+              {/* Pagination mobile : charger plus */}
+              {isMobile && reviews.total > reviewPage * REVIEWS_PER_PAGE && (
                 <button
-                  onClick={() => setShowAllReviews(!showAllReviews)}
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 12,
-                    padding: '12px',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: CHARCOAL,
-                    cursor: 'pointer',
-                    marginTop: 4,
-                  }}
+                  onClick={() => setReviewPage(p => p + 1)}
+                  style={{ width: '100%', background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 12, padding: '12px', fontSize: 13, fontWeight: 600, color: CHARCOAL, cursor: 'pointer', marginTop: 4 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = SAND }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
-                  {showAllReviews ? t.profile_public.see_less : t.profile_public.see_all}
+                  {t.profile_public.load_more}
                 </button>
+              )}
+              {/* Pagination desktop : pages */}
+              {!isMobile && reviews.total > REVIEWS_PER_PAGE && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 }}>
+                  <button
+                    onClick={() => setReviewPage(p => Math.max(1, p - 1))}
+                    disabled={reviewPage === 1}
+                    style={{ padding: '8px 16px', background: reviewPage === 1 ? SAND : WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, color: reviewPage === 1 ? TAUPE : CHARCOAL, cursor: reviewPage === 1 ? 'not-allowed' : 'pointer' }}
+                  >
+                    ←
+                  </button>
+                  <span style={{ fontSize: 13, color: TAUPE }}>
+                    {reviewPage} / {Math.ceil(reviews.total / REVIEWS_PER_PAGE)}
+                  </span>
+                  <button
+                    onClick={() => setReviewPage(p => p + 1)}
+                    disabled={reviewPage >= Math.ceil(reviews.total / REVIEWS_PER_PAGE)}
+                    style={{ padding: '8px 16px', background: reviewPage >= Math.ceil(reviews.total / REVIEWS_PER_PAGE) ? SAND : WHITE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, color: reviewPage >= Math.ceil(reviews.total / REVIEWS_PER_PAGE) ? TAUPE : CHARCOAL, cursor: reviewPage >= Math.ceil(reviews.total / REVIEWS_PER_PAGE) ? 'not-allowed' : 'pointer' }}
+                  >
+                    →
+                  </button>
+                </div>
               )}
             </>
           )}

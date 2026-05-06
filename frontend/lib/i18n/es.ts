@@ -76,6 +76,9 @@ export const es = {
     insurance_available: 'Seguro de paquete disponible',
     insurance_desc: 'Protege tu paquete — 3% del valor declarado',
     not_found: 'Viaje no encontrado',
+    trips_done: 'viajes',
+    reviews: 'opiniones',
+    member_since: 'Miembro desde',
   },
   booking: {
     title: 'Describe tu paquete',

@@ -76,6 +76,9 @@ export const en = {
     insurance_available: 'Package insurance available',
     insurance_desc: 'Protect your package — 3% of declared value',
     not_found: 'Trip not found',
+    trips_done: 'trips',
+    reviews: 'reviews',
+    member_since: 'Member since',
   },
   booking: {
     title: 'Describe your package',

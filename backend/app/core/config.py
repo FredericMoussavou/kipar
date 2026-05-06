@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     # AviationStack
     AVIATIONSTACK_API_KEY: str = ""
 
-    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
 
     # Cloudinary (avatars)
     CLOUDINARY_CLOUD_NAME: str = ""

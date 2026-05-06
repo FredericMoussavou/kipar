@@ -99,28 +99,49 @@ export default function TripDetailPage() {
       <div style={{ padding: '16px 16px 100px' }} className="md:max-w-2xl md:mx-auto">
 
         {/* Transporteur */}
-        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <div onClick={() => router.push(`/profile/${trip.carrier_id}`)} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+          {/* Header : avatar + nom + prix */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: CHARCOAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 700, color: WHITE }}>K</span>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: CHARCOAL, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {trip.carrier_avatar_url
+                ? <img src={trip.carrier_avatar_url} style={{ width: 48, height: 48, objectFit: 'cover' }} />
+                : <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 700, color: WHITE }}>{trip.carrier_full_name?.charAt(0) ?? 'K'}</span>}
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{t.trip.kyc_verified}</p>
-              <p style={{ fontSize: 12, color: TAUPE }}>{t.trip.verified_carrier}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: CHARCOAL, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.carrier_full_name ?? 'Transporteur'}</p>
+                {trip.carrier_kyc_status === 'verified' && (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: WHITE, background: '#16A34A', borderRadius: 99, padding: '2px 7px' }}>KYC</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                <span style={{ fontSize: 11, color: TAUPE }}>{t.trip.member_since} {trip.carrier_member_since}</span>
+                <span style={{ fontSize: 11, color: TAUPE }}>·</span>
+                <span style={{ fontSize: 11, color: TAUPE }}>{trip.carrier_trip_count ?? 0} {t.trip.trips_done}</span>
+              </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>{trip.price_per_kg}€</p>
               <p style={{ fontSize: 11, color: TAUPE }}>{t.trip.price_per_kg}</p>
             </div>
           </div>
+          {/* Note étoiles */}
+          {trip.carrier_review_count > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              {[1,2,3,4,5].map(s => (
+                <span key={s} style={{ fontSize: 14, color: s <= Math.round(trip.carrier_avg_rating ?? 0) ? '#F59E0B' : '#E5E7EB' }}>★</span>
+              ))}
+              <span style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>{trip.carrier_avg_rating?.toFixed(1)}</span>
+              <span style={{ fontSize: 11, color: TAUPE }}>({trip.carrier_review_count} {t.trip.reviews})</span>
+            </div>
+          )}
+          {/* KiparTrust bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 10, color: TAUPE, minWidth: 28 }}>Trust</span>
             <div style={{ flex: 1, height: 5, background: SAND, borderRadius: 99, overflow: 'hidden' }}>
               <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', background: gradient, borderRadius: 99 }} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 28, textAlign: 'right' }}>
-              KiparTrust {score}
-            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 28, textAlign: 'right' }}>KiparTrust {score}</span>
           </div>
         </div>
 

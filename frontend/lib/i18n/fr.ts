@@ -76,6 +76,9 @@ export const fr = {
     insurance_available: 'Assurance colis disponible',
     insurance_desc: 'Protégez votre colis — 3% de la valeur déclarée',
     not_found: 'Trajet introuvable',
+    trips_done: 'voyages',
+    reviews: 'avis',
+    member_since: 'Membre depuis',
   },
   booking: {
     title: 'Décrivez votre colis',

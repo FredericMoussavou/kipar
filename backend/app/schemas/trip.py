@@ -58,4 +58,11 @@ class TripResponse(BaseModel):
     price_per_kg: float
     status: str
     trust_score: float | None = None
+    carrier_full_name: str | None = None
+    carrier_avatar_url: str | None = None
+    carrier_kyc_status: str | None = None
+    carrier_member_since: int | None = None
+    carrier_trip_count: int | None = None
+    carrier_avg_rating: float | None = None
+    carrier_review_count: int | None = None
     model_config = {"from_attributes": False}

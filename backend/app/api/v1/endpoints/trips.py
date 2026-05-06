@@ -177,8 +177,51 @@ async def get_trip(
     db: AsyncSession = Depends(get_db),
     lang: str = Query("fr"),
 ):
+    from sqlalchemy import func
+    from app.models.review import Review
+
     result = await db.execute(select(Trip).where(Trip.id == trip_id))
     trip = result.scalar_one_or_none()
     if not trip:
         raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
-    return trip
+
+    carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = carrier_result.scalar_one_or_none()
+
+    trip_count_result = await db.execute(
+        select(func.count()).where(Trip.carrier_id == trip.carrier_id, Trip.deleted_at.is_(None))
+    )
+    trip_count = trip_count_result.scalar() or 0
+
+    rating_result = await db.execute(
+        select(func.avg(Review.score), func.count(Review.id))
+        .where(Review.reviewed_id == trip.carrier_id)
+    )
+    avg_rating, review_count = rating_result.one()
+
+    return TripResponse(
+        id=trip.id,
+        carrier_id=trip.carrier_id,
+        origin_city=trip.origin_city,
+        origin_airport_code=trip.origin_airport_code,
+        destination_city=trip.destination_city,
+        destination_airport_code=trip.destination_airport_code,
+        departure_date=trip.departure_date,
+        departure_time=trip.departure_time,
+        arrival_time=trip.arrival_time,
+        flight_number=trip.flight_number,
+        airline=trip.airline,
+        total_kg=trip.total_kg,
+        remaining_kg=trip.remaining_kg,
+        max_kg_per_package=trip.max_kg_per_package,
+        price_per_kg=trip.price_per_kg,
+        status=trip.status,
+        trust_score=carrier.trust_score if carrier else 50.0,
+        carrier_full_name=carrier.full_name if carrier else None,
+        carrier_avatar_url=carrier.avatar_url if carrier else None,
+        carrier_kyc_status=carrier.kyc_status if carrier else None,
+        carrier_member_since=carrier.created_at.year if carrier else None,
+        carrier_trip_count=trip_count,
+        carrier_avg_rating=round(float(avg_rating), 1) if avg_rating else None,
+        carrier_review_count=review_count or 0,
+    )

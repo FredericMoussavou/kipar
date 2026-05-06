@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Headphones,
   Scale,
+  CreditCard,
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -44,6 +45,7 @@ import {
 } from '@/lib/cloudinary'
 import api from '@/lib/api'
 import { WeightUnit } from '@/lib/weight'
+import { isValidIBAN } from 'ibantools'
 import PhoneInputField, { isValidPhoneNumber } from '@/components/ui/kipar/PhoneInputField'
 import { formatPhoneNumberIntl } from 'react-phone-number-input'
 import {
@@ -80,6 +82,24 @@ export default function ProfilePage() {
   const [verifyCode, setVerifyCode] = useState('')
   const [verifyStep, setVerifyStep] = useState<'send' | 'confirm'>('send')
   const [verifyLoading, setVerifyLoading] = useState(false)
+
+  const [ibanInput, setIbanInput] = useState(user?.iban ?? '' as string)
+  const [ibanError, setIbanError] = useState('')
+  const [mobileInput, setMobileInput] = useState(user?.mobile_money_number ?? '' as string)
+
+  const handleSaveIban = async () => {
+    const clean = ibanInput.replace(/\s/g, '').toUpperCase()
+    if (clean && !isValidIBAN(clean)) {
+      setIbanError(t.profile_edit.error_iban_invalid)
+      return
+    }
+    setIbanError('')
+    await handlePayoutChange({ iban: clean || null })
+  }
+
+  const handleSaveMobile = async () => {
+    await handlePayoutChange({ mobile_money_number: mobileInput || null })
+  }
 
   const handleSendCode = async (channel: 'email' | 'phone') => {
     setVerifyLoading(true)
@@ -166,6 +186,18 @@ export default function ProfilePage() {
     } catch (err: any) {
       patchUser({ weight_unit: previous })
       showToast( t.profile_edit.weight_unit_active_listings, 'error')
+    }
+  }
+
+  const handlePayoutChange = async (fields: { currency?: string; payment_method?: string; payment_country?: string; mobile_money_number?: string | null; iban?: string | null }) => {
+    const previous = { currency: user.currency, payment_method: user.payment_method, payment_country: user.payment_country, mobile_money_number: user.mobile_money_number, iban: user.iban }
+    patchUser(fields)
+    try {
+      await api.patch('/users/me', fields)
+      showToast(t.profile_edit.success_payout_updated, 'success')
+    } catch {
+      patchUser(previous)
+      showToast(t.errors.generic, 'error')
     }
   }
 
@@ -434,6 +466,58 @@ export default function ProfilePage() {
               value={user.weight_unit ?? 'kg'}
               onChange={handleWeightUnitChange}
             />
+          </div>
+
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <CreditCard size={16} color={TAUPE} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.profile_edit.pref_payout}</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.profile_edit.pref_payout_desc}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: 0 }}>{t.profile_edit.pref_currency}</p>
+              <select value={user.currency ?? 'EUR'} onChange={e => handlePayoutChange({ currency: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, color: CHARCOAL, background: '#fff', outline: 'none' }}>
+                {(['EUR','GBP','USD','CHF','CAD','AUD','XOF','XAF','MAD','EGP','KES','NGN','GHS','ZAR','HTG','BRL','MXN','AED','INR','CNY'] as const).map(c => (
+                  <option key={c} value={c}>{c} — {(t.profile_edit as any)[`currency_${c}`]}</option>
+                ))}
+              </select>
+              <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: '8px 0 0' }}>{t.profile_edit.pref_payment_method}</p>
+              <SegmentedControl
+                options={[
+                  { value: 'iban', label: t.profile_edit.payment_method_iban },
+                  { value: 'mobile_money', label: t.profile_edit.payment_method_mobile },
+                ]}
+                value={user.payment_method ?? 'iban'}
+                onChange={v => handlePayoutChange({ payment_method: v })}
+              />
+              {(user.payment_method ?? 'iban') === 'iban' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input value={ibanInput} onChange={e => { setIbanInput(e.target.value); setIbanError('') }}
+                    placeholder="FR76 3000 6000 0112 3456 7890 189"
+                    style={{ width: '100%', padding: '10px 12px', border: `1px solid ${ibanError ? RED : BORDER}`, borderRadius: 10, fontSize: 12, color: CHARCOAL, outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box' }} />
+                  {ibanError && <p style={{ fontSize: 11, color: RED, margin: 0 }}>{ibanError}</p>}
+                  <button type="button" onClick={handleSaveIban}
+                    style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    {t.profile_edit.save}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <PhoneInputField
+                    value={mobileInput}
+                    onChange={val => setMobileInput(val)}
+                    defaultCountry="FR"
+                  />
+                  <button type="button" onClick={handleSaveMobile}
+                    style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    {t.profile_edit.save}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>

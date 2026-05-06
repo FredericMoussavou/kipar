@@ -39,6 +39,11 @@ class UpdateMeRequest(BaseModel):
     phone: str | None = None
     is_carrier: bool | None = None
     weight_unit: str | None = None
+    currency: str | None = None
+    payment_method: str | None = None
+    payment_country: str | None = None
+    mobile_money_number: str | None = None
+    iban: str | None = None
 
     @field_validator("weight_unit")
     @classmethod
@@ -191,6 +196,16 @@ async def update_me(
                 detail=t("errors.weight_unit_active_listings", lang),
             )
         current_user.weight_unit = payload.weight_unit
+    if payload.currency is not None:
+        current_user.currency = payload.currency
+    if payload.payment_method is not None:
+        current_user.payment_method = payload.payment_method
+    if payload.payment_country is not None:
+        current_user.payment_country = payload.payment_country
+    if payload.mobile_money_number is not None:
+        current_user.mobile_money_number = payload.mobile_money_number
+    if payload.iban is not None:
+        current_user.iban = payload.iban
 
     return {
         "message": t("success.profile_updated", lang),
@@ -414,4 +429,9 @@ def _serialize_me(user: User) -> dict:
         "email_verified": user.email_verified,
         "phone_verified": user.phone_verified,
         "weight_unit": user.weight_unit or "kg",
+        "currency": user.currency or "EUR",
+        "payment_method": user.payment_method,
+        "payment_country": user.payment_country,
+        "mobile_money_number": user.mobile_money_number,
+        "iban": user.iban,
     }

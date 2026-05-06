@@ -55,6 +55,13 @@ class User(Base):
     notify_by_sms: Mapped[bool] = mapped_column(Boolean, default=False)
     weight_unit: Mapped[str] = mapped_column(String(5), default="kg", server_default="kg")
 
+    # Preferences paiement / payout
+    currency: Mapped[str] = mapped_column(String(5), default="EUR", server_default="EUR")
+    payment_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    payment_country: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    mobile_money_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     # Soft delete (Phase 2)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

@@ -21,6 +21,11 @@ interface User {
   email_verified: boolean
   phone_verified: boolean
   weight_unit: string
+  currency: string
+  payment_method: string | null
+  payment_country: string | null
+  mobile_money_number: string | null
+  iban: string | null
 }
 
 interface AuthStore {

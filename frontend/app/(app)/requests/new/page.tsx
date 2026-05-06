@@ -11,6 +11,8 @@ import { Button, Input } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, WHITE, GREEN } from '@/lib/theme'
+import { useAuthStore } from '@/stores/auth.store'
+import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
 const CLOUDINARY_CLOUD = 'dzlhxae2z'
 const CLOUDINARY_PRESET = 'kipar_package_photos'
@@ -33,6 +35,8 @@ type FormData = z.infer<typeof schema>
 export default function NewRequestPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const { user } = useAuthStore()
+  const weightUnit = (user?.weight_unit ?? 'kg') as WeightUnit
   const [originInput, setOriginInput] = useState('')
   const [destInput, setDestInput] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<any[]>([])
@@ -89,7 +93,7 @@ export default function NewRequestPage() {
         destination_city: data.destination_city,
         destination_airport_code: data.destination_airport_code,
         content_description: data.content_description,
-        weight_kg: parseFloat(data.weight_kg),
+        weight_kg: toKg(parseFloat(data.weight_kg), weightUnit),
         declared_value: data.declared_value ? parseFloat(data.declared_value) : null,
         budget_per_kg: parseFloat(data.budget_per_kg),
         receiver_email_or_phone: data.receiver_email_or_phone,
@@ -212,7 +216,7 @@ export default function NewRequestPage() {
             <Input label={t.requests.field_content} placeholder={t.requests.field_content_placeholder}
               error={errors.content_description?.message} {...register('content_description')} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <Input label={t.requests.field_weight} type="number" placeholder="3" step="0.1"
+              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1"
                 error={errors.weight_kg?.message} {...register('weight_kg')} />
               <Input label={t.requests.field_value} type="number" placeholder="100"
                 {...register('declared_value')} />

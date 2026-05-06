@@ -63,6 +63,7 @@
     "avatar_url_invalid": "URL d'avatar invalide ou non autorisée",
     "cannot_send_to_self": "Vous ne pouvez pas vous envoyer un colis a vous-meme",
     "phone_already_used": "Ce numero de telephone est deja utilisé",
+    "weight_unit_active_listings": "Impossible de changer l'unité de poids : vous avez des annonces actives. Supprimez-les d'abord.",
     "password_required": "Mot de passe requis pour cette action",
     "password_invalid": "Mot de passe incorrect",
     "not_found": "Ressource introuvable",

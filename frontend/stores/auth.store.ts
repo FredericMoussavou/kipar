@@ -20,6 +20,7 @@ interface User {
   notify_by_sms: boolean
   email_verified: boolean
   phone_verified: boolean
+  weight_unit: string
 }
 
 interface AuthStore {

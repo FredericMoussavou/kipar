@@ -24,6 +24,7 @@ import {
   Upload,
   AlertCircle,
   Headphones,
+  Scale,
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -42,6 +43,7 @@ import {
   CloudinaryErrorCode,
 } from '@/lib/cloudinary'
 import api from '@/lib/api'
+import { WeightUnit } from '@/lib/weight'
 import PhoneInputField, { isValidPhoneNumber } from '@/components/ui/kipar/PhoneInputField'
 import { formatPhoneNumberIntl } from 'react-phone-number-input'
 import {
@@ -151,6 +153,19 @@ export default function ProfilePage() {
     } catch {
       patchUser({ language: previousLang })
       showToast(t.errors.generic, 'error')
+    }
+  }
+
+  const handleWeightUnitChange = async (unit: string) => {
+    if (user.weight_unit === unit) return
+    const previous = user.weight_unit
+    patchUser({ weight_unit: unit })
+    try {
+      await api.patch('/users/me', { weight_unit: unit })
+      showToast(t.profile_edit.success_weight_unit_updated, 'success')
+    } catch (err: any) {
+      patchUser({ weight_unit: previous })
+      showToast( t.profile_edit.weight_unit_active_listings, 'error')
     }
   }
 
@@ -395,6 +410,29 @@ export default function ProfilePage() {
               ]}
               value={user.language}
               onChange={(v) => handleLanguageChange(v as 'fr' | 'en')}
+            />
+          </div>
+
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <Scale size={16} color={TAUPE} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>
+                  {t.profile_edit.pref_weight}
+                </p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>
+                  {t.profile_edit.pref_weight_desc}
+                </p>
+              </div>
+            </div>
+            <SegmentedControl
+              options={[
+                { value: 'kg', label: t.profile_edit.weight_unit_kg },
+                { value: 'lb', label: t.profile_edit.weight_unit_lb },
+                { value: 'g', label: t.profile_edit.weight_unit_g },
+              ]}
+              value={user.weight_unit ?? 'kg'}
+              onChange={handleWeightUnitChange}
             />
           </div>
 

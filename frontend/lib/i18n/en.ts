@@ -133,6 +133,8 @@ export const en = {
     booking_count_one: '{n} booking',
     booking_count_many: '{n} bookings',
     default_content: 'Package',
+    tab_listings: 'My listings',
+    tab_bookings: 'My bookings',
     filter_all: 'All',
     cancel_booking: 'Cancel booking',
     confirm_cancel: 'Confirm cancellation',
@@ -273,6 +275,8 @@ profile_public: {
     error_phone_invalid: 'Invalid phone format',
     error_phone_already_used: 'This number is already in use',
     success_phone_updated: 'Phone updated',
+    success_weight_unit_updated: 'Weight unit updated',
+    weight_unit_active_listings: "Cannot change weight unit: you have active listings. Please delete them first.",
     edit_btn: 'Edit',
     add_btn: 'Add',
 
@@ -309,6 +313,12 @@ profile_public: {
     success_language_updated: 'Language updated',
 
     // Theme preference
+    pref_weight: 'Weight unit',
+    pref_weight_desc: 'Unit used to enter weights',
+    weight_unit_kg: 'kg',
+    weight_unit_lb: 'lb',
+    weight_unit_g: 'g',
+
     pref_theme: 'Theme',
     pref_theme_desc: 'Application appearance',
     theme_light: 'Light',
@@ -411,6 +421,7 @@ profile_public: {
     submit_btn: 'Post my listing',
     success_created: 'Listing published!',
     applications: 'Applications',
+    other_accepted: 'Another carrier accepted',
     no_applications: 'No applications yet',
     accept_btn: 'Choose this carrier',
     accepted: 'Carrier chosen',

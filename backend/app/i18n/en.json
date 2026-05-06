@@ -64,6 +64,7 @@
     "profile_updated": "Profile updated",
     "avatar_updated": "Avatar updated",
     "phone_already_used": "This phone number is already in use",
+    "weight_unit_active_listings": "Cannot change weight unit: you have active listings. Please delete them first.",
     "password_required": "Password required for this action",
     "password_invalid": "Incorrect password",
     "not_found": "Resource not found",

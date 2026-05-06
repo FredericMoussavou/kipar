@@ -133,6 +133,8 @@ export const fr = {
     booking_count_one: '{n} réservation',
     booking_count_many: '{n} réservations',
     default_content: 'Colis',
+    tab_listings: 'Mes annonces',
+    tab_bookings: 'Mes réservations',
     filter_all: 'Tous',
     cancel_booking: 'Annuler la réservation',
     confirm_cancel: "Confirmer l'annulation",
@@ -273,6 +275,8 @@ profile_public: {
     error_phone_invalid: 'Format de téléphone invalide',
     error_phone_already_used: 'Ce numéro est déjà utilisé',
     success_phone_updated: 'Téléphone mis à jour',
+    success_weight_unit_updated: 'Unité de poids mise à jour',
+    weight_unit_active_listings: "Impossible de changer l'unité de poids : vous avez des annonces actives. Supprimez-les d'abord.",
     edit_btn: 'Modifier',
     add_btn: 'Ajouter',
 
@@ -309,6 +313,12 @@ profile_public: {
     success_language_updated: 'Langue mise à jour',
 
     // Préférences thème
+    pref_weight: 'Unité de poids',
+    pref_weight_desc: 'Unité utilisée pour saisir les poids',
+    weight_unit_kg: 'kg',
+    weight_unit_lb: 'lb',
+    weight_unit_g: 'g',
+
     pref_theme: 'Thème',
     pref_theme_desc: 'Apparence de l\'application',
     theme_light: 'Clair',
@@ -402,7 +412,7 @@ profile_public: {
     form_title: 'Décrire mon colis',
     field_content: 'Description du colis',
     field_content_placeholder: 'Vêtements, livres, médicaments...',
-    field_weight: 'Poids (kg)',
+    field_weight: 'Poids',
     field_value: 'Valeur déclarée (€)',
     field_budget: 'Budget max (€/kg)',
     field_deadline: 'Date limite',
@@ -411,6 +421,7 @@ profile_public: {
     submit_btn: 'Publier mon annonce',
     success_created: 'Annonce publiée !',
     applications: 'Candidatures',
+    other_accepted: 'Autre transporteur accepté',
     no_applications: 'Aucune candidature pour le moment',
     accept_btn: 'Choisir ce transporteur',
     accepted: 'Transporteur choisi',

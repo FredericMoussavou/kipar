@@ -63,6 +63,7 @@
     "avatar_url_invalid": "URL de avatar inválida o no autorizada",
     "cannot_send_to_self": "No puedes enviarte un paquete a ti mismo",
     "phone_already_used": "Este número de teléfono ya está en uso",
+    "weight_unit_active_listings": "No se puede cambiar la unidad de peso: tienes anuncios activos. Elimínalos primero.",
     "password_required": "Se requiere contraseña para esta acción",
     "password_invalid": "Contraseña incorrecta",
     "not_found": "Recurso no encontrado",

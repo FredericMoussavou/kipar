@@ -12,6 +12,8 @@ import { Button, Input } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/theme'
+import { useAuthStore } from '@/stores/auth.store'
+import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
 const schema = z.object({
   origin_city: z.string().min(2, 'Requis'),
@@ -32,6 +34,8 @@ type FormData = z.infer<typeof schema>
 export default function NewTripPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const { user } = useAuthStore()
+  const weightUnit = (user?.weight_unit ?? 'kg') as WeightUnit
 
   const [originInput, setOriginInput] = useState('')
   const [destInput, setDestInput] = useState('')
@@ -74,8 +78,8 @@ export default function NewTripPage() {
     try {
       await api.post('/trips', {
         ...data,
-        total_kg: parseFloat(data.total_kg),
-        max_kg_per_package: parseFloat(data.max_kg_per_package),
+        total_kg: toKg(parseFloat(data.total_kg), weightUnit),
+        max_kg_per_package: toKg(parseFloat(data.max_kg_per_package), weightUnit),
         price_per_kg: parseFloat(data.price_per_kg),
       })
       toast.success(t.carrier.trip_published)
@@ -195,8 +199,8 @@ export default function NewTripPage() {
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_capacity}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <Input label={t.carrier.kg_label} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
-            <Input label={t.carrier.max_kg_label} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
+            <Input label={`${t.carrier.kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
+            <Input label={`${t.carrier.max_kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
             <Input label={t.carrier.price_label} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
           </div>
         </div>

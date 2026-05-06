@@ -44,6 +44,12 @@ class Booking(Base):
         ForeignKey("users.id"), nullable=True
     )
 
+    # Pickup failed
+    pickup_failed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    pickup_failed_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # Annulation
     cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
 

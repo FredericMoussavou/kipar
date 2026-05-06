@@ -13,6 +13,7 @@ from app.models.insurance import Insurance
 from app.models.package_request import PackageRequest, Application
 from app.models.notification import Notification
 from app.models.verification_code import VerificationCode
+from app.models.dispute import Dispute
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
@@ -22,4 +23,5 @@ __all__ = [
     "PackageRequest", "Application",
     "Notification",
     "VerificationCode",
+    "Dispute",
 ]

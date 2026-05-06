@@ -31,7 +31,7 @@
     "kyc_already_verified": "KYC ya verificado",
     "kyc_applicant_creation_failed": "Error al crear el expediente KYC",
     "kyc_token_generation_failed": "Error al generar el token KYC",
-    "review_not_allowed": "No est\u00e1s autorizado a valorar este usuario",
+    "review_not_allowed": "No estás autorizado a valorar este usuario",
     "review_already_submitted": "Valoración ya enviada",
     "review_booking_not_delivered": "La entrega debe confirmarse antes de dejar una valoración",
     "rate_limit_exceeded": "Demasiadas solicitudes — inténtalo de nuevo en {seconds} segundos",
@@ -79,7 +79,11 @@
     "invitation_expired": "Este enlace ha expirado",
     "invitation_already_actioned": "Esta invitación ya ha sido procesada",
     "delivery_code_unavailable": "Código de entrega no disponible",
-    "conversation_readonly": "Esta conversación es de solo lectura"
+    "conversation_readonly": "Esta conversación es de solo lectura",
+    "reason_required": "Se requiere una razón",
+    "pickup_failed": "El transportista informó que el paquete no pudo ser entregado",
+    "dispute_already_exists": "Ya existe una disputa para esta reserva",
+    "dispute_opened": "Disputa abierta — nuestro equipo revisará la situación"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, RefreshCw, MessageCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, Plane, User, RefreshCw, MessageCircle, XCircle, AlertTriangle, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import ChatModal from '@/components/ui/kipar/ChatModal'
 import Modal from '@/components/ui/kipar/Modal'
@@ -92,6 +92,13 @@ export default function BookingDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+  const [pickupFailedOpen, setPickupFailedOpen] = useState(false)
+  const [pickupFailedReason, setPickupFailedReason] = useState('')
+  const [pickupFailedLoading, setPickupFailedLoading] = useState(false)
+  const [disputeOpen, setDisputeOpen] = useState(false)
+  const [disputeReason, setDisputeReason] = useState('')
+  const [disputeLoading, setDisputeLoading] = useState(false)
+  const [confirmPickupFailedLoading, setConfirmPickupFailedLoading] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [reviewTargetId, setReviewTargetId] = useState<string | null>(null)
   const [criteriaScores, setCriteriaScores] = useState<Record<string, number>>({})
@@ -105,6 +112,42 @@ export default function BookingDetailPage() {
       return res.data
     },
   })
+
+  const handlePickupFailed = async () => {
+    if (!pickupFailedReason.trim()) { toast.error(t.packages.reason_required); return }
+    setPickupFailedLoading(true)
+    try {
+      await api.patch(`/bookings/${id}/pickup-failed`, { reason: pickupFailedReason })
+      toast.success(t.packages.pickup_failed_success)
+      setPickupFailedOpen(false)
+      setPickupFailedReason('')
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch { toast.error(t.errors.generic) }
+    finally { setPickupFailedLoading(false) }
+  }
+
+  const handleConfirmPickupFailed = async () => {
+    setConfirmPickupFailedLoading(true)
+    try {
+      await api.patch(`/bookings/${id}/confirm-pickup-failed`)
+      toast.success(t.packages.pickup_failed_confirmed)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch { toast.error(t.errors.generic) }
+    finally { setConfirmPickupFailedLoading(false) }
+  }
+
+  const handleDispute = async () => {
+    if (!disputeReason.trim()) { toast.error(t.packages.reason_required); return }
+    setDisputeLoading(true)
+    try {
+      await api.patch(`/bookings/${id}/dispute`, { reason: disputeReason })
+      toast.success(t.packages.dispute_opened)
+      setDisputeOpen(false)
+      setDisputeReason('')
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch { toast.error(t.errors.generic) }
+    finally { setDisputeLoading(false) }
+  }
 
   const isSender_ = user?.id === booking?.sender_id
   const isReceiver_ = user?.id === booking?.receiver_id
@@ -413,6 +456,28 @@ export default function BookingDetailPage() {
         />
       )}
 
+      {isCarrier && booking.status === 'in_transit' && (
+        <button onClick={() => setPickupFailedOpen(true)}
+          style={{ position: 'fixed', bottom: 212, right: 20, zIndex: 100,
+            width: 52, height: 52, borderRadius: '50%', background: '#F59E0B',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
+          aria-label={t.packages.pickup_failed_btn}>
+          <AlertTriangle size={22} color={WHITE} />
+        </button>
+      )}
+      {isSender && booking.status === 'pickup_failed' && (
+        <div style={{ position: 'fixed', bottom: 80, left: 0, right: 0, zIndex: 100, padding: '12px 16px', background: WHITE, borderTop: '1px solid ' + BORDER, display: 'flex', gap: 8 }}>
+          <button onClick={handleConfirmPickupFailed} disabled={confirmPickupFailedLoading}
+            style={{ flex: 1, padding: '12px', background: SAND, color: CHARCOAL, border: '1px solid ' + BORDER, borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {confirmPickupFailedLoading ? '...' : t.packages.confirm_pickup_failed}
+          </button>
+          <button onClick={() => setDisputeOpen(true)}
+            style={{ flex: 1, padding: '12px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.packages.dispute_btn}
+          </button>
+        </div>
+      )}
       {(isSender && ['pending','accepted','paid'].includes(booking.status) || isCarrier && booking.status === 'accepted') && (
         <button onClick={() => setCancelOpen(true)}
           style={{ position: 'fixed', bottom: 148, right: 20, zIndex: 100,
@@ -448,6 +513,39 @@ export default function BookingDetailPage() {
         </div>
       </Modal>
 
+      <Modal isOpen={pickupFailedOpen} onClose={() => { setPickupFailedOpen(false); setPickupFailedReason('') }} title={t.packages.pickup_failed_title}>
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, color: '#92400E' }}>{t.packages.pickup_failed_warning}</p>
+        </div>
+        <textarea value={pickupFailedReason} onChange={e => setPickupFailedReason(e.target.value)}
+          placeholder={t.packages.pickup_failed_placeholder} rows={3}
+          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => { setPickupFailedOpen(false); setPickupFailedReason('') }} disabled={pickupFailedLoading}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handlePickupFailed} disabled={pickupFailedLoading}
+            style={{ padding: '10px 20px', background: '#F59E0B', color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: pickupFailedLoading ? 'not-allowed' : 'pointer', opacity: pickupFailedLoading ? 0.5 : 1 }}>
+            {pickupFailedLoading ? '...' : t.packages.pickup_failed_btn}
+          </button>
+        </div>
+      </Modal>
+      <Modal isOpen={disputeOpen} onClose={() => { setDisputeOpen(false); setDisputeReason('') }} title={t.packages.dispute_title}>
+        <textarea value={disputeReason} onChange={e => setDisputeReason(e.target.value)}
+          placeholder={t.packages.dispute_placeholder} rows={3}
+          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => { setDisputeOpen(false); setDisputeReason('') }} disabled={disputeLoading}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handleDispute} disabled={disputeLoading}
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: disputeLoading ? 'not-allowed' : 'pointer', opacity: disputeLoading ? 0.5 : 1 }}>
+            {disputeLoading ? '...' : t.packages.dispute_btn}
+          </button>
+        </div>
+      </Modal>
       {/* Modal notation */}
       <Modal isOpen={reviewOpen} onClose={() => setReviewOpen(false)} title={t.profile_edit.section_review}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

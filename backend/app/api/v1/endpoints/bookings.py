@@ -24,6 +24,7 @@ from app.services.notif_db_service import (
     notify_in_transit_db,
     notify_booking_cancelled_by_sender_db,
     notify_booking_cancelled_by_carrier_db,
+    create_notification,
 )
 
 class CancelPayload(BaseModel):
@@ -539,3 +540,123 @@ async def mark_in_transit(
             lang=sender_t.language or "fr",
         )
     return {"status": "in_transit"}
+
+@router.patch("/{booking_id}/pickup-failed")
+async def mark_pickup_failed(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Le transporteur signale que le colis n'a pas pu etre remis."""
+    reason = payload.get("reason", "").strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status not in ("in_transit", "accepted", "paid"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    if not trip or trip.carrier_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    from datetime import datetime, timezone
+    booking.status = "pickup_failed"
+    booking.pickup_failed_at = datetime.now(timezone.utc)
+    booking.pickup_failed_reason = reason
+    await db.commit()
+
+    await create_notification(
+        db=db,
+        user_id=booking.sender_id,
+        type="pickup_failed",
+        booking_id=booking.id,
+        lang=lang,
+    )
+    return {"status": "pickup_failed"}
+
+
+@router.patch("/{booking_id}/confirm-pickup-failed")
+async def confirm_pickup_failed(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """L'expediteur confirme que le colis n'a pas ete remis — annulation sans remboursement."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "pickup_failed":
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    if booking.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    booking.status = "cancelled"
+    booking.cancellation_reason = "pickup_failed_confirmed"
+    await db.commit()
+
+    await create_notification(
+        db=db,
+        user_id=booking.sender_id,
+        type="booking_cancelled",
+        booking_id=booking.id,
+        lang=lang,
+    )
+    return {"status": "cancelled"}
+
+
+@router.patch("/{booking_id}/dispute")
+async def open_dispute(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """L'expediteur conteste le pickup_failed — ouvre un litige."""
+    reason = payload.get("reason", "").strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "pickup_failed":
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    if booking.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    from app.models.dispute import Dispute
+    existing = await db.execute(
+        select(Dispute).where(Dispute.booking_id == booking.id)
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail=t("errors.dispute_already_exists", lang))
+
+    booking.status = "disputed"
+    dispute = Dispute(
+        booking_id=booking.id,
+        initiated_by=current_user.id,
+        reason=reason,
+        status="open",
+    )
+    db.add(dispute)
+    await db.commit()
+
+    await create_notification(
+        db=db,
+        user_id=booking.sender_id,
+        type="dispute_opened",
+        booking_id=booking.id,
+        lang=lang,
+    )
+    return {"status": "disputed", "dispute_id": str(dispute.id)}

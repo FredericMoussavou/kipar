@@ -80,7 +80,11 @@
     "invitation_expired": "This link has expired",
     "invitation_already_actioned": "This invitation has already been processed",
     "delivery_code_unavailable": "Delivery code not available",
-    "conversation_readonly": "This conversation is read-only"
+    "conversation_readonly": "This conversation is read-only",
+    "reason_required": "A reason is required",
+    "pickup_failed": "The carrier reported that the package could not be delivered",
+    "dispute_already_exists": "A dispute already exists for this booking",
+    "dispute_opened": "Dispute opened — our team will review the situation"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

@@ -26,6 +26,7 @@ class User(Base):
     # Rôles
     is_sender: Mapped[bool] = mapped_column(Boolean, default=True)
     is_carrier: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_receiver: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # KYC

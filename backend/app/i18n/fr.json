@@ -31,7 +31,7 @@
     "kyc_already_verified": "KYC déjà vérifié",
     "kyc_applicant_creation_failed": "Erreur lors de la création du dossier KYC",
     "kyc_token_generation_failed": "Erreur lors de la génération du token KYC",
-    "review_not_allowed": "Vous n'\u00eates pas autoris\u00e9 \u00e0 noter cet utilisateur",
+    "review_not_allowed": "Vous n'êtes pas autorisé à noter cet utilisateur",
     "review_already_submitted": "Avis déjà soumis",
     "review_booking_not_delivered": "La livraison doit être confirmée avant de laisser un avis",
     "rate_limit_exceeded": "Trop de requêtes — réessayez dans {seconds} secondes",
@@ -79,7 +79,11 @@
     "invitation_expired": "Ce lien a expiré",
     "invitation_already_actioned": "Cette invitation a déjà été traitée",
     "delivery_code_unavailable": "Code de remise non disponible",
-    "conversation_readonly": "Cette conversation est en lecture seule"
+    "conversation_readonly": "Cette conversation est en lecture seule",
+    "reason_required": "Une raison est obligatoire",
+    "pickup_failed": "Le transporteur a signalé que le colis n'a pas pu être remis",
+    "dispute_already_exists": "Un litige existe déjà pour cette réservation",
+    "dispute_opened": "Litige ouvert — notre équipe va examiner la situation"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

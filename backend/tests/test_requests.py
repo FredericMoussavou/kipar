@@ -133,3 +133,91 @@ async def test_delete_request(client):
 
     res = await client.delete(f"/api/v1/requests/{req_id}", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 204
+
+
+async def test_get_request_by_id(client):
+    """GET /requests/{id} retourne l'annonce publiquement."""
+    token = await register_and_login(client, "sender_r7@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {token}"})
+    req_id = req_res.json()["id"]
+
+    res = await client.get(f"/api/v1/requests/{req_id}")
+    assert res.status_code == 200
+    assert res.json()["id"] == req_id
+    assert res.json()["origin_airport_code"] == "CDG"
+
+
+async def test_get_request_mine_not_intercepted(client):
+    """/requests/mine ne doit pas etre intercepte par /{request_id}."""
+    token = await register_and_login(client, "sender_r8@kipar.com")
+    await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {token}"})
+
+    res = await client.get("/api/v1/requests/mine", headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert isinstance(res.json(), list)
+    assert len(res.json()) >= 1
+
+
+async def test_has_applied_false_before_apply(client, db_session):
+    """has_applied est False avant de candidater."""
+    sender_token = await register_and_login(client, "sender_r9@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+
+    carrier = await make_verified_carrier(client, db_session, "carrier_r9@kipar.com")
+    res = await client.get("/api/v1/requests", headers={"Authorization": f"Bearer {carrier['token']}"})
+    requests = res.json()
+    target = next((r for r in requests if r["id"] == req_id), None)
+    assert target is not None
+    assert target["has_applied"] is False
+
+
+async def test_has_applied_true_after_apply(client, db_session):
+    """has_applied est True apres candidature."""
+    sender_token = await register_and_login(client, "sender_r10@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+
+    carrier = await make_verified_carrier(client, db_session, "carrier_r10@kipar.com")
+    await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+
+    res = await client.get("/api/v1/requests", headers={"Authorization": f"Bearer {carrier['token']}"})
+    requests = res.json()
+    target = next((r for r in requests if r["id"] == req_id), None)
+    assert target is not None
+    assert target["has_applied"] is True
+
+
+async def test_accept_application_sets_receiver(client, db_session):
+    """Accepter une candidature resout le recepteur depuis la PackageRequest."""
+    sender_token = await register_and_login(client, "sender_r11@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+
+    carrier = await make_verified_carrier(client, db_session, "carrier_r11@kipar.com")
+    app_res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    app_id = app_res.json()["id"]
+
+    res = await client.post(
+        f"/api/v1/requests/{req_id}/applications/{app_id}/accept",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    assert res.status_code == 200
+    booking_id = res.json()["booking_id"]
+
+    # Verifier que le booking a bien un receiver_invitation cree
+    from sqlalchemy import select
+    from app.models.receiver_invitation import ReceiverInvitation
+    import uuid
+    inv_res = await db_session.execute(
+        select(ReceiverInvitation).where(ReceiverInvitation.booking_id == uuid.UUID(booking_id))
+    )
+    inv = inv_res.scalar_one_or_none()
+    assert inv is not None
+    assert inv.contact == "recepteur@test.com"

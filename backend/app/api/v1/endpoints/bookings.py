@@ -469,6 +469,15 @@ async def cancel_booking(
     if payload.reason:
         booking.cancellation_reason = payload.reason
 
+    # Restituer les kg au trip
+    if trip:
+        pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg:
+            trip.remaining_kg += pkg.weight_kg
+            if trip.status == "full":
+                trip.status = "open"
+
     await db.commit()
 
     # Notifications annulation

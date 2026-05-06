@@ -430,7 +430,7 @@ profile_public: {
     apply_btn: 'Candidater',
     apply_success: 'Application sent!',
     already_applied: 'Already applied',
-    price_above_budget: 'Your price exceeds the budget',
+    price_above_budget: 'The sender’s maximum budget is exceeded',
     carrier_requests: 'Sender listings',
     no_carrier_requests: 'No listings available',
     no_carrier_requests_sub: 'Sender listings matching your trips will appear here',

@@ -81,7 +81,7 @@ export default function CarrierRequestsPage() {
               const alreadyApplied = req.has_applied === true
 
               return (
-                <div key={req.id} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16 }}>
+                <div key={req.id} onClick={() => { if (!applyingId) router.push(`/requests/${req.id}`) }} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, cursor: 'pointer' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{req.origin_airport_code}</p>
@@ -110,7 +110,7 @@ export default function CarrierRequestsPage() {
                       {t.requests.already_applied}
                     </div>
                   ) : !isApplying ? (
-                    <button onClick={() => setApplyingId(req.id)}
+                    <button onClick={e => { e.stopPropagation(); setApplyingId(req.id) }}
                       style={{ width: '100%', padding: '10px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                       {t.requests.apply_btn}
                     </button>
@@ -126,11 +126,11 @@ export default function CarrierRequestsPage() {
                         ))}
                       </select>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => setApplyingId(null)}
+                        <button onClick={e => { e.stopPropagation(); setApplyingId(null) }}
                           style={{ flex: 1, padding: '10px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                           {t.profile_edit.cancel}
                         </button>
-                        <button onClick={() => { if (selectedTripId) applyMutation.mutate({ requestId: req.id, tripId: selectedTripId }) }}
+                        <button onClick={e => { e.stopPropagation(); if (selectedTripId) applyMutation.mutate({ requestId: req.id, tripId: selectedTripId }) }}
                           disabled={!selectedTripId || applyMutation.isPending}
                           style={{ flex: 2, padding: '10px', background: selectedTripId ? RED : TAUPE, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: selectedTripId ? 'pointer' : 'not-allowed' }}>
                           {applyMutation.isPending ? '...' : t.requests.apply_btn}

@@ -420,7 +420,7 @@ export const es = {
     apply_btn: 'Candidater',
     apply_success: '¡Candidatura enviada!',
     already_applied: 'Ya candidatado',
-    price_above_budget: 'Tu precio supera el presupuesto',
+    price_above_budget: 'El presupuesto máximo del remitente está superado',
     carrier_requests: 'Anuncios de remitentes',
     no_carrier_requests: 'Sin anuncios disponibles',
     no_carrier_requests_sub: 'Los anuncios de remitentes que coincidan con tus viajes aparecerán aquí',

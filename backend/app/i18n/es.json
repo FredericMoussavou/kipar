@@ -67,7 +67,7 @@
     "password_required": "Se requiere contraseña para esta acción",
     "password_invalid": "Contraseña incorrecta",
     "not_found": "Recurso no encontrado",
-    "price_above_budget": "El precio del transportista supera su presupuesto",
+    "price_above_budget": "El presupuesto máximo del remitente está superado",
     "insufficient_kg": "Capacidad insuficiente para este paquete",
     "already_applied": "Ya has solicitado este anuncio",
     "already_verified": "Ya verificado",

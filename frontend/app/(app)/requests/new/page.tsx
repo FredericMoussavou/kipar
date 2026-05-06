@@ -286,7 +286,7 @@ export default function NewRequestPage() {
               <Input label={t.requests.field_value} type="number" placeholder="100" min="0"
                 {...register('declared_value')} />
             </div>
-            <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5" min="0.1"
+            <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5" min="0.5"
               error={errors.budget_per_kg?.message} {...register('budget_per_kg')} />
           </div>
         </div>

@@ -430,7 +430,7 @@ profile_public: {
     apply_btn: 'Candidater',
     apply_success: 'Candidature envoyée !',
     already_applied: 'Déjà candidaté',
-    price_above_budget: 'Votre prix dépasse le budget',
+    price_above_budget: 'Le budget maximum de l’expéditeur est dépassé',
     carrier_requests: 'Annonces expéditeurs',
     no_carrier_requests: 'Aucune annonce disponible',
     no_carrier_requests_sub: 'Les annonces expéditeurs correspondant à vos trajets apparaîtront ici',

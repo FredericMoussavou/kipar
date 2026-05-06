@@ -1,5 +1,6 @@
 'use client'
 import { Calendar } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslation } from '@/hooks/useTranslation'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
@@ -19,6 +20,9 @@ interface Trip {
   price_per_kg: number
   trust_score?: number
   status: string
+  carrier_id?: string
+  carrier_first_name?: string
+  carrier_last_name?: string
 }
 
 export default function TripCard({ trip, onClick, className }: {
@@ -106,6 +110,12 @@ export default function TripCard({ trip, onClick, className }: {
           <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', background: gradient, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
         <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 24, textAlign: 'right' }}>{score}</span>
+        {trip.carrier_id && (
+          <Link href={`/profile/${trip.carrier_id}`} onClick={e => e.stopPropagation()}
+            style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textDecoration: 'none', marginLeft: 4, whiteSpace: 'nowrap' }}>
+            {trip.carrier_first_name} {trip.carrier_last_name?.[0]}.
+          </Link>
+        )}
       </div>
     </div>
   )

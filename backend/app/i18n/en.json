@@ -68,7 +68,7 @@
     "password_required": "Password required for this action",
     "password_invalid": "Incorrect password",
     "not_found": "Resource not found",
-    "price_above_budget": "Carrier price exceeds your budget",
+    "price_above_budget": "The sender's maximum budget is exceeded",
     "insufficient_kg": "Insufficient capacity for this package",
     "already_applied": "You have already applied for this listing",
     "already_verified": "Already verified",

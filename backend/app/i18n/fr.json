@@ -67,7 +67,7 @@
     "password_required": "Mot de passe requis pour cette action",
     "password_invalid": "Mot de passe incorrect",
     "not_found": "Ressource introuvable",
-    "price_above_budget": "Le prix du transporteur depasse votre budget",
+    "price_above_budget": "Le budget maximum de l'expéditeur est dépassé",
     "insufficient_kg": "Capacite insuffisante pour ce colis",
     "already_applied": "Vous avez deja candidat pour cette annonce",
     "already_verified": "Déjà vérifié",

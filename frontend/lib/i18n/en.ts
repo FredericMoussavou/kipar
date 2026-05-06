@@ -427,7 +427,7 @@ profile_public: {
     accepted: 'Carrier chosen',
     budget_label: 'Budget',
     deadline_label: 'Deadline',
-    apply_btn: 'Apply',
+    apply_btn: 'Candidater',
     apply_success: 'Application sent!',
     already_applied: 'Already applied',
     price_above_budget: 'Your price exceeds the budget',

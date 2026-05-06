@@ -78,6 +78,7 @@ export default function CarrierRequestsPage() {
               const score = Math.round(req.sender_trust_score || 50)
               const { gradient, color } = getTrustGradient(score)
               const isApplying = applyingId === req.id
+              const alreadyApplied = req.has_applied === true
 
               return (
                 <div key={req.id} style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16 }}>
@@ -104,7 +105,11 @@ export default function CarrierRequestsPage() {
                     <span style={{ fontSize: 11, color: TAUPE }}>{req.sender_first_name} {req.sender_last_name}</span>
                   </div>
 
-                  {!isApplying ? (
+                  {alreadyApplied ? (
+                    <div style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.06)', borderRadius: 10, fontSize: 13, fontWeight: 600, color: TAUPE, textAlign: 'center' }}>
+                      {t.requests.already_applied}
+                    </div>
+                  ) : !isApplying ? (
                     <button onClick={() => setApplyingId(req.id)}
                       style={{ width: '100%', padding: '10px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                       {t.requests.apply_btn}

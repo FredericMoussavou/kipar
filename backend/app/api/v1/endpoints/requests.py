@@ -71,8 +71,10 @@ async def list_requests(
         apps_result = await db.execute(
             select(Application).where(Application.package_request_id == req.id)
         )
-        apps_count = len(apps_result.scalars().all())
-        enriched.append(_enrich_request(req, sender, apps_count))
+        apps = apps_result.scalars().all()
+        apps_count = len(apps)
+        has_applied = any(a.carrier_id == current_user.id for a in apps) if current_user else False
+        enriched.append(_enrich_request(req, sender, apps_count, has_applied))
     return enriched
 
 
@@ -95,6 +97,32 @@ async def list_my_requests(
         apps_count = len(apps_result.scalars().all())
         enriched.append(_enrich_request(req, current_user, apps_count))
     return enriched
+
+
+@router.get("/{request_id}", response_model=PackageRequestResponse)
+async def get_request(
+    request_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+):
+    result = await db.execute(
+        select(PackageRequest).where(
+            PackageRequest.id == request_id,
+            PackageRequest.deleted_at.is_(None),
+        )
+    )
+    req = result.scalar_one_or_none()
+    if not req:
+        raise HTTPException(status_code=404, detail="Not found")
+    sender_result = await db.execute(select(User).where(User.id == req.sender_id))
+    sender = sender_result.scalar_one_or_none()
+    apps_result = await db.execute(
+        select(Application).where(Application.package_request_id == req.id)
+    )
+    apps = apps_result.scalars().all()
+    apps_count = len(apps)
+    has_applied = any(a.carrier_id == current_user.id for a in apps) if current_user else False
+    return _enrich_request(req, sender, apps_count, has_applied)
 
 
 @router.delete("/{request_id}", status_code=204)
@@ -264,6 +292,16 @@ async def accept_application(
         accepted_at=datetime.now(timezone.utc),
     )
     db.add(booking)
+    await db.flush()
+
+    # Résoudre le récepteur après flush (booking.id disponible en DB)
+    from app.api.v1.endpoints.bookings import find_or_invite_receiver
+    receiver_id = await find_or_invite_receiver(
+        req.receiver_email_or_phone, current_user.id, booking.id,
+        db, current_user, trip, pkg,
+    )
+    if receiver_id:
+        booking.receiver_id = receiver_id
 
     # Déduire kg du trip
     trip.remaining_kg -= req.weight_kg
@@ -274,7 +312,7 @@ async def accept_application(
     return {"booking_id": str(booking.id), "amount": amount}
 
 
-def _enrich_request(req: PackageRequest, sender: User | None, apps_count: int) -> dict:
+def _enrich_request(req: PackageRequest, sender: User | None, apps_count: int, has_applied: bool = False) -> dict:
     return {
         "id": req.id,
         "sender_id": req.sender_id,
@@ -295,6 +333,7 @@ def _enrich_request(req: PackageRequest, sender: User | None, apps_count: int) -
         "sender_last_name": sender.last_name if sender else None,
         "sender_trust_score": sender.trust_score if sender else None,
         "applications_count": apps_count,
+        "has_applied": has_applied,
     }
 
 

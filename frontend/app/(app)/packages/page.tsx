@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Package, ChevronRight, Plus, X } from 'lucide-react'
+import { Package, ChevronRight, Plus, X, Inbox, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal from '@/components/ui/kipar/Modal'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -13,20 +13,39 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
 
+type Tab = 'listings' | 'bookings'
+
 export default function PackagesPage() {
   const { t } = useTranslation()
-  const { isAuthenticated, user: authUser } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const router = useRouter()
-
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const { user } = useAuthStore()
-
   const queryClient = useQueryClient()
-  const [toCancel, setToCancel] = useState<{id: string; status: string; amount: number} | null>(null)
+
+  const [tab, setTab] = useState<Tab>('listings')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  // Modal annulation booking
+  const [toCancel, setToCancel] = useState<{ id: string; status: string; amount: number } | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
 
-  const handleCancel = async () => {
+  // Modal suppression annonce
+  const [toDelete, setToDelete] = useState<{ id: string; label: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const { data: listings = [], isLoading: loadingListings } = useQuery({
+    queryKey: ['my-requests'],
+    enabled: !!user,
+    queryFn: async () => (await api.get('/requests/mine')).data,
+  })
+
+  const { data: bookings = [], isLoading: loadingBookings } = useQuery({
+    queryKey: ['my-bookings'],
+    enabled: isAuthenticated(),
+    queryFn: async () => (await api.get('/bookings/detail')).data,
+  })
+
+  const handleCancelBooking = async () => {
     if (!toCancel) return
     if (!cancelReason.trim()) { toast.error(t.packages.cancel_reason_required); return }
     setCancelling(true)
@@ -40,18 +59,41 @@ export default function PackagesPage() {
     finally { setCancelling(false) }
   }
 
-  const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ['my-bookings'],
-    enabled: isAuthenticated(),
-    queryFn: async () => {
-      const res = await api.get('/bookings/detail')
-      return res.data
-    },
+  const handleDeleteListing = async () => {
+    if (!toDelete) return
+    setDeleting(true)
+    try {
+      await api.delete(`/requests/${toDelete.id}`)
+      toast.success(t.requests.deleted)
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] })
+      setToDelete(null)
+    } catch { toast.error(t.errors.generic) }
+    finally { setDeleting(false) }
+  }
+
+  const tabStyle = (active: boolean) => ({
+    flex: 1,
+    padding: '10px 0',
+    background: active ? WHITE : 'transparent',
+    border: 'none',
+    borderRadius: 10,
+    fontSize: 13,
+    fontWeight: active ? 700 : 500,
+    color: active ? CHARCOAL : TAUPE,
+    cursor: 'pointer' as const,
+    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+    transition: 'all 0.2s',
   })
+
+  const filterStatuses = tab === 'listings'
+    ? ['all', 'open', 'matched', 'cancelled']
+    : ['all', 'pending', 'accepted', 'paid', 'in_transit', 'delivered', 'cancelled']
+
+  const filteredListings = (listings as any[]).filter((r: any) => statusFilter === 'all' || r.status === statusFilter)
+  const filteredBookings = (bookings as any[]).filter((b: any) => statusFilter === 'all' || b.status === statusFilter)
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
-
       <HeroHeader
         imageUrl="https://images.unsplash.com/photo-1599658880436-c61792e70672?w=1200&q=80"
         minHeight={160}
@@ -61,9 +103,6 @@ export default function PackagesPage() {
             className="md:text-3xl">
             {t.packages.title}
           </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-            {bookings.length > 1 ? t.packages.booking_count_many.replace('{n}', bookings.length) : t.packages.booking_count_one.replace('{n}', bookings.length)}
-          </p>
           <button
             onClick={() => router.push('/requests/new')}
             style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
@@ -74,73 +113,121 @@ export default function PackagesPage() {
         </div>
       </HeroHeader>
 
-      <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
-        {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ height: 90, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }} />
-            ))}
-          </div>
-        ) : bookings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 24, background: SAND, marginBottom: 16 }}>
-              <Package size={36} color={TAUPE} strokeWidth={1.5} />
-            </div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>
-              {t.packages.empty}
-            </p>
-            <p style={{ fontSize: 13, color: TAUPE }}>
-              {t.packages.empty_sub}
-            </p>
-            <button
-              onClick={() => router.push('/requests/new')}
-              style={{ marginTop: 16, padding: '12px 24px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
-            >
-              {t.requests.post_btn}
+      <div style={{ padding: '16px 20px 80px' }} className="md:px-0">
+
+        {/* Onglets */}
+        <div style={{ display: 'flex', gap: 4, background: SAND, borderRadius: 12, padding: 4, marginBottom: 16 }}>
+          <button style={tabStyle(tab === 'listings')} onClick={() => { setTab('listings'); setStatusFilter('all') }}>
+            {t.packages.tab_listings}
+          </button>
+          <button style={tabStyle(tab === 'bookings')} onClick={() => { setTab('bookings'); setStatusFilter('all') }}>
+            {t.packages.tab_bookings}
+          </button>
+        </div>
+
+        {/* Filtres statuts */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {filterStatuses.map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, border: '1px solid ' + (statusFilter === s ? CHARCOAL : BORDER), background: statusFilter === s ? CHARCOAL : WHITE, color: statusFilter === s ? WHITE : TAUPE, cursor: 'pointer' }}>
+              {s === 'all' ? t.packages.filter_all : (t.statuses[s as keyof typeof t.statuses] || s)}
             </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Filtre statuts — expéditeur uniquement */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-              {['all','pending','accepted','paid','in_transit','delivered','refused','cancelled'].map(s => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, border: '1px solid ' + (statusFilter === s ? CHARCOAL : BORDER), background: statusFilter === s ? CHARCOAL : WHITE, color: statusFilter === s ? WHITE : TAUPE, cursor: 'pointer' }}>
-                  {s === 'all' ? t.packages.filter_all : (t.statuses[s as keyof typeof t.statuses] || s)}
-                </button>
-              ))}
+          ))}
+        </div>
+
+        {/* Onglet Mes annonces */}
+        {tab === 'listings' && (
+          loadingListings ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[1, 2, 3].map(i => <div key={i} style={{ height: 90, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }} />)}
             </div>
-            {bookings.filter((b: any) => statusFilter === 'all' || b.status === statusFilter).map((booking: any) => (
-              <div
-                key={booking.id}
-                onClick={() => router.push(`/packages/${booking.id}`)}
-                style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12, transition: 'all 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(220,0,41,0.2)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = BORDER)}
-              >
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: SAND, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Package size={20} color={CHARCOAL2} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {booking.content_description || t.packages.default_content}
+          ) : filteredListings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 24, background: SAND, marginBottom: 16 }}>
+                <Inbox size={36} color={TAUPE} strokeWidth={1.5} />
+              </div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.requests.empty}</p>
+              <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{t.requests.empty_sub}</p>
+              <button onClick={() => router.push('/requests/new')}
+                style={{ padding: '12px 24px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                {t.requests.create_alert_btn}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filteredListings.map((req: any) => (
+                <div key={req.id}
+                  onClick={() => router.push(`/requests/${req.id}`)}
+                  style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(220,0,41,0.2)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = BORDER)}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 15, fontWeight: 800, color: CHARCOAL }}>
+                        {req.origin_airport_code} → {req.destination_airport_code}
+                      </p>
+                      <StatusBadge status={req.status} />
+                    </div>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · {req.weight_kg} kg · {req.budget_per_kg} €/kg</p>
+                    <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>
+                      {t.requests.deadline_label}: {req.deadline_date} · {t.requests.applications}: {req.applications_count}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: TAUPE }}>
-                    {booking.origin_airport_code && (
-                      <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL2 }}>
-                        {booking.origin_airport_code} → {booking.destination_airport_code}
-                      </span>
-                    )}
-                    <span>{booking.weight_kg} kg</span>
-                    <span>{booking.amount?.toFixed(2)}€</span>
-                  </div>
+                  <button onClick={e => { e.stopPropagation(); setToDelete({ id: req.id, label: `${req.origin_airport_code} → ${req.destination_airport_code}` }) }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
+                    <Trash2 size={15} color={RED} />
+                  </button>
+                  <ChevronRight size={16} color={TAUPE} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <StatusBadge status={booking.status} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {(['pending','accepted','paid'].includes(booking.status)) && (
+              ))}
+            </div>
+          )
+        )}
+
+        {/* Onglet Mes réservations */}
+        {tab === 'bookings' && (
+          loadingBookings ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[1, 2, 3].map(i => <div key={i} style={{ height: 90, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }} />)}
+            </div>
+          ) : filteredBookings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 24, background: SAND, marginBottom: 16 }}>
+                <Package size={36} color={TAUPE} strokeWidth={1.5} />
+              </div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.packages.empty}</p>
+              <p style={{ fontSize: 13, color: TAUPE }}>{t.packages.empty_sub}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filteredBookings.map((booking: any) => (
+                <div key={booking.id}
+                  onClick={() => router.push(`/packages/${booking.id}`)}
+                  style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(220,0,41,0.2)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = BORDER)}>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: SAND, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Package size={20} color={CHARCOAL2} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {booking.content_description || t.packages.default_content}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: TAUPE }}>
+                      {booking.origin_airport_code && (
+                        <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL2 }}>
+                          {booking.origin_airport_code} → {booking.destination_airport_code}
+                        </span>
+                      )}
+                      <span>{booking.weight_kg} kg</span>
+                      <span>{booking.amount?.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <StatusBadge status={booking.status} />
+                    {['pending', 'accepted', 'paid'].includes(booking.status) && (
                       <button onClick={e => { e.stopPropagation(); setToCancel({ id: booking.id, status: booking.status, amount: booking.amount }) }}
                         style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(220,0,41,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                         <X size={13} color={RED} />
@@ -149,46 +236,54 @@ export default function PackagesPage() {
                     <ChevronRight size={16} color={TAUPE} />
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
 
+      {/* Modal suppression annonce */}
+      <Modal isOpen={!!toDelete} onClose={() => setToDelete(null)} title={t.requests.delete_confirm}>
+        <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{toDelete?.label}</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setToDelete(null)} disabled={deleting}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handleDeleteListing} disabled={deleting}
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.5 : 1, minWidth: 100 }}>
+            {deleting ? '...' : t.profile_edit.delete_confirm}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal annulation booking */}
       <Modal isOpen={!!toCancel} onClose={() => { setToCancel(null); setCancelReason('') }} title={t.packages.confirm_cancel}>
-        {toCancel && (() => {
-          const refundMsg = toCancel.status === 'pending'
-            ? t.packages.refund_full
-            : (() => {
-                if (!toCancel) return t.packages.refund_full
-                return t.packages.refund_full
-              })()
-          return (
-            <div>
-              <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
-                <p style={{ fontSize: 12, color: '#92400E', fontWeight: 600, marginBottom: 4 }}>{t.payment.cancel_policy_title}</p>
-                <p style={{ fontSize: 12, color: '#92400E' }}>{refundMsg}</p>
-              </div>
-              <textarea
-                value={cancelReason}
-                onChange={e => setCancelReason(e.target.value)}
-                placeholder={t.packages.cancel_reason_placeholder}
-                rows={3}
-                style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
-              />
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => { setToCancel(null); setCancelReason('') }} disabled={cancelling}
-                  style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  {t.profile_edit.cancel}
-                </button>
-                <button onClick={handleCancel} disabled={cancelling}
-                  style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
-                  {cancelling ? '...' : t.packages.cancel_booking}
-                </button>
-              </div>
+        {toCancel && (
+          <div>
+            <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+              <p style={{ fontSize: 12, color: '#92400E', fontWeight: 600, marginBottom: 4 }}>{t.payment.cancel_policy_title}</p>
+              <p style={{ fontSize: 12, color: '#92400E' }}>{t.packages.refund_full}</p>
             </div>
-          )
-        })()}
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder={t.packages.cancel_reason_placeholder}
+              rows={3}
+              style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => { setToCancel(null); setCancelReason('') }} disabled={cancelling}
+                style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {t.profile_edit.cancel}
+              </button>
+              <button onClick={handleCancelBooking} disabled={cancelling}
+                style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
+                {cancelling ? '...' : t.packages.cancel_booking}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )

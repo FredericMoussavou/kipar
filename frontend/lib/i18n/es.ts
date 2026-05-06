@@ -417,7 +417,7 @@ export const es = {
     accepted: 'Transportista elegido',
     budget_label: 'Presupuesto',
     deadline_label: 'Fecha límite',
-    apply_btn: 'Candidatarse',
+    apply_btn: 'Candidater',
     apply_success: '¡Candidatura enviada!',
     already_applied: 'Ya candidatado',
     price_above_budget: 'Tu precio supera el presupuesto',

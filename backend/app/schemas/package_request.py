@@ -85,4 +85,5 @@ class PackageRequestResponse(BaseModel):
     sender_last_name: str | None = None
     sender_trust_score: float | None = None
     applications_count: int = 0
+    has_applied: bool = False
     model_config = {"from_attributes": False}

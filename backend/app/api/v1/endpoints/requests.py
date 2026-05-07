@@ -4,6 +4,7 @@ from sqlalchemy import select, update
 from datetime import datetime, timezone
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.deps import get_current_user, get_optional_user
 from app.core.lang import get_lang
 from app.models.user import User
@@ -279,7 +280,7 @@ async def accept_application(
 
     # Calculer montant
     transport = req.weight_kg * trip.price_per_kg
-    commission = transport * 0.13
+    commission = transport * settings.SERVICE_FEE_PERCENT
     amount = transport + commission
 
     # Créer booking directement accepté

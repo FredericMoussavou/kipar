@@ -64,7 +64,7 @@ async def release_payment_to_carrier(
     if payment_intent_id.startswith("pi_simulated"):
         return True
     try:
-        commission_rate = 0.13
+        commission_rate = settings.SERVICE_FEE_PERCENT
         carrier_amount = int(amount_eur * 100 * (1 - commission_rate))
         stripe.Transfer.create(
             amount=carrier_amount,

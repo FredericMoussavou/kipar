@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
+from datetime import timedelta
+from app.core.config import settings
 from datetime import datetime, timezone
 
 from app.core.database import get_db
@@ -221,9 +223,9 @@ async def list_kyc_pending(
             "kyc_status": u.kyc_status,
             "trust_score": u.trust_score,
             "created_at": u.created_at.isoformat(),
-            "id_front": None,
-            "id_back": None,
-            "selfie": None,
+            "id_front": u.kyc_id_front,
+            "id_back": u.kyc_id_back,
+            "selfie": u.kyc_selfie,
         }
         for u in users
     ]
@@ -271,3 +273,92 @@ async def ban_user(
 
     user.is_active = not user.is_active
     return {"user_id": user_id, "is_active": user.is_active}
+
+
+@router.get("/finance")
+async def get_finance(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    period: str = "month",  # day / week / month / year
+):
+    """Donnees financieres agregees — admin uniquement."""
+    now = datetime.now(timezone.utc)
+
+    if period == "day":
+        delta = timedelta(days=1)
+        trunc = "hour"
+        fmt = "%H:00"
+        points = 24
+    elif period == "week":
+        delta = timedelta(days=7)
+        trunc = "day"
+        fmt = "%a"
+        points = 7
+    elif period == "year":
+        delta = timedelta(days=365)
+        trunc = "month"
+        fmt = "%b"
+        points = 12
+    else:  # month
+        delta = timedelta(days=30)
+        trunc = "day"
+        fmt = "%d"
+        points = 30
+
+    since = now - delta
+
+    # Bookings dans la periode
+    result = await db.execute(
+        select(Booking).where(
+            Booking.created_at >= since,
+        )
+    )
+    bookings = result.scalars().all()
+
+    # Stats globales
+    delivered = [b for b in bookings if b.status == "delivered"]
+    in_progress = [b for b in bookings if b.status in ("paid", "in_transit", "accepted")]
+    blocked = [b for b in bookings if b.status in ("disputed", "refunded")]
+
+    total_revenue = sum(b.amount for b in delivered)
+    total_fees = total_revenue * settings.SERVICE_FEE_PERCENT
+    total_in_progress = sum(b.amount for b in in_progress)
+    total_blocked = sum(b.amount for b in blocked)
+
+    # Serie temporelle — grouper par periode
+    from collections import defaultdict
+    series: dict = defaultdict(lambda: {"revenue": 0.0, "fees": 0.0, "count": 0})
+
+    for b in delivered:
+        if trunc == "hour":
+            key = b.created_at.strftime("%H:00")
+        elif trunc == "day":
+            key = b.created_at.strftime("%d/%m")
+        elif trunc == "month":
+            key = b.created_at.strftime("%b %Y")
+        else:
+            key = b.created_at.strftime("%d/%m")
+        series[key]["revenue"] += b.amount
+        series[key]["fees"] += b.amount * settings.SERVICE_FEE_PERCENT
+        series[key]["count"] += 1
+
+    chart_data = [
+        {"label": k, "revenue": round(v["revenue"], 2), "fees": round(v["fees"], 2), "count": v["count"]}
+        for k, v in sorted(series.items())
+    ]
+
+    return {
+        "period": period,
+        "since": since.isoformat(),
+        "summary": {
+            "total_revenue": round(total_revenue, 2),
+            "total_fees": round(total_fees, 2),
+            "total_in_progress": round(total_in_progress, 2),
+            "total_blocked": round(total_blocked, 2),
+            "delivered_count": len(delivered),
+            "in_progress_count": len(in_progress),
+            "blocked_count": len(blocked),
+            "service_fee_percent": settings.SERVICE_FEE_PERCENT * 100,
+        },
+        "chart": chart_data,
+    }

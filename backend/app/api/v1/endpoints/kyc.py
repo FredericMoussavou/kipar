@@ -100,8 +100,13 @@ async def submit_kyc_docs(
         raise HTTPException(status_code=400, detail=t("errors.kiparscan_no_image", lang))
 
     # Sauvegarde les URLs des documents sur l'utilisateur
+    if payload.id_front:
+        current_user.kyc_id_front = payload.id_front
+    if payload.id_back:
+        current_user.kyc_id_back = payload.id_back
+    if payload.selfie:
+        current_user.kyc_selfie = payload.selfie
     current_user.kyc_status = "in_review"
-    # Stocke les URLs dans un champ JSON ou comme données Onfido simulées
     if not current_user.onfido_applicant_id:
         current_user.onfido_applicant_id = f"manual_{str(current_user.id)[:8]}"
 

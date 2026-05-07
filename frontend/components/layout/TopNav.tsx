@@ -2,7 +2,7 @@
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck, Headphones , Settings} from 'lucide-react'
+import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck, Headphones , Settings, Shield} from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -166,6 +166,15 @@ export default function TopNav() {
                   <Settings size={15} color={TAUPE} />
                   {t.profile_edit.section_preferences}
                 </Link>
+                {user?.is_admin && (
+                  <Link href="/admin" onClick={() => setMenuOpen(false)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: RED, textDecoration: 'none', fontWeight: 600 }}
+                    onMouseEnter={e => (e.currentTarget.style.background = SAND)}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <Shield size={15} color={RED} />
+                    Administration
+                  </Link>
+                )}
                 <button
                   onClick={() => { const api = (window as any).Tawk_API; if (api?.toggle) api.toggle(); setMenuOpen(false) }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: CHARCOAL, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}

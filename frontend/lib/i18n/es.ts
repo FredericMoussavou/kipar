@@ -616,7 +616,6 @@ export const es = {
     id_back: "Documento identidad reverso",
     selfie: "Selfie con tu documento",
     upload_btn: "Haz clic para subir",
-    identity_note: "Tus documentos estan cifrados. La verificacion tarda 24-48h.",
     done_title: "Perfil completado",
     done_subtitle: "Bienvenido a Kipar.",
     done_btn: "Ir al panel",

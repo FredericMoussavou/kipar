@@ -628,7 +628,6 @@ profile_public: {
     id_back: "Piece identite verso",
     selfie: "Selfie avec votre piece",
     upload_btn: "Cliquez pour uploader",
-    identity_note: "Vos documents sont securises. La verification prend 24-48h.",
     done_title: "Profil complete",
     done_subtitle: "Bienvenue sur Kipar.",
     done_btn: "Acceder au tableau de bord",

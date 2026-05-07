@@ -626,7 +626,6 @@ profile_public: {
     id_back: "ID document back",
     selfie: "Selfie with your ID",
     upload_btn: "Click to upload",
-    identity_note: "Your documents are encrypted. Verification takes 24-48h.",
     done_title: "Profile completed",
     done_subtitle: "Welcome to Kipar.",
     done_btn: "Go to dashboard",

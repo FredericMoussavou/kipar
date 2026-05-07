@@ -2,7 +2,7 @@
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck, Headphones } from 'lucide-react'
+import { Home, Search, Package, Bell, LogOut, ChevronDown, User, Plane, CheckCheck, Headphones , Settings} from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -158,6 +158,13 @@ export default function TopNav() {
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <User size={15} />
                   {t.profile.title}
+                </Link>
+                <Link href="/preferences" onClick={() => setMenuOpen(false)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: CHARCOAL, textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = SAND)}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <Settings size={15} color={TAUPE} />
+                  {t.profile_edit.section_preferences}
                 </Link>
                 <button
                   onClick={() => { const api = (window as any).Tawk_API; if (api?.toggle) api.toggle(); setMenuOpen(false) }}

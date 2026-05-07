@@ -658,282 +658,46 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* Section Préférences */}
-        <SectionTitle title={t.profile_edit.section_preferences} />
-        <Card>
-          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-              <Globe size={16} color={TAUPE} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>
-                  {t.profile_edit.pref_language}
-                </p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>
-                  {t.profile_edit.pref_language_desc}
-                </p>
-              </div>
-            </div>
-            <SegmentedControl
-              options={[
-                { value: 'fr', label: t.profile_edit.lang_fr },
-                { value: 'en', label: t.profile_edit.lang_en },
-                { value: 'es', label: t.profile_edit.lang_es },
-              ]}
-              value={user.language}
-              onChange={(v) => handleLanguageChange(v as 'fr' | 'en')}
-            />
+      </div>
+
+      {/* Support */}
+      <SectionTitle title={t.support.section_title} />
+      <Card>
+        <button type="button" onClick={() => { const tawk = (window as any).Tawk_API; if (tawk?.toggle) tawk.toggle() }}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', width: '100%', background: 'transparent', border: 'none', borderBottom: `1px solid ${SAND}`, cursor: 'pointer', textAlign: 'left' }}>
+          <Headphones size={16} color={TAUPE} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.chat_label}</p>
+            <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.chat_desc}</p>
           </div>
-
-          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-              <Scale size={16} color={TAUPE} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>
-                  {t.profile_edit.pref_weight}
-                </p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>
-                  {t.profile_edit.pref_weight_desc}
-                </p>
-              </div>
-            </div>
-            <SegmentedControl
-              options={[
-                { value: 'kg', label: t.profile_edit.weight_unit_kg },
-                { value: 'lb', label: t.profile_edit.weight_unit_lb },
-                { value: 'g', label: t.profile_edit.weight_unit_g },
-              ]}
-              value={user.weight_unit ?? 'kg'}
-              onChange={handleWeightUnitChange}
-            />
-          </div>
-
-          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-              <CreditCard size={16} color={TAUPE} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.profile_edit.pref_payout}</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.profile_edit.pref_payout_desc}</p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: 0 }}>{t.profile_edit.pref_currency}</p>
-              <select value={user.currency ?? 'EUR'} onChange={e => handlePayoutChange({ currency: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, color: CHARCOAL, background: '#fff', outline: 'none' }}>
-                {(['EUR','GBP','USD','CHF','CAD','AUD','XOF','XAF','MAD','EGP','KES','NGN','GHS','ZAR','HTG','BRL','MXN','AED','INR','CNY'] as const).map(c => (
-                  <option key={c} value={c}>{c} — {(t.profile_edit as any)[`currency_${c}`]}</option>
-                ))}
-              </select>
-              <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: '8px 0 0' }}>{t.profile_edit.pref_payment_method}</p>
-              <SegmentedControl
-                options={[
-                  { value: 'iban', label: t.profile_edit.payment_method_iban },
-                  { value: 'mobile_money', label: t.profile_edit.payment_method_mobile },
-                ]}
-                value={user.payment_method ?? 'iban'}
-                onChange={v => handlePayoutChange({ payment_method: v })}
-              />
-              {(user.payment_method ?? 'iban') === 'iban' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <input value={ibanInput} onChange={e => { setIbanInput(e.target.value); setIbanError('') }}
-                    placeholder="FR76 3000 6000 0112 3456 7890 189"
-                    style={{ width: '100%', padding: '10px 12px', border: `1px solid ${ibanError ? RED : BORDER}`, borderRadius: 10, fontSize: 12, color: CHARCOAL, outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box' }} />
-                  {ibanError && <p style={{ fontSize: 11, color: RED, margin: 0 }}>{ibanError}</p>}
-                  <button type="button" onClick={handleSaveIban}
-                    style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    {t.profile_edit.save}
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <PhoneInputField
-                    value={mobileInput}
-                    onChange={val => setMobileInput(val)}
-                    defaultCountry="FR"
-                  />
-                  <button type="button" onClick={handleSaveMobile}
-                    style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                    {t.profile_edit.save}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-              <Sun size={16} color={TAUPE} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>
-                  {t.profile_edit.pref_theme}
-                </p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>
-                  {t.profile_edit.pref_theme_desc}
-                </p>
-              </div>
-            </div>
-            <SegmentedControl
-              options={[
-                { value: 'light', label: t.profile_edit.theme_light, icon: <Sun size={12} /> },
-                { value: 'dark', label: t.profile_edit.theme_dark, icon: <Moon size={12} /> },
-                { value: 'system', label: t.profile_edit.theme_auto, icon: <Monitor size={12} /> },
-              ]}
-              value={theme ?? 'system'}
-              onChange={(v) => setTheme(v as Theme)}
-            />
-          </div>
-
-          <div style={{ padding: '14px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <Bell size={16} color={TAUPE} />
-              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>
-                {t.profile_edit.pref_notifications}
-              </p>
-            </div>
-            <NotificationToggleRow
-              label={t.profile_edit.notify_by_email}
-              description={t.profile_edit.notify_by_email_desc}
-              checked={user.notify_by_email}
-              onChange={(v) => handleNotificationToggle('notify_by_email', v)}
-            />
-            <NotificationToggleRow
-              label={t.profile_edit.notify_by_push}
-              description={t.profile_edit.notify_by_push_desc}
-              checked={user.notify_by_push}
-              onChange={(v) => handleNotificationToggle('notify_by_push', v)}
-            />
-            <NotificationToggleRow
-              label={t.profile_edit.notify_by_sms}
-              description={t.profile_edit.notify_by_sms_desc}
-              checked={user.notify_by_sms}
-              onChange={(v) => handleNotificationToggle('notify_by_sms', v)}
-              isLast
-            />
-          </div>
-        </Card>
-
-        {/* Section Sécurité */}
-        <SectionTitle title={t.profile_edit.section_security} />
-        <Card>
-          <button
-            type="button"
-            onClick={() => setPasswordModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '14px 16px',
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <Lock size={16} color={TAUPE} />
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: CHARCOAL }}>
-              {t.profile_edit.modal_password_title}
-            </span>
-            <ChevronRight size={16} color={TAUPE} />
-          </button>
-        </Card>
-
-        {/* Section Support */}
-        <SectionTitle title={t.support.section_title} />
-        <Card>
-          <button
-            type="button"
-            onClick={() => { const api = (window as any).Tawk_API; if (api?.toggle) api.toggle() }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '14px 16px', width: '100%',
-              background: 'transparent', border: 'none',
-              borderBottom: `1px solid ${SAND}`,
-              cursor: 'pointer', textAlign: 'left',
-            }}
-          >
-            <Headphones size={16} color={TAUPE} />
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.chat_label}</p>
-              <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.chat_desc}</p>
-            </div>
-            <ChevronRight size={16} color={TAUPE} />
-          </button>
-          <Link
-            href="/faq"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '14px 16px', textDecoration: 'none',
-            }}
-          >
-            <ExternalLink size={16} color={TAUPE} />
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.faq_label}</p>
-              <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.faq_desc}</p>
-            </div>
-            <ChevronRight size={16} color={TAUPE} />
-          </Link>
-        </Card>
-
-        {/* Déconnexion */}
-        <button
-          type="button"
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            background: WHITE,
-            border: `1px solid ${BORDER}`,
-            borderRadius: 16,
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            fontSize: 13,
-            fontWeight: 600,
-            color: CHARCOAL,
-            cursor: 'pointer',
-            marginBottom: 32,
-            marginTop: 16,
-          }}
-        >
-          <LogOut size={16} />
-          {t.profile_edit.logout}
+          <ChevronRight size={16} color={TAUPE} />
         </button>
+        <Link href="/faq" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none' }}>
+          <ExternalLink size={16} color={TAUPE} />
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.support.faq_label}</p>
+            <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.support.faq_desc}</p>
+          </div>
+          <ChevronRight size={16} color={TAUPE} />
+        </Link>
+      </Card>
 
-        {/* Zone dangereuse */}
-        <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
-        <div
-          style={{
-            background: WHITE,
-            border: `1px solid ${BORDER}`,
-            borderRadius: 16,
-            padding: 16,
-          }}
-        >
-          <p style={{ fontSize: 12, color: TAUPE, margin: 0, marginBottom: 12, lineHeight: 1.5 }}>
-            {t.profile_edit.danger_desc}
-          </p>
-          <button
-            type="button"
-            onClick={() => setDeleteModalOpen(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 14px',
-              background: 'transparent',
-              border: `1px solid ${RED}`,
-              borderRadius: 10,
-              fontSize: 12,
-              fontWeight: 600,
-              color: RED,
-              cursor: 'pointer',
-            }}
-          >
-            <Trash2 size={13} />
-            {t.profile_edit.delete_account}
-          </button>
-        </div>
+      {/* Déconnexion */}
+      <button type="button" onClick={handleLogout}
+        style={{ width: '100%', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: CHARCOAL, cursor: 'pointer', marginTop: 16, marginBottom: 16 }}>
+        <LogOut size={16} />
+        {t.profile_edit.logout}
+      </button>
+
+      {/* Zone dangereuse */}
+      <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
+      <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 32 }}>
+        <p style={{ fontSize: 12, color: TAUPE, margin: 0, marginBottom: 12, lineHeight: 1.5 }}>{t.profile_edit.danger_desc}</p>
+        <button type="button" onClick={() => setDeleteModalOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'transparent', border: `1px solid ${RED}`, borderRadius: 10, fontSize: 12, fontWeight: 600, color: RED, cursor: 'pointer' }}>
+          <Trash2 size={13} />
+          {t.profile_edit.delete_account}
+        </button>
       </div>
 
       {/* ─── Modales nom / username / adresse ─── */}

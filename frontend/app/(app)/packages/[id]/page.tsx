@@ -467,15 +467,18 @@ export default function BookingDetailPage() {
         </button>
       )}
       {isSender && booking.status === 'pickup_failed' && (
-        <div style={{ position: 'fixed', bottom: 80, left: 0, right: 0, zIndex: 100, padding: '12px 16px', background: WHITE, borderTop: '1px solid ' + BORDER, display: 'flex', gap: 8 }}>
-          <button onClick={handleConfirmPickupFailed} disabled={confirmPickupFailedLoading}
-            style={{ flex: 1, padding: '12px', background: SAND, color: CHARCOAL, border: '1px solid ' + BORDER, borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            {confirmPickupFailedLoading ? '...' : t.packages.confirm_pickup_failed}
-          </button>
-          <button onClick={() => setDisputeOpen(true)}
-            style={{ flex: 1, padding: '12px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            {t.packages.dispute_btn}
-          </button>
+        <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 16, padding: 16, marginBottom: 12 }}>
+          <p style={{ fontSize: 12, color: '#C2410C', fontWeight: 600, marginBottom: 12 }}>{t.packages.pickup_failed_warning}</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleConfirmPickupFailed} disabled={confirmPickupFailedLoading}
+              style={{ flex: 1, padding: '10px 12px', background: SAND, color: CHARCOAL, border: '1px solid ' + BORDER, borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {confirmPickupFailedLoading ? '...' : t.packages.confirm_pickup_failed}
+            </button>
+            <button onClick={() => setDisputeOpen(true)}
+              style={{ flex: 1, padding: '10px 12px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {t.packages.dispute_btn}
+            </button>
+          </div>
         </div>
       )}
       {(isSender && ['pending','accepted','paid'].includes(booking.status) || isCarrier && booking.status === 'accepted') && (

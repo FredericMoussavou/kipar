@@ -31,6 +31,8 @@ interface User {
 interface AuthStore {
   token: string | null
   user: User | null
+  unreadCount: number
+  setUnreadCount: (count: number | ((prev: number) => number)) => void
   setToken: (token: string) => void
   setUser: (user: User) => void
   /**
@@ -52,6 +54,8 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       token: null,
       user: null,
+      unreadCount: 0,
+      setUnreadCount: (val) => set(state => ({ unreadCount: typeof val === 'function' ? val(state.unreadCount) : val })),
       setToken: (token) => {
         set({ token })
         if (typeof window !== 'undefined') {
@@ -84,7 +88,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'kipar-auth',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({ token: state.token, user: state.user, unreadCount: state.unreadCount }),
     }
   )
 )

@@ -15,6 +15,7 @@ export const es = {
     cancelled: 'Cancelado',
     cancelled_by_sender: 'Cancelado por el remitente',
     cancelled_by_carrier: 'Cancelado por el transportista',
+    pickup_failed: 'Paquete no entregado',
   },
   auth: {
     login_title: 'Iniciar sesión',

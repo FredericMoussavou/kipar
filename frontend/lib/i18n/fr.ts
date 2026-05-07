@@ -15,6 +15,7 @@ export const fr = {
     cancelled: 'Annulé',
     cancelled_by_sender: 'Annulé par l\'expéditeur',
     cancelled_by_carrier: 'Annulé par le transporteur',
+    pickup_failed: 'Colis non remis',
   },
   auth: {
     login_title: 'Se connecter',

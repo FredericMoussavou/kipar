@@ -30,6 +30,9 @@ from app.services.notif_db_service import (
 class CancelPayload(BaseModel):
     reason: str = ""
 
+class ReasonPayload(BaseModel):
+    reason: str
+
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
@@ -544,13 +547,13 @@ async def mark_in_transit(
 @router.patch("/{booking_id}/pickup-failed")
 async def mark_pickup_failed(
     booking_id: str,
-    payload: dict,
+    payload: ReasonPayload,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
     """Le transporteur signale que le colis n'a pas pu etre remis."""
-    reason = payload.get("reason", "").strip()
+    reason = payload.reason.strip()
     if not reason:
         raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
 
@@ -576,8 +579,9 @@ async def mark_pickup_failed(
         db=db,
         user_id=booking.sender_id,
         type="pickup_failed",
-        booking_id=booking.id,
-        lang=lang,
+        title="Colis non remis",
+        body=f"Le transporteur signale que votre colis n'a pas pu etre remis : {reason}",
+        link=f"/packages/{booking.id}",
     )
     return {"status": "pickup_failed"}
 
@@ -607,8 +611,9 @@ async def confirm_pickup_failed(
         db=db,
         user_id=booking.sender_id,
         type="booking_cancelled",
-        booking_id=booking.id,
-        lang=lang,
+        title="Réservation annulée",
+        body="Vous avez confirmé la non-remise du colis. La réservation est annulée.",
+        link=f"/packages/{booking.id}",
     )
     return {"status": "cancelled"}
 
@@ -616,13 +621,13 @@ async def confirm_pickup_failed(
 @router.patch("/{booking_id}/dispute")
 async def open_dispute(
     booking_id: str,
-    payload: dict,
+    payload: ReasonPayload,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
     """L'expediteur conteste le pickup_failed — ouvre un litige."""
-    reason = payload.get("reason", "").strip()
+    reason = payload.reason.strip()
     if not reason:
         raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
 
@@ -656,7 +661,8 @@ async def open_dispute(
         db=db,
         user_id=booking.sender_id,
         type="dispute_opened",
-        booking_id=booking.id,
-        lang=lang,
+        title="Litige ouvert",
+        body="Votre litige a été enregistré. Notre équipe va examiner la situation.",
+        link=f"/packages/{booking.id}",
     )
     return {"status": "disputed", "dispute_id": str(dispute.id)}

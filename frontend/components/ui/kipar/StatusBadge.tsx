@@ -10,6 +10,7 @@ const STATUS_STYLES: Record<string, { background: string; color: string }> = {
   in_transit:        { background: '#EFF6FF', color: '#1D4ED8' },
   delivered:         { background: '#ECFDF5', color: '#059669' },
   disputed:          { background: '#FEF2F2', color: '#DC2626' },
+  pickup_failed:     { background: '#FFF7ED', color: '#C2410C' },
   refunded:          { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
   open:              { background: '#ECFDF5', color: '#059669' },
   full:              { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },

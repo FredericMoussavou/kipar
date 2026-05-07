@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useAuthStore } from '@/stores/auth.store'
 
 export interface NotifItem {
   id: string
@@ -12,19 +13,22 @@ export interface NotifItem {
 
 export function useSSE(token: string | null) {
   const [notifications, setNotifications] = useState<NotifItem[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const { unreadCount, setUnreadCount: updateUnread } = useAuthStore()
   const esRef = useRef<EventSource | null>(null)
 
   // Charge les notifs existantes au montage
+  const fetchedRef = useRef(false)
   useEffect(() => {
     if (!token) return
+    fetchedRef.current = false
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
       .then(data => {
         setNotifications(data.notifications || [])
-        setUnreadCount(data.unread_count || 0)
+        updateUnread(data.unread_count || 0)
+        fetchedRef.current = true
       })
       .catch(() => {})
   }, [token])
@@ -41,7 +45,7 @@ export function useSSE(token: string | null) {
       try {
         const notif: NotifItem = JSON.parse(e.data)
         setNotifications(prev => [{ ...notif, is_read: false }, ...prev])
-        setUnreadCount(prev => prev + 1)
+        updateUnread(prev => prev + 1)
       } catch {}
     }
 
@@ -61,7 +65,7 @@ export function useSSE(token: string | null) {
       headers: { Authorization: `Bearer ${token}` },
     })
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-    setUnreadCount(0)
+    updateUnread(0)
   }
 
   const markOneRead = async (id: string) => {
@@ -70,8 +74,11 @@ export function useSSE(token: string | null) {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     })
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
-    setUnreadCount(prev => Math.max(0, prev - 1))
+    setNotifications(prev => {
+      const notif = prev.find(n => n.id === id)
+      if (notif && !notif.is_read) updateUnread(c => Math.max(0, c - 1))
+      return prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+    })
   }
 
   const deleteOne = async (id: string) => {
@@ -82,7 +89,7 @@ export function useSSE(token: string | null) {
     })
     setNotifications(prev => {
       const notif = prev.find(n => n.id === id)
-      if (notif && !notif.is_read) setUnreadCount(c => Math.max(0, c - 1))
+      if (notif && !notif.is_read) updateUnread(c => Math.max(0, c - 1))
       return prev.filter(n => n.id !== id)
     })
   }

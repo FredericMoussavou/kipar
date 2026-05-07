@@ -15,6 +15,7 @@ export const en = {
     cancelled: 'Cancelled',
     cancelled_by_sender: 'Cancelled by sender',
     cancelled_by_carrier: 'Cancelled by carrier',
+    pickup_failed: 'Package not delivered',
   },
   auth: {
     login_title: 'Sign In',

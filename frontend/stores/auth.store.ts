@@ -27,6 +27,7 @@ interface User {
   mobile_money_number: string | null
   iban: string | null
   onboarding_completed: boolean
+  is_admin: boolean
   username: string | null
   username_updated_at: string | null
   address: string | null

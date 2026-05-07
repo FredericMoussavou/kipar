@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from datetime import datetime, timezone
 
 from app.core.database import get_db
@@ -9,6 +9,9 @@ from app.core.lang import get_lang
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.dispute import Dispute
+from app.models.trip import Trip
+from app.models.review import Review
+from app.models.package_request import PackageRequest
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -171,3 +174,100 @@ async def toggle_admin(
     user.is_admin = not user.is_admin
     await db.commit()
     return {"user_id": user_id, "is_admin": user.is_admin}
+
+
+@router.get("/stats")
+async def get_stats(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Statistiques globales — admin uniquement."""
+    users_q = await db.execute(select(func.count(User.id)).where(User.deleted_at.is_(None)))
+    bookings_q = await db.execute(select(func.count(Booking.id)))
+    disputes_q = await db.execute(select(func.count(Dispute.id)).where(Dispute.status == "open"))
+    kyc_pending_q = await db.execute(select(func.count(User.id)).where(User.kyc_status == "pending", User.deleted_at.is_(None)))
+    trips_q = await db.execute(select(func.count(Trip.id)).where(Trip.deleted_at.is_(None)))
+    revenue_q = await db.execute(select(func.sum(Booking.amount)).where(Booking.status == "delivered"))
+
+    return {
+        "total_users": users_q.scalar() or 0,
+        "total_bookings": bookings_q.scalar() or 0,
+        "open_disputes": disputes_q.scalar() or 0,
+        "kyc_pending": kyc_pending_q.scalar() or 0,
+        "total_trips": trips_q.scalar() or 0,
+        "total_revenue": float(revenue_q.scalar() or 0),
+    }
+
+
+@router.get("/users/kyc-pending")
+async def list_kyc_pending(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Liste les utilisateurs avec KYC en attente."""
+    result = await db.execute(
+        select(User).where(
+            User.kyc_status == "pending",
+            User.deleted_at.is_(None),
+        ).order_by(User.created_at.desc())
+    )
+    users = result.scalars().all()
+    return [
+        {
+            "id": str(u.id),
+            "full_name": u.full_name,
+            "email": u.email,
+            "username": u.username,
+            "kyc_status": u.kyc_status,
+            "trust_score": u.trust_score,
+            "created_at": u.created_at.isoformat(),
+            "id_front": None,
+            "id_back": None,
+            "selfie": None,
+        }
+        for u in users
+    ]
+
+
+@router.patch("/users/{user_id}/kyc")
+async def update_kyc(
+    user_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    lang: str = Depends(get_lang),
+):
+    """Approuve ou rejette le KYC d un utilisateur."""
+    decision = payload.get("decision", "").strip()
+    if decision not in ("verified", "rejected"):
+        raise HTTPException(status_code=400, detail="decision must be verified or rejected")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
+
+    user.kyc_status = decision
+    if decision == "verified":
+        user.trust_score = min(100.0, user.trust_score + 20.0)
+
+    return {"user_id": user_id, "kyc_status": decision}
+
+
+@router.patch("/users/{user_id}/ban")
+async def ban_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    lang: str = Depends(get_lang),
+):
+    """Bannit ou débannit un utilisateur."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
+    if user.is_admin:
+        raise HTTPException(status_code=403, detail="Cannot ban an admin")
+
+    user.is_active = not user.is_active
+    return {"user_id": user_id, "is_active": user.is_active}

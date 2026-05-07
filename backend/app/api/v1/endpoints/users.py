@@ -36,6 +36,10 @@ class LanguageRequest(BaseModel):
 
 class UpdateMeRequest(BaseModel):
     """Champs modifiables sur le profil perso. Tous optionnels."""
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str | None = None
+    address: str | None = None
     phone: str | None = None
     is_carrier: bool | None = None
     weight_unit: str | None = None
@@ -44,6 +48,7 @@ class UpdateMeRequest(BaseModel):
     payment_country: str | None = None
     mobile_money_number: str | None = None
     iban: str | None = None
+    onboarding_completed: bool | None = None
 
     @field_validator("weight_unit")
     @classmethod
@@ -53,6 +58,26 @@ class UpdateMeRequest(BaseModel):
         allowed = {"kg", "g", "mg", "lb", "oz"}
         if v not in allowed:
             raise ValueError("Unite invalide. Valeurs acceptees : kg, g, mg, lb, oz")
+        return v
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str | None) -> str | None:
+        if v is None or v == "":
+            return None
+        v = v.strip().lower()
+        if not re.match(r"^[a-z0-9_]{4,15}$", v):
+            raise ValueError("Username invalide (4-15 caracteres, lettres minuscules, chiffres, underscore)")
+        return v
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def validate_name(cls, v: str | None) -> str | None:
+        if v is None or v == "":
+            return None
+        v = v.strip()
+        if len(v) < 2 or len(v) > 100:
+            raise ValueError("Le nom doit contenir entre 2 et 100 caracteres")
         return v
 
     @field_validator("phone")
@@ -168,6 +193,44 @@ async def update_me(
 
         current_user.phone = new_phone
 
+    if payload.first_name is not None:
+        current_user.first_name = payload.first_name
+
+    if payload.last_name is not None:
+        current_user.last_name = payload.last_name
+
+    if payload.address is not None:
+        current_user.address = payload.address
+
+    if payload.username is not None:
+        new_username = payload.username
+        # Cooldown 30 jours
+        if current_user.username_updated_at is not None:
+            cooldown_end = current_user.username_updated_at + timedelta(days=30)
+            if datetime.now(timezone.utc) < cooldown_end:
+                raise HTTPException(
+                    status_code=429,
+                    detail={
+                        "code": "username_cooldown",
+                        "next_change": cooldown_end.isoformat(),
+                    },
+                )
+        # Unicite
+        if new_username != current_user.username:
+            existing = await db.execute(
+                select(User).where(
+                    User.username == new_username,
+                    User.id != current_user.id,
+                )
+            )
+            if existing.scalar_one_or_none():
+                raise HTTPException(
+                    status_code=409,
+                    detail=t("errors.username_taken", lang),
+                )
+            current_user.username = new_username
+            current_user.username_updated_at = datetime.now(timezone.utc)
+
     if payload.is_carrier is True:
         if current_user.kyc_status != "verified":
             raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
@@ -206,6 +269,8 @@ async def update_me(
         current_user.mobile_money_number = payload.mobile_money_number
     if payload.iban is not None:
         current_user.iban = payload.iban
+    if payload.onboarding_completed is True:
+        current_user.onboarding_completed = True
 
     return {
         "message": t("success.profile_updated", lang),
@@ -339,6 +404,25 @@ async def delete_my_account(
 
 # ─── GET endpoints ──────────────────────────────────────────────────────────
 
+@router.get("/check-username")
+async def check_username(
+    username: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Verifie si un username est disponible (temps reel, debounce cote frontend)."""
+    username = username.strip().lower()
+    if not re.match(r"^[a-z0-9_]{4,15}$", username):
+        return {"available": False, "reason": "invalid_format"}
+    if username == current_user.username:
+        return {"available": True, "reason": "current"}
+    existing = await db.execute(
+        select(User).where(User.username == username)
+    )
+    taken = existing.scalar_one_or_none() is not None
+    return {"available": not taken, "reason": "taken" if taken else "ok"}
+
+
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
     return _serialize_me(current_user)
@@ -434,4 +518,8 @@ def _serialize_me(user: User) -> dict:
         "payment_country": user.payment_country,
         "mobile_money_number": user.mobile_money_number,
         "iban": user.iban,
+        "onboarding_completed": user.onboarding_completed,
+        "username": user.username,
+        "username_updated_at": user.username_updated_at.isoformat() if user.username_updated_at else None,
+        "address": user.address,
     }

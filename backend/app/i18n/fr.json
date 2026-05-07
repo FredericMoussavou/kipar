@@ -83,7 +83,8 @@
     "reason_required": "Une raison est obligatoire",
     "pickup_failed": "Le transporteur a signalé que le colis n'a pas pu être remis",
     "dispute_already_exists": "Un litige existe déjà pour cette réservation",
-    "dispute_opened": "Litige ouvert — notre équipe va examiner la situation"
+    "dispute_opened": "Litige ouvert — notre équipe va examiner la situation",
+    "username_taken": "Ce pseudo est déjà utilisé"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -108,7 +109,8 @@
     "code_sent": "Code envoyé",
     "email_verified": "Email vérifié avec succès",
     "phone_verified": "Téléphone vérifié avec succès",
-    "message_sent": "Message envoyé"
+    "message_sent": "Message envoyé",
+    "kyc_docs_submitted": "Documents KYC soumis. Votre dossier est en cours de verification."
   },
   "notifications": {
     "booking_received": "Nouvelle demande de colis sur votre trajet {route}",

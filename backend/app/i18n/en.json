@@ -84,7 +84,8 @@
     "reason_required": "A reason is required",
     "pickup_failed": "The carrier reported that the package could not be delivered",
     "dispute_already_exists": "A dispute already exists for this booking",
-    "dispute_opened": "Dispute opened — our team will review the situation"
+    "dispute_opened": "Dispute opened — our team will review the situation",
+    "username_taken": "This username is already taken"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -108,7 +109,8 @@
     "code_sent": "Code sent",
     "email_verified": "Email successfully verified",
     "phone_verified": "Phone successfully verified",
-    "message_sent": "Message sent"
+    "message_sent": "Message sent",
+    "kyc_docs_submitted": "KYC documents submitted. Your file is being reviewed."
   },
   "notifications": {
     "booking_received": "New package request on your trip {route}",

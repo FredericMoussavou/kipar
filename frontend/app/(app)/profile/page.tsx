@@ -63,6 +63,240 @@ import {
 type Theme = 'light' | 'dark' | 'system'
 type ToastType = 'success' | 'error'
 
+// ─── NameModal ───────────────────────────────────────────────────────────────
+function NameModal({
+  isOpen, onClose, currentFirstName, currentLastName, onSuccess, onError,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  currentFirstName: string
+  currentLastName: string
+  onSuccess: () => void
+  onError: (msg: string) => void
+}) {
+  const { t } = useTranslation()
+  const { patchUser } = useAuthStore()
+  const [firstName, setFirstName] = useState(currentFirstName)
+  const [lastName, setLastName] = useState(currentLastName)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) { setFirstName(currentFirstName); setLastName(currentLastName) }
+  }, [isOpen, currentFirstName, currentLastName])
+
+  const handleSubmit = async () => {
+    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
+      onError(t.errors.generic); return
+    }
+    setLoading(true)
+    try {
+      await api.patch('/users/me', { first_name: firstName.trim(), last_name: lastName.trim() })
+      patchUser({ first_name: firstName.trim(), last_name: lastName.trim() })
+      onSuccess(); onClose()
+    } catch (err: any) {
+      onError(err?.response?.data?.detail || t.errors.generic)
+    } finally { setLoading(false) }
+  }
+
+  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
+  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6, display: 'block' as const }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.field_first_name + ' / ' + t.profile_edit.field_last_name} closeDisabled={loading}>
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>{t.profile_edit.field_first_name}</label>
+        <input value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle} />
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <label style={labelStyle}>{t.profile_edit.field_last_name}</label>
+        <input value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle} />
+      </div>
+      <ModalActions onCancel={onClose} onConfirm={handleSubmit} loading={loading}
+        confirmLabel={t.profile_edit.save} />
+    </Modal>
+  )
+}
+
+// ─── UsernameModal ────────────────────────────────────────────────────────────
+function UsernameModal({
+  isOpen, onClose, currentUsername, usernameUpdatedAt, onSuccess, onError,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  currentUsername: string
+  usernameUpdatedAt: string | null
+  onSuccess: () => void
+  onError: (msg: string) => void
+}) {
+  const { t } = useTranslation()
+  const { patchUser } = useAuthStore()
+  const [username, setUsername] = useState(currentUsername)
+  const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [loading, setLoading] = useState(false)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (isOpen) { setUsername(currentUsername); setStatus('idle') }
+  }, [isOpen, currentUsername])
+
+  const cooldownEnd = usernameUpdatedAt ? new Date(new Date(usernameUpdatedAt).getTime() + 30 * 24 * 60 * 60 * 1000) : null
+  const inCooldown = cooldownEnd ? new Date() < cooldownEnd : false
+  const cooldownStr = cooldownEnd ? cooldownEnd.toLocaleDateString() : ''
+
+  const checkUsername = (value: string) => {
+    if (debounce.current) clearTimeout(debounce.current)
+    if (!value || value === currentUsername) { setStatus('idle'); return }
+    if (!/^[a-z0-9_]{4,15}$/.test(value)) { setStatus('invalid'); return }
+    setStatus('checking')
+    debounce.current = setTimeout(async () => {
+      try {
+        const res = await api.get('/users/check-username', { params: { username: value } })
+        setStatus(res.data.available ? 'available' : 'taken')
+      } catch { setStatus('idle') }
+    }, 400)
+  }
+
+  const handleChange = (value: string) => {
+    const clean = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+    setUsername(clean)
+    checkUsername(clean)
+  }
+
+  const handleSubmit = async () => {
+    if (inCooldown) return
+    if (username !== currentUsername && status !== 'available') return
+    setLoading(true)
+    try {
+      await api.patch('/users/me', { username })
+      patchUser({ username })
+      onSuccess(); onClose()
+    } catch (err: any) {
+      onError(err?.response?.data?.detail || t.errors.generic)
+    } finally { setLoading(false) }
+  }
+
+  const hintColor = status === 'available' ? GREEN : status === 'taken' || status === 'invalid' ? RED : TAUPE
+  const hint = status === 'available' ? t.profile_edit.username_available
+    : status === 'taken' ? t.profile_edit.username_taken
+    : status === 'invalid' ? t.profile_edit.field_username_hint
+    : status === 'checking' ? t.profile_edit.username_checking
+    : t.profile_edit.field_username_hint
+  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
+  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6, display: 'block' as const }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.field_username} closeDisabled={loading}>
+      {inCooldown ? (
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: '#92400E', margin: 0 }}>
+            {t.profile_edit.username_cooldown} {cooldownStr}
+          </p>
+        </div>
+      ) : (
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>{t.profile_edit.field_username}</label>
+          <input value={username} onChange={e => handleChange(e.target.value)} maxLength={15} style={inputStyle} />
+          <p style={{ fontSize: 11, color: hintColor, marginTop: 4 }}>{hint}</p>
+        </div>
+      )}
+      <ModalActions onCancel={onClose} onConfirm={handleSubmit}
+        loading={loading} confirmDisabled={inCooldown || (status !== 'available' && username !== currentUsername)}
+        confirmLabel={t.profile_edit.save} />
+    </Modal>
+  )
+}
+
+// ─── AddressModal ─────────────────────────────────────────────────────────────
+function AddressModal({
+  isOpen, onClose, currentAddress, onSuccess, onError,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  currentAddress: string
+  onSuccess: () => void
+  onError: (msg: string) => void
+}) {
+  const { t } = useTranslation()
+  const { user, patchUser } = useAuthStore()
+  const [address, setAddress] = useState(currentAddress)
+  const [suggestions, setSuggestions] = useState<{ display_name: string; place_id: number }[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [addrLoading, setAddrLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isOpen) { setAddress(currentAddress); setSuggestions([]); setShowSuggestions(false) }
+  }, [isOpen, currentAddress])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setShowSuggestions(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const searchAddress = (value: string) => {
+    if (debounce.current) clearTimeout(debounce.current)
+    if (value.length < 3) { setSuggestions([]); setShowSuggestions(false); return }
+    setAddrLoading(true)
+    debounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=5`,
+          { headers: { 'Accept-Language': user?.language ?? 'fr' } }
+        )
+        const data = await res.json()
+        setSuggestions(data)
+        setShowSuggestions(data.length > 0)
+      } catch { setSuggestions([]) }
+      finally { setAddrLoading(false) }
+    }, 500)
+  }
+
+  const handleSubmit = async () => {
+    if (address.trim().length < 5) { onError(t.errors.generic); return }
+    setLoading(true)
+    try {
+      await api.patch('/users/me', { address: address.trim() })
+      patchUser({ address: address.trim() })
+      onSuccess(); onClose()
+    } catch (err: any) {
+      onError(err?.response?.data?.detail || t.errors.generic)
+    } finally { setLoading(false) }
+  }
+
+  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
+  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6, display: 'block' as const }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.field_address} closeDisabled={loading}>
+      <div style={{ marginBottom: 16, position: 'relative' }} ref={containerRef}>
+        <label style={labelStyle}>{t.profile_edit.field_address}</label>
+        <input value={address} onChange={e => { setAddress(e.target.value); searchAddress(e.target.value) }}
+          placeholder={t.profile_edit.field_address}
+          style={inputStyle} />
+        {addrLoading && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
+        {showSuggestions && suggestions.length > 0 && (
+          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden', marginTop: 4 }}>
+            {suggestions.map(s => (
+              <button key={s.place_id} type="button" onClick={() => { setAddress(s.display_name); setSuggestions([]); setShowSuggestions(false) }}
+                style={{ width: '100%', padding: '10px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid ' + BORDER, fontSize: 12, color: CHARCOAL, cursor: 'pointer', lineHeight: 1.4 }}>
+                {s.display_name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <ModalActions onCancel={onClose} onConfirm={handleSubmit} loading={loading}
+        confirmLabel={t.profile_edit.save} />
+    </Modal>
+  )
+}
+
+
 export default function ProfilePage() {
   const router = useRouter()
   const { t } = useTranslation()
@@ -73,6 +307,9 @@ export default function ProfilePage() {
 
   // Modal states
   const [phoneModalOpen, setPhoneModalOpen] = useState(false)
+  const [nameModalOpen, setNameModalOpen] = useState(false)
+  const [usernameModalOpen, setUsernameModalOpen] = useState(false)
+  const [addressModalOpen, setAddressModalOpen] = useState(false)
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [avatarModalOpen, setAvatarModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -378,8 +615,10 @@ export default function ProfilePage() {
               verifyBtn: t.verify.verify_btn,
             }}
           />
-          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_first_name} value={user.first_name} readonly />
-          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_last_name} value={user.last_name} readonly />
+          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_first_name} value={user.first_name} onClick={() => setNameModalOpen(true)} />
+          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_last_name} value={user.last_name} onClick={() => setNameModalOpen(true)} />
+          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_username} value={user.username || t.profile_edit.add_btn} onClick={() => setUsernameModalOpen(true)} />
+          <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_address} value={user.address || t.profile_edit.add_btn} onClick={() => setAddressModalOpen(true)} />
           {/* Telephone — affichage + verification + modification fusionnes */}
           <PhoneRow
             phone={user.phone}
@@ -697,6 +936,30 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ─── Modales nom / username / adresse ─── */}
+      <NameModal
+        isOpen={nameModalOpen}
+        onClose={() => setNameModalOpen(false)}
+        currentFirstName={user.first_name}
+        currentLastName={user.last_name}
+        onSuccess={() => { refreshUser(); showToast(t.profile_edit.success_name_updated, "success") }}
+        onError={(msg) => showToast(msg, "error")}
+      />
+      <UsernameModal
+        isOpen={usernameModalOpen}
+        onClose={() => setUsernameModalOpen(false)}
+        currentUsername={user.username ?? ""}
+        usernameUpdatedAt={user.username_updated_at ?? null}
+        onSuccess={() => { refreshUser(); showToast(t.profile_edit.success_username_updated, "success") }}
+        onError={(msg) => showToast(msg, "error")}
+      />
+      <AddressModal
+        isOpen={addressModalOpen}
+        onClose={() => setAddressModalOpen(false)}
+        currentAddress={user.address ?? ""}
+        onSuccess={() => { refreshUser(); showToast(t.profile_edit.success_address_updated, "success") }}
+        onError={(msg) => showToast(msg, "error")}
+      />
       {/* ─── Modals ─── */}
       <PhoneModal
         isOpen={phoneModalOpen}

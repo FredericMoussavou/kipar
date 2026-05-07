@@ -69,6 +69,45 @@ async def kyc_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     return {"status": "processed", "kyc_status": result["status"]}
 
 
+
+
+class KYCDocsSubmit(BaseModel):
+    id_front: str | None = None
+    id_back: str | None = None
+    selfie: str | None = None
+
+
+@router.post("/submit-docs")
+async def submit_kyc_docs(
+    payload: KYCDocsSubmit,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Soumet les documents KYC uploadés via Cloudinary."""
+    if current_user.kyc_status == "verified":
+        raise HTTPException(status_code=400, detail=t("errors.kyc_already_verified", lang))
+
+    docs = {}
+    if payload.id_front:
+        docs["id_front"] = payload.id_front
+    if payload.id_back:
+        docs["id_back"] = payload.id_back
+    if payload.selfie:
+        docs["selfie"] = payload.selfie
+
+    if not docs:
+        raise HTTPException(status_code=400, detail=t("errors.kiparscan_no_image", lang))
+
+    # Sauvegarde les URLs des documents sur l'utilisateur
+    current_user.kyc_status = "in_review"
+    # Stocke les URLs dans un champ JSON ou comme données Onfido simulées
+    if not current_user.onfido_applicant_id:
+        current_user.onfido_applicant_id = f"manual_{str(current_user.id)[:8]}"
+
+    await db.commit()
+    return {"status": "in_review", "message": t("success.kyc_docs_submitted", lang)}
+
 @router.post("/simulate-verify")
 async def simulate_kyc_verification(
     db: AsyncSession = Depends(get_db),

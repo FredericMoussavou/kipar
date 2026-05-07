@@ -49,6 +49,10 @@ class User(Base):
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_temporary_password: Mapped[bool] = mapped_column(Boolean, default=False)
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    username: Mapped[str | None] = mapped_column(String(30), unique=True, nullable=True, index=True)
+    username_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(300), nullable=True)
 
     # Preferences notifications (Phase 2)
     notify_by_email: Mapped[bool] = mapped_column(Boolean, default=True)

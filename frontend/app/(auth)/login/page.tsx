@@ -94,7 +94,11 @@ export default function LoginPage() {
       setToken(res.data.access_token)
       const me = await api.get('/users/me')
       setUser(me.data)
-      router.push('/dashboard')
+      if (!me.data.onboarding_completed) {
+        router.push('/onboarding')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t.errors.invalid_credentials)
     }
@@ -106,7 +110,11 @@ export default function LoginPage() {
       setToken(res.data.access_token)
       const me = await api.get('/users/me')
       setUser(me.data)
-      router.push('/dashboard')
+      if (!me.data.onboarding_completed) {
+        router.push('/onboarding')
+      } else {
+        router.push('/dashboard')
+      }
     } catch {
       toast.error(t.errors.generic)
     }

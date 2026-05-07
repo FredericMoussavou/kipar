@@ -83,7 +83,8 @@
     "reason_required": "Se requiere una razón",
     "pickup_failed": "El transportista informó que el paquete no pudo ser entregado",
     "dispute_already_exists": "Ya existe una disputa para esta reserva",
-    "dispute_opened": "Disputa abierta — nuestro equipo revisará la situación"
+    "dispute_opened": "Disputa abierta — nuestro equipo revisará la situación",
+    "username_taken": "Este nombre de usuario ya está en uso"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",
@@ -108,7 +109,8 @@
     "code_sent": "Código enviado",
     "email_verified": "Email verificado con éxito",
     "phone_verified": "Teléfono verificado con éxito",
-    "message_sent": "Mensaje enviado"
+    "message_sent": "Mensaje enviado",
+    "kyc_docs_submitted": "Documentos KYC enviados. Su expediente esta siendo revisado."
   },
   "notifications": {
     "booking_received": "Nueva solicitud de paquete en tu viaje {route}",

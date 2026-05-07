@@ -34,7 +34,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
     router.push('/login')
   }
 
-  const avatarUrl = user ? getAvatarUrl(user.avatar_url, user.first_name, user.last_name) : null
+  const avatarUrl = user ? getAvatarUrl(user.avatar_url, 56) : null
 
   const items = [
     { href: '/profile', icon: User, label: t.nav.profile },

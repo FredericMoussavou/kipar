@@ -413,13 +413,11 @@ export default function OnboardingPage() {
                     <span style={{ fontSize: 12, color: TAUPE }}>{uploading ? '...' : t.onboarding.upload_btn}</span>
                   </button>
                 )}
-                <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }}
+                <input ref={ref} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
                   onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], setter)} />
               </div>
             ))}
-            <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px' }}>
-              <p style={{ fontSize: 12, color: '#92400E' }}>{t.onboarding.identity_note}</p>
-            </div>
+
           </div>
         )}
 

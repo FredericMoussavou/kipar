@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,10 +8,10 @@ import { z } from 'zod'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-
 import { Button, Input } from '@/components/ui/kipar'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
+import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
 
 const schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
@@ -25,6 +25,58 @@ const schema = z.object({
 })
 
 type FormData = z.infer<typeof schema>
+
+function useCountUp(target: number, duration: number = 2000) {
+  const [value, setValue] = useState(0)
+  const [started, setStarted] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started) setStarted(true)
+    })
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [started])
+  useEffect(() => {
+    if (!started) return
+    const steps = 60
+    const increment = target / steps
+    let current = 0
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= target) { setValue(target); clearInterval(timer) }
+      else setValue(Math.floor(current))
+    }, duration / steps)
+    return () => clearInterval(timer)
+  }, [started, target, duration])
+  return { value, ref }
+}
+
+function AnimatedStat({ target, suffix, label }: { target: number; suffix: string; label: string }) {
+  const { value, ref } = useCountUp(target, 1800)
+  return (
+    <div ref={ref} style={{ textAlign: 'center' }}>
+      <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 32, fontWeight: 900, color: CHARCOAL, margin: 0 }}>
+        {value}{suffix}
+      </p>
+      <p style={{ fontSize: 12, color: TAUPE, marginTop: 4 }}>{label}</p>
+    </div>
+  )
+}
+
+function AnimatedDot() {
+  const colors = [RED, '#F97316', '#FBBF24', '#DC0029']
+  const [colorIndex, setColorIndex] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setColorIndex(i => (i + 1) % colors.length)
+    }, 800)
+    return () => clearInterval(timer)
+  }, [])
+  return (
+    <span style={{ color: colors[colorIndex], transition: 'color 0.4s ease', display: 'inline-block' }}>.</span>
+  )
+}
 
 export default function RegisterPage() {
   const { t } = useTranslation()
@@ -45,7 +97,7 @@ export default function RegisterPage() {
         password: data.password,
       })
       toast.success('Compte créé avec succès !')
-      router.push('/login')
+      router.push('/onboarding')
     } catch (err: any) {
       const detail = err.response?.data?.detail
       const msg = Array.isArray(detail)
@@ -56,107 +108,121 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto px-6 pt-10 pb-8 flex flex-col">
+    <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden' }}>
 
-      {/* Logo */}
-      <div className="text-center mb-6 animate-fade-up">
-        <span className="font-syne text-3xl font-extrabold text-kipar-green tracking-tight">
-          KIPAR<span className="text-kipar-green-mid">.</span>
-        </span>
+      {/* Colonne gauche — Formulaire */}
+      <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, overflowY: 'auto', height: '100vh' }}>
+        <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
+
+          {/* Logo */}
+          <div style={{ marginBottom: 28, paddingTop: 24 }}>
+            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em' }}>
+              KIPAR<AnimatedDot />
+            </h1>
+          </div>
+
+          <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 24, fontWeight: 800, color: CHARCOAL, marginBottom: 6 }}>
+            {t.auth.register_title}
+          </h2>
+          <p style={{ fontSize: 14, color: TAUPE, marginBottom: 28 }}>{t.auth.register_subtitle}</p>
+
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Input
+                label={t.auth.first_name}
+                placeholder="Aminata"
+                leftIcon={<User size={15} color={TAUPE} />}
+                error={errors.first_name?.message}
+                {...register('first_name')}
+              />
+              <Input
+                label={t.auth.last_name}
+                placeholder="Diallo"
+                error={errors.last_name?.message}
+                {...register('last_name')}
+              />
+            </div>
+
+            <Input
+              label={t.auth.email_label}
+              type="email"
+              placeholder={t.auth.email_placeholder}
+              leftIcon={<Mail size={15} color={TAUPE} />}
+              error={errors.email?.message}
+              {...register('email')}
+            />
+
+            <Input
+              label={t.auth.password_label}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="8 caractères minimum"
+              leftIcon={<Lock size={15} color={TAUPE} />}
+              rightIcon={
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                  {showPassword ? <EyeOff size={15} color={TAUPE} /> : <Eye size={15} color={TAUPE} />}
+                </button>
+              }
+              error={errors.password?.message}
+              {...register('password')}
+            />
+
+            <Input
+              label="Confirmer le mot de passe"
+              type={showConfirm ? 'text' : 'password'}
+              placeholder="••••••••"
+              leftIcon={<Lock size={15} color={TAUPE} />}
+              rightIcon={
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                  {showConfirm ? <EyeOff size={15} color={TAUPE} /> : <Eye size={15} color={TAUPE} />}
+                </button>
+              }
+              error={errors.confirm_password?.message}
+              {...register('confirm_password')}
+            />
+
+            <Button type="submit" fullWidth loading={isSubmitting} size="lg">
+              {t.auth.register_btn}
+            </Button>
+          </form>
+
+          <p style={{ textAlign: 'center', fontSize: 13, color: TAUPE, marginTop: 24 }}>
+            {t.auth.already_account}{' '}
+            <Link href="/login" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>
+              {t.auth.sign_in}
+            </Link>
+          </p>
+        </div>
       </div>
 
-      {/* Titre */}
-      <div className="mb-6 animate-fade-up delay-1">
-        <h1 className="font-syne text-2xl font-bold text-kipar-text">
-          {t.auth.register_title}
-        </h1>
-        <p className="text-sm text-kipar-muted mt-1">{t.auth.register_subtitle}</p>
+      {/* Colonne droite — Visuel (masquée sur mobile) */}
+      <div style={{ flex: 1, background: SAND, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48, position: 'relative', overflow: 'hidden', height: '100vh' }}
+        className="hidden-mobile">
+
+        {/* Cercles décoratifs */}
+        <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }} />
+        <div style={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(0,0,0,0.04)' }} />
+
+        {/* Contenu */}
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 72, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.04em', lineHeight: 0.9, marginBottom: 24 }}>
+            KIPAR<AnimatedDot />
+          </h1>
+          <p style={{ fontSize: 18, color: TAUPE, fontWeight: 500, marginBottom: 64, lineHeight: 1.5 }}>
+            {t.auth.login_subtitle}
+          </p>
+
+          {/* Stats animées */}
+          <div style={{ display: 'flex', gap: 48, justifyContent: 'center', alignItems: 'center' }}>
+            <AnimatedStat target={10} suffix="K+" label={t.auth.stat_carriers} />
+            <div style={{ width: 1, height: 40, background: BORDER }} />
+            <AnimatedStat target={50} suffix="+" label={t.auth.stat_destinations} />
+            <div style={{ width: 1, height: 40, background: BORDER }} />
+            <AnimatedStat target={49} suffix="★" label={t.auth.stat_rating} />
+          </div>
+        </div>
       </div>
 
-      {/* Formulaire */}
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-
-        <div className="grid grid-cols-2 gap-3 animate-fade-up delay-1">
-          <Input
-            label={t.auth.first_name}
-            placeholder="Aminata"
-            leftIcon={<User className="w-4 h-4" />}
-            error={errors.first_name?.message}
-            {...register('first_name')}
-          />
-          <Input
-            label={t.auth.last_name}
-            placeholder="Diallo"
-            error={errors.last_name?.message}
-            {...register('last_name')}
-          />
-        </div>
-
-        <div className="animate-fade-up delay-2">
-          <Input
-            label={t.auth.email_label}
-            type="email"
-            placeholder={t.auth.email_placeholder}
-            leftIcon={<Mail className="w-4 h-4" />}
-            error={errors.email?.message}
-            {...register('email')}
-          />
-        </div>
-
-        <div className="animate-fade-up delay-3">
-          <Input
-            label={t.auth.password_label}
-            type={showPassword ? 'text' : 'password'}
-            placeholder="8 caractères minimum"
-            leftIcon={<Lock className="w-4 h-4" />}
-            rightIcon={
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="text-kipar-muted hover:text-kipar-text transition-colors">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            }
-            error={errors.password?.message}
-            {...register('password')}
-          />
-        </div>
-
-        <div className="animate-fade-up delay-4">
-          <Input
-            label="Confirmer le mot de passe"
-            type={showConfirm ? 'text' : 'password'}
-            placeholder="••••••••"
-            leftIcon={<Lock className="w-4 h-4" />}
-            rightIcon={
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                className="text-kipar-muted hover:text-kipar-text transition-colors">
-                {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            }
-            error={errors.confirm_password?.message}
-            {...register('confirm_password')}
-          />
-        </div>
-
-        <div className="animate-fade-up delay-5">
-          <Button
-            type="submit"
-            fullWidth
-            loading={isSubmitting}
-            size="lg"
-            className="tracking-widest text-sm font-semibold mt-2"
-          >
-            {t.auth.register_btn}
-          </Button>
-        </div>
-      </form>
-
-      {/* Lien login */}
-      <p className="text-center text-sm text-kipar-muted mt-6 animate-fade-up delay-5">
-        {t.auth.already_account}{' '}
-        <Link href="/login" className="text-kipar-green font-medium hover:underline">
-          {t.auth.sign_in}
-        </Link>
-      </p>
     </div>
   )
 }

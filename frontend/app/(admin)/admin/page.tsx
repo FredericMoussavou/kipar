@@ -2,9 +2,10 @@
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   LayoutDashboard, Users, ShieldCheck, AlertTriangle,
-  CheckCircle, XCircle, Ban, Shield, ChevronRight,
+  CheckCircle, XCircle, Ban, Shield, ChevronRight, ChevronLeft,
   LogOut, RefreshCw, TrendingUp,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
@@ -628,6 +629,11 @@ export default function AdminPage() {
             KIPAR<span style={{ color: RED }}>.</span>
           </h1>
           <p style={{ fontSize: 11, color: TAUPE, margin: '4px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Admin</p>
+        </div>
+        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: SAND, fontSize: 12, color: CHARCOAL2, textDecoration: 'none', fontWeight: 500 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ChevronLeft size={14} color={TAUPE} /><span>Retour au dashboard</span></span>
+          </Link>
         </div>
 
         {/* Nav */}

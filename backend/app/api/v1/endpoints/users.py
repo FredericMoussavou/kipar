@@ -519,6 +519,7 @@ def _serialize_me(user: User) -> dict:
         "mobile_money_number": user.mobile_money_number,
         "iban": user.iban,
         "onboarding_completed": user.onboarding_completed,
+        "is_admin": user.is_admin,
         "username": user.username,
         "username_updated_at": user.username_updated_at.isoformat() if user.username_updated_at else None,
         "address": user.address,

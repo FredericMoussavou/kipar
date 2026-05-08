@@ -49,6 +49,23 @@ class Booking(Base):
         DateTime(timezone=True), nullable=True
     )
     pickup_failed_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    pickup_failed_by: Mapped[str | None] = mapped_column(String(10), nullable=True)  # sender | carrier
+
+    # Delivery failed
+    delivery_failed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    delivery_failed_comment: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    delivery_failed_by: Mapped[str | None] = mapped_column(String(10), nullable=True)  # carrier | receiver
+
+    # Fenetre de justification incidents (pickup_failed / delivery_failed)
+    incident_response_deadline: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # Financier - forfait dossier + force majeure
+    booking_fee_collected: Mapped[bool] = mapped_column(Boolean, default=False)
+    cancellation_justified: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Annulation
     cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)

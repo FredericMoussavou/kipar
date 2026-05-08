@@ -55,7 +55,20 @@ class Settings(BaseSettings):
 
     SUPPORT_EMAIL: str = "support@kipar.app"
 
-    SERVICE_FEE_PERCENT: float = 0.13  # 13% frais de service Kipar
+    # Frais de service - modele financier v2
+    SERVICE_FEE_SENDER_PERCENT: float = 0.15     # 15% cote expediteur
+    SERVICE_FEE_CARRIER_PERCENT: float = 0.02    # 2% cote transporteur
+    BOOKING_FLAT_FEE: float = 1.50               # Forfait dossier a la confirmation
+    MIN_COMMISSION: float = 2.50                 # Commission minimum absolue
+    CARRIER_CANCEL_FEE_PERCENT: float = 0.05     # 5% annulation transporteur non justifiee
+    CARRIER_CANCEL_FEE_MIN: float = 5.00         # Plancher annulation transporteur
+    DISPUTE_FEE: float = 10.00                   # Frais litige conteste (a charge du fautif)
+    LATE_CANCEL_HOURS: int = 72                  # Seuil annulation tardive expediteur
+    INCIDENT_RESPONSE_HOURS: int = 48            # Fenetre justification pickup/delivery failed
+    LISTING_MIN_DELAY_HOURS: int = 24            # Delai min avant suppression annonce
+    PRICE_SUGGESTION_WINDOW_DAYS: int = 90       # Historique fourchette prix corridor
+    PRICE_SUGGESTION_MIN_SAMPLES: int = 5        # Seuil donnees corridor suffisantes
+    DELIVERY_TIMEOUT_DAYS: int = 7               # Timeout livraison sans confirmation
     INSURANCE_RATE_MIN: float = 0.02   # 2% valeur déclarée
     INSURANCE_RATE_MAX: float = 0.04   # 4% valeur déclarée
     INSURANCE_RATE_DEFAULT: float = 0.03  # 3% par défaut

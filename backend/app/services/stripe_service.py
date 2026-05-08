@@ -59,13 +59,16 @@ async def release_payment_to_carrier(
 ) -> bool:
     """
     Libère le paiement vers le compte du transporteur après livraison.
-    Déduit la commission Kipar (13%).
+    Commission Kipar : 15% expediteur + 2% transporteur = 83% net transporteur.
+    Commission minimum absolue : max(17%, MIN_COMMISSION).
     """
     if payment_intent_id.startswith("pi_simulated"):
         return True
     try:
-        commission_rate = settings.SERVICE_FEE_PERCENT
-        carrier_amount = int(amount_eur * 100 * (1 - commission_rate))
+        from app.core.config import settings
+        total_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT
+        kipar_fee = max(amount_eur * total_fee_rate, settings.MIN_COMMISSION)
+        carrier_amount = int((amount_eur - kipar_fee) * 100)
         stripe.Transfer.create(
             amount=carrier_amount,
             currency="eur",

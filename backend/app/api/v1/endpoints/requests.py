@@ -280,7 +280,7 @@ async def accept_application(
 
     # Calculer montant
     transport = req.weight_kg * trip.price_per_kg
-    commission = transport * settings.SERVICE_FEE_PERCENT
+    commission = transport * (settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT)
     amount = transport + commission
 
     # Créer booking directement accepté

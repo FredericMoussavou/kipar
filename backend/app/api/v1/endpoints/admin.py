@@ -321,7 +321,7 @@ async def get_finance(
     blocked = [b for b in bookings if b.status in ("disputed", "refunded")]
 
     total_revenue = sum(b.amount for b in delivered)
-    total_fees = total_revenue * settings.SERVICE_FEE_PERCENT
+    total_fees = total_revenue * (settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT)
     total_in_progress = sum(b.amount for b in in_progress)
     total_blocked = sum(b.amount for b in blocked)
 
@@ -339,7 +339,7 @@ async def get_finance(
         else:
             key = b.created_at.strftime("%d/%m")
         series[key]["revenue"] += b.amount
-        series[key]["fees"] += b.amount * settings.SERVICE_FEE_PERCENT
+        series[key]["fees"] += b.amount * (settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT)
         series[key]["count"] += 1
 
     chart_data = [
@@ -358,7 +358,19 @@ async def get_finance(
             "delivered_count": len(delivered),
             "in_progress_count": len(in_progress),
             "blocked_count": len(blocked),
-            "service_fee_percent": settings.SERVICE_FEE_PERCENT * 100,
+            "service_fee_sender_percent": settings.SERVICE_FEE_SENDER_PERCENT * 100,
+            "service_fee_carrier_percent": settings.SERVICE_FEE_CARRIER_PERCENT * 100,
+            "booking_flat_fee": settings.BOOKING_FLAT_FEE,
+            # Revenus forfaits dossier (1.50EUR x bookings confirmes)
+            "flat_fee_revenue": round(len([b for b in bookings if b.booking_fee_collected]) * settings.BOOKING_FLAT_FEE, 2),
+            "flat_fee_count": len([b for b in bookings if b.booking_fee_collected]),
+            # Incidents et litiges
+            "cancelled_by_sender": len([b for b in bookings if b.status == "cancelled_by_sender"]),
+            "cancelled_by_carrier": len([b for b in bookings if b.status == "cancelled_by_carrier"]),
+            "disputed_count": len([b for b in bookings if b.status == "disputed"]),
+            "pickup_failed_count": len([b for b in bookings if b.status == "pickup_failed"]),
+            "delivery_failed_count": len([b for b in bookings if b.status == "delivery_failed"]),
+            "justified_cancellations": len([b for b in bookings if b.cancellation_justified]),
         },
         "chart": chart_data,
     }

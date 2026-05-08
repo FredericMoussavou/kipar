@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.lang import get_lang
 from app.models.user import User
@@ -186,6 +187,10 @@ async def accept_booking(
 
     booking.status = "accepted"
     booking.accepted_at = datetime.now(timezone.utc)
+    # Forfait dossier 1.50EUR - acquis definitvement a la confirmation
+    booking.booking_fee_collected = True
+    print(f"[ESCROW] Forfait dossier {settings.BOOKING_FLAT_FEE}EUR preleve booking {booking.id}")
+    # TODO Sprint 4 : prelevement reel Stripe/Flutterwave
 
     # Notifie le récepteur que la réservation est acceptée
     if booking.receiver_id:
@@ -451,23 +456,41 @@ async def cancel_booking(
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
     refund_rate = 1.0
+    carrier_compensation_rate = 0.0
+    kipar_fee_rate = 0.0
+
     if is_sender:
         booking.status = "cancelled_by_sender"
-        if trip and trip.departure_date:
-            from datetime import date
-            days_until = (trip.departure_date - date.today()).days
-            if days_until < 0:
-                refund_rate = 0.0
-            elif days_until == 0:
-                refund_rate = 0.0
-            elif days_until < 3:
-                refund_rate = 0.5
+        if booking.cancellation_justified:
+            # Force majeure (flag admin) -> remboursement 100%, Kipar 0
+            refund_rate = 1.0
+            kipar_fee_rate = 0.0
+        elif trip and trip.departure_date:
+            from datetime import date, timedelta
+            hours_until = (trip.departure_date - date.today()).days * 24
+            if hours_until > settings.LATE_CANCEL_HOURS:
+                # Annulation >72h -> exp. +85%, Kipar +15%
+                refund_rate = 1.0 - settings.SERVICE_FEE_SENDER_PERCENT
+                kipar_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT
             else:
-                refund_rate = 1.0
-        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement {int(refund_rate*100)}%")
+                # Annulation <=72h non justifiee -> exp. 0%, tra. +85%, Kipar +15%
+                refund_rate = 0.0
+                carrier_compensation_rate = 1.0 - settings.SERVICE_FEE_SENDER_PERCENT
+                kipar_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT
+        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement {int(refund_rate*100)}% Kipar {int(kipar_fee_rate*100)}%")
     else:
         booking.status = "cancelled_by_carrier"
-        refund_rate = 1.0
+        refund_rate = 1.0  # expediteur toujours rembourse 100%
+        if not booking.cancellation_justified:
+            # Annulation non justifiee -> 5% (min 5EUR) factures au transporteur
+            carrier_penalty = max(
+                booking.amount * settings.CARRIER_CANCEL_FEE_PERCENT,
+                settings.CARRIER_CANCEL_FEE_MIN
+            )
+            print(f"[TRUST] Annulation transporteur booking {booking_id} — penalite {carrier_penalty:.2f}EUR + trust downgrade")
+            # TODO Sprint 4 : prelevement reel Stripe/Flutterwave sur le transporteur
+        else:
+            print(f"[ESCROW] Annulation transporteur justifiee booking {booking_id} — force majeure")
         print(f"[TRUST] Annulation transporteur booking {booking_id} — downgrade simulé")
 
     if payload.reason:

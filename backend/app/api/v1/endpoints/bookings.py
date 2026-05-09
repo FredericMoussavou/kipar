@@ -575,7 +575,11 @@ async def mark_pickup_failed(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """Le transporteur signale que le colis n'a pas pu etre remis."""
+    """Declare un pickup_failed.
+    - Transporteur : colis non pret / expediteur absent
+    - Expediteur : transporteur absent
+    Commentaire obligatoire. Horodatage serveur. Fenetre 48h pour justification.
+    """
     reason = payload.reason.strip()
     if not reason:
         raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
@@ -589,27 +593,137 @@ async def mark_pickup_failed(
 
     trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
     trip = trip_result.scalar_one_or_none()
-    if not trip or trip.carrier_id != current_user.id:
+
+    is_carrier = trip and trip.carrier_id == current_user.id
+    is_sender = booking.sender_id == current_user.id
+    if not is_carrier and not is_sender:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
     booking.status = "pickup_failed"
-    booking.pickup_failed_at = datetime.now(timezone.utc)
+    booking.pickup_failed_at = now
     booking.pickup_failed_reason = reason
+    booking.pickup_failed_by = "carrier" if is_carrier else "sender"
+    booking.incident_response_deadline = now + timedelta(hours=settings.INCIDENT_RESPONSE_HOURS)
     await db.commit()
 
-    await create_notification(
-        db=db,
-        user_id=booking.sender_id,
-        type="pickup_failed",
-        title="Colis non remis",
-        body=f"Le transporteur signale que votre colis n'a pas pu etre remis : {reason}",
-        link=f"/packages/{booking.id}",
-    )
-    return {"status": "pickup_failed"}
+    if is_carrier:
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="pickup_failed",
+            title="Colis non remis",
+            body=f"Le transporteur signale que votre colis n'a pas pu etre remis : {reason}. Vous avez 48h pour contester.",
+            link=f"/packages/{booking.id}",
+        )
+    else:
+        result_carrier = await db.execute(select(User).where(User.id == trip.carrier_id))
+        carrier = result_carrier.scalar_one_or_none()
+        if carrier:
+            await create_notification(
+                db=db,
+                user_id=carrier.id,
+                type="pickup_failed",
+                title="Pickup non effectue",
+                body=f"L'expediteur signale que vous ne vous etes pas presente : {reason}. Vous avez 48h pour contester.",
+                link=f"/carrier",
+            )
+    await db.commit()
+    return {
+        "status": "pickup_failed",
+        "declared_by": booking.pickup_failed_by,
+        "response_deadline": booking.incident_response_deadline.isoformat(),
+    }
 
 
 @router.patch("/{booking_id}/confirm-pickup-failed")
+@router.patch("/{booking_id}/pickup-failed/respond")
+async def respond_pickup_failed(
+    booking_id: str,
+    payload: ReasonPayload,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """La partie mise en cause repond dans la fenetre de 48h.
+    - Si contestation (payload.reason non vide) -> litige ouvert automatiquement.
+    - Si acceptation (payload.reason = "accept") -> declarant favorise, remboursement.
+    """
+    from datetime import datetime, timezone
+    from app.models.dispute import Dispute
+
+    reason = payload.reason.strip()
+    if not reason:
+        raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "pickup_failed":
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    # Verifier que c'est bien la partie mise en cause qui repond
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    is_carrier = trip and trip.carrier_id == current_user.id
+    is_sender = booking.sender_id == current_user.id
+    declared_by = booking.pickup_failed_by
+    # La partie mise en cause est l'opposee du declarant
+    if declared_by == "carrier" and not is_sender:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if declared_by == "sender" and not is_carrier:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    # Verifier que la fenetre 48h n'est pas expiree
+    now = datetime.now(timezone.utc)
+    if booking.incident_response_deadline and now > booking.incident_response_deadline:
+        raise HTTPException(status_code=400, detail=t("errors.incident_response_expired", lang))
+
+    if reason.lower() == "accept":
+        # Acceptation -> declarant favorise, booking annule, remboursement
+        booking.status = "cancelled"
+        booking.cancellation_reason = f"pickup_failed_accepted_by_respondent"
+        await db.commit()
+        # Notifie le declarant
+        notif_user_id = booking.sender_id if declared_by == "sender" else trip.carrier_id
+        await create_notification(
+            db=db,
+            user_id=notif_user_id,
+            type="pickup_failed_resolved",
+            title="Incident resolu",
+            body="L'autre partie a reconnu les faits. Le remboursement va etre traite.",
+            link=f"/packages/{booking.id}",
+        )
+        await db.commit()
+        return {"status": "cancelled", "resolution": "accepted_by_respondent"}
+    else:
+        # Contestation -> litige ouvert automatiquement
+        existing = await db.execute(select(Dispute).where(Dispute.booking_id == booking.id))
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail=t("errors.dispute_already_exists", lang))
+        booking.status = "disputed"
+        dispute = Dispute(
+            booking_id=booking.id,
+            initiated_by=current_user.id,
+            reason=f"Contestation pickup_failed : {reason}",
+            status="open",
+        )
+        db.add(dispute)
+        await db.commit()
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="dispute_opened",
+            title="Litige ouvert",
+            body="La contestation a ete enregistree. L'equipe Kipar va examiner le dossier.",
+            link=f"/packages/{booking.id}",
+        )
+        await db.commit()
+        return {"status": "disputed", "dispute_id": str(dispute.id)}
+
+
 async def confirm_pickup_failed(
     booking_id: str,
     db: AsyncSession = Depends(get_db),

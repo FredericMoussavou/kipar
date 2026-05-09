@@ -190,3 +190,196 @@ async def get_delivery_code(
         "code": plain_code,
         "expires_at": booking.delivery_code_expires_at.isoformat() if booking.delivery_code_expires_at else None,
     }
+
+
+@router.post("/{booking_id}/failed")
+async def declare_delivery_failed(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Declare un delivery_failed.
+    - Transporteur : recepteur absent / injoignable
+    - Recepteur : transporteur absent
+    Commentaire obligatoire. Horodatage serveur. Fenetre 48h pour justification.
+    """
+    from datetime import datetime, timezone, timedelta
+    from pydantic import BaseModel
+    from app.core.config import settings
+    from app.services.notif_db_service import create_notification
+
+    comment = (payload.get("comment") or "").strip()
+    if not comment:
+        raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "in_transit":
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_in_transit", lang))
+
+    result_trip = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = result_trip.scalar_one_or_none()
+
+    is_carrier = trip and trip.carrier_id == current_user.id
+    is_receiver = booking.receiver_id == current_user.id
+    if not is_carrier and not is_receiver:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    now = datetime.now(timezone.utc)
+    booking.status = "delivery_failed"
+    booking.delivery_failed_at = now  # horodatage serveur - non editable
+    booking.delivery_failed_comment = comment
+    booking.delivery_failed_by = "carrier" if is_carrier else "receiver"
+    booking.incident_response_deadline = now + timedelta(hours=settings.INCIDENT_RESPONSE_HOURS)
+    await db.commit()
+
+    # Notifie l'autre partie
+    if is_carrier:
+        # Transporteur declare -> notifie recepteur et expediteur
+        if booking.receiver_id:
+            await create_notification(
+                db=db,
+                user_id=booking.receiver_id,
+                type="delivery_failed",
+                title="Livraison echouee",
+                body=f"Le transporteur signale que vous etiez absent : {comment}. Vous avez 48h pour contester.",
+                link=f"/packages/{booking.id}",
+            )
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="delivery_failed",
+            title="Livraison echouee",
+            body=f"Le transporteur signale une impossibilite de livraison : {comment}.",
+            link=f"/packages/{booking.id}",
+        )
+    else:
+        # Recepteur declare -> notifie transporteur
+        carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
+        carrier = carrier_result.scalar_one_or_none()
+        if carrier:
+            await create_notification(
+                db=db,
+                user_id=carrier.id,
+                type="delivery_failed",
+                title="Livraison echouee",
+                body=f"Le recepteur signale que vous ne vous etes pas presente : {comment}. Vous avez 48h pour contester.",
+                link=f"/carrier",
+            )
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="delivery_failed",
+            title="Livraison echouee",
+            body=f"Le recepteur signale une impossibilite de livraison : {comment}.",
+            link=f"/packages/{booking.id}",
+        )
+    await db.commit()
+    return {
+        "status": "delivery_failed",
+        "declared_by": booking.delivery_failed_by,
+        "response_deadline": booking.incident_response_deadline.isoformat(),
+    }
+
+
+@router.patch("/{booking_id}/failed/respond")
+async def respond_delivery_failed(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """La partie mise en cause repond dans la fenetre 48h.
+    - payload.response = "accept" -> declarant favorise automatiquement
+    - payload.response = autre -> contestation -> litige ouvert
+    """
+    from datetime import datetime, timezone
+    from app.models.dispute import Dispute
+    from app.core.config import settings
+    from app.services.notif_db_service import create_notification
+
+    response = (payload.get("response") or "").strip()
+    if not response:
+        raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "delivery_failed":
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    result_trip = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = result_trip.scalar_one_or_none()
+    is_carrier = trip and trip.carrier_id == current_user.id
+    is_receiver = booking.receiver_id == current_user.id
+    is_sender = booking.sender_id == current_user.id
+    declared_by = booking.delivery_failed_by
+
+    # Seule la partie mise en cause peut repondre
+    if declared_by == "carrier" and not is_receiver and not is_sender:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if declared_by == "receiver" and not is_carrier:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    now = datetime.now(timezone.utc)
+    if booking.incident_response_deadline and now > booking.incident_response_deadline:
+        raise HTTPException(status_code=400, detail=t("errors.incident_response_expired", lang))
+
+    if response.lower() == "accept":
+        # Declarant favorise - resolution selon qui a declare
+        if declared_by == "carrier":
+            # Transporteur avait raison -> recepteur fautif
+            # Transporteur recoit 87%, Kipar 13% (service rendu)
+            booking.status = "delivered"
+            booking.delivery_confirmed_at = now
+            booking.delivery_confirmed_by = current_user.id
+            resolution = "carrier_favored_receiver_fault"
+        else:
+            # Recepteur avait raison -> transporteur fautif
+            # Expediteur rembourse 100%, Kipar 0EUR
+            booking.status = "cancelled"
+            booking.cancellation_reason = "delivery_failed_carrier_fault"
+            resolution = "receiver_favored_carrier_fault"
+        await db.commit()
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="delivery_failed_resolved",
+            title="Incident resolu",
+            body="L'incident de livraison a ete resolu. Le traitement financier va suivre.",
+            link=f"/packages/{booking.id}",
+        )
+        await db.commit()
+        return {"status": booking.status, "resolution": resolution}
+    else:
+        # Contestation -> litige automatique
+        existing = await db.execute(
+            select(Dispute).where(Dispute.booking_id == booking.id)
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail=t("errors.dispute_already_exists", lang))
+        booking.status = "disputed"
+        dispute = Dispute(
+            booking_id=booking.id,
+            initiated_by=current_user.id,
+            reason=f"Contestation delivery_failed : {response}",
+            status="open",
+        )
+        db.add(dispute)
+        await db.commit()
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="dispute_opened",
+            title="Litige ouvert",
+            body="La contestation a ete enregistree. L'equipe Kipar va examiner le dossier.",
+            link=f"/packages/{booking.id}",
+        )
+        await db.commit()
+        return {"status": "disputed", "dispute_id": str(dispute.id)}

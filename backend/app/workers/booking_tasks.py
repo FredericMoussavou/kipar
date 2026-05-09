@@ -107,6 +107,9 @@ def auto_release_escrow():
                 select(Booking).where(
                     Booking.status == "in_transit",
                     Booking.paid_at < cutoff,
+                    # Exclure les incidents actifs (fenetre 48h en cours)
+                    Booking.incident_response_deadline.is_(None) |
+                    (Booking.incident_response_deadline < cutoff),
                 )
             )
             bookings = result.scalars().all()
@@ -151,5 +154,132 @@ def expire_package_requests():
                 logger.info(f"PackageRequest {req.id} expired")
             await db.commit()
             logger.info(f"Expired {len(requests)} package requests")
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.incident_response_timeout")
+def incident_response_timeout():
+    """
+    Resout automatiquement les incidents (pickup_failed / delivery_failed)
+    dont la fenetre de justification 48h est expiree sans contestation.
+    Favorise le declarant. Planifie toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.user import User
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status.in_(["pickup_failed", "delivery_failed"]),
+                    Booking.incident_response_deadline < now,
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                if booking.status == "pickup_failed":
+                    declared_by = booking.pickup_failed_by
+                    booking.status = "cancelled"
+                    booking.cancellation_reason = f"pickup_failed_timeout_{declared_by}"
+                    trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+                    trip = trip_r.scalar_one_or_none()
+                    if declared_by == "sender" and trip:
+                        carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+                        carrier = carrier_r.scalar_one_or_none()
+                        if carrier:
+                            carrier.trust_score = max(0.0, carrier.trust_score - 10.0)
+                    elif declared_by == "carrier":
+                        sender_r = await db.execute(select(User).where(User.id == booking.sender_id))
+                        sender = sender_r.scalar_one_or_none()
+                        if sender:
+                            sender.trust_score = max(0.0, sender.trust_score - 5.0)
+                    await create_notification(
+                        db=db, user_id=booking.sender_id,
+                        type="pickup_failed_resolved",
+                        title="Incident resolu automatiquement",
+                        body="La fenetre de 48h est expiree. Le remboursement va etre traite.",
+                        link=f"/packages/{booking.id}",
+                    )
+                elif booking.status == "delivery_failed":
+                    declared_by = booking.delivery_failed_by
+                    if declared_by == "carrier":
+                        booking.status = "delivered"
+                        booking.delivery_confirmed_at = now
+                        release_payment_after_delivery.delay(str(booking.id))
+                    else:
+                        booking.status = "cancelled"
+                        booking.cancellation_reason = "delivery_failed_carrier_fault_timeout"
+                    await create_notification(
+                        db=db, user_id=booking.sender_id,
+                        type="delivery_failed_resolved",
+                        title="Incident resolu automatiquement",
+                        body="La fenetre de 48h est expiree. Le dossier a ete resolu.",
+                        link=f"/packages/{booking.id}",
+                    )
+                logger.info(f"Incident timeout : booking {booking.id} -> {booking.status}")
+            await db.commit()
+            logger.info(f"Incident timeout : {len(bookings)} booking(s) resolus")
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.delivery_timeout_check")
+def delivery_timeout_check():
+    """
+    Detecte les bookings in_transit sans livraison depuis DELIVERY_TIMEOUT_DAYS.
+    Alerte admin, notifie expediteur + transporteur.
+    Planifie une fois par jour via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta, date
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.user import User
+    from app.core.config import settings
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            timeout_date = date.today() - timedelta(days=settings.DELIVERY_TIMEOUT_DAYS)
+            result = await db.execute(
+                select(Booking).join(Trip, Trip.id == Booking.trip_id).where(
+                    Booking.status == "in_transit",
+                    Trip.departure_date < timeout_date,
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+                trip = trip_r.scalar_one_or_none()
+                carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+                carrier = carrier_r.scalar_one_or_none()
+                await create_notification(
+                    db=db, user_id=booking.sender_id,
+                    type="delivery_timeout",
+                    title="Livraison en retard",
+                    body=f"Votre colis n'a pas ete livre depuis {settings.DELIVERY_TIMEOUT_DAYS} jours.",
+                    link=f"/packages/{booking.id}",
+                )
+                if carrier:
+                    await create_notification(
+                        db=db, user_id=carrier.id,
+                        type="delivery_timeout",
+                        title="Livraison en attente",
+                        body=f"Un colis n'a pas ete confirme depuis {settings.DELIVERY_TIMEOUT_DAYS} jours.",
+                        link=f"/carrier",
+                    )
+                logger.info(f"Delivery timeout alerte : booking {booking.id}")
+            await db.commit()
+            logger.info(f"Delivery timeout : {len(bookings)} booking(s) en retard")
 
     asyncio.run(_run())

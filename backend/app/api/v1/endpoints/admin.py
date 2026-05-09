@@ -443,3 +443,65 @@ async def get_finance(
         },
         "chart": chart_data,
     }
+
+
+
+
+@router.patch("/users/{user_id}/reactivate")
+async def reactivate_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    lang: str = Depends(get_lang),
+):
+    """Reactivation compte - admin uniquement."""
+    from app.services.notif_db_service import create_notification
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="User is already active")
+    user.is_active = True
+    await db.commit()
+    await create_notification(
+        db=db,
+        user_id=user.id,
+        type="account_reactivated",
+        title="Compte reactivé",
+        body="Votre compte KIPAR a été reactivé. Vous pouvez de nouveau utiliser la plateforme.",
+        link="/dashboard",
+    )
+    await db.commit()
+    return {"user_id": user_id, "is_active": True, "message": "Account reactivated"}
+
+
+@router.get("/users/{user_id}/bookings-summary")
+async def get_user_bookings_summary(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Resume bookings utilisateur - aide a la decision de reactivation."""
+    from app.models.trip import Trip
+    sender_r = await db.execute(select(Booking).where(Booking.sender_id == user_id))
+    sender_bookings = sender_r.scalars().all()
+    carrier_r = await db.execute(
+        select(Booking).join(Trip, Trip.id == Booking.trip_id).where(Trip.carrier_id == user_id)
+    )
+    carrier_bookings = carrier_r.scalars().all()
+    return {
+        "user_id": user_id,
+        "as_sender": {
+            "total": len(sender_bookings),
+            "delivered": len([b for b in sender_bookings if b.status == "delivered"]),
+            "cancelled": len([b for b in sender_bookings if b.status == "cancelled_by_sender"]),
+            "disputed": len([b for b in sender_bookings if b.status == "disputed"]),
+        },
+        "as_carrier": {
+            "total": len(carrier_bookings),
+            "delivered": len([b for b in carrier_bookings if b.status == "delivered"]),
+            "cancelled": len([b for b in carrier_bookings if b.status == "cancelled_by_carrier"]),
+            "disputed": len([b for b in carrier_bookings if b.status == "disputed"]),
+        },
+    }

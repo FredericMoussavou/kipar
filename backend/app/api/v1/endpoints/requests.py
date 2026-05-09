@@ -139,6 +139,33 @@ async def delete_request(
         raise HTTPException(status_code=404, detail=t("errors.not_found", lang))
     if req.sender_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    # Delai minimum 24h si des candidatures ont ete recues
+    from app.core.config import settings
+    from app.models.package_request import Application
+    from datetime import timedelta
+    apps_result = await db.execute(
+        select(Application).where(Application.package_request_id == req.id)
+    )
+    applications = apps_result.scalars().all()
+    if applications:
+        last_app = max(applications, key=lambda a: a.created_at)
+        min_delete_time = last_app.created_at + timedelta(hours=settings.LISTING_MIN_DELAY_HOURS)
+        if datetime.now(timezone.utc) < min_delete_time:
+            raise HTTPException(
+                status_code=400,
+                detail=t("errors.listing_delete_too_soon", lang)
+            )
+        from app.services.notif_db_service import create_notification
+        for app in applications:
+            await create_notification(
+                db=db,
+                user_id=app.carrier_id,
+                type="request_deleted",
+                title="Annonce supprimee",
+                body="L'annonce sur laquelle vous avez candidaté a été supprimée.",
+                link="/carrier",
+            )
+
     req.deleted_at = datetime.now(timezone.utc)
     req.status = "cancelled"
     await db.flush()

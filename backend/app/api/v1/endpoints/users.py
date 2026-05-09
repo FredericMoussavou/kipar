@@ -524,3 +524,65 @@ def _serialize_me(user: User) -> dict:
         "username_updated_at": user.username_updated_at.isoformat() if user.username_updated_at else None,
         "address": user.address,
     }
+
+
+@router.get("/me/export")
+async def export_my_data(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """RGPD - export de toutes les donnees personnelles de l'utilisateur."""
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.review import Review
+    from datetime import datetime, timezone
+
+    bookings_r = await db.execute(select(Booking).where(Booking.sender_id == current_user.id))
+    bookings = bookings_r.scalars().all()
+    trips_r = await db.execute(select(Trip).where(Trip.carrier_id == current_user.id))
+    trips = trips_r.scalars().all()
+    reviews_r = await db.execute(select(Review).where(Review.reviewer_id == current_user.id))
+    reviews = reviews_r.scalars().all()
+
+    return {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "profile": {
+            "id": str(current_user.id),
+            "email": current_user.email,
+            "first_name": current_user.first_name,
+            "last_name": current_user.last_name,
+            "username": current_user.username,
+            "phone": current_user.phone,
+            "address": current_user.address,
+            "language": current_user.language,
+            "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+            "cgu_accepted_at": current_user.cgu_accepted_at.isoformat() if current_user.cgu_accepted_at else None,
+        },
+        "bookings": [
+            {"id": str(b.id), "status": b.status, "amount": b.amount,
+             "created_at": b.created_at.isoformat() if b.created_at else None}
+            for b in bookings
+        ],
+        "trips": [
+            {"id": str(t.id), "origin": t.origin, "destination": t.destination,
+             "departure_date": t.departure_date.isoformat() if t.departure_date else None}
+            for t in trips
+        ],
+        "reviews_given": [
+            {"id": str(r.id), "rating": r.rating, "comment": r.comment,
+             "created_at": r.created_at.isoformat() if r.created_at else None}
+            for r in reviews
+        ],
+    }
+
+
+@router.patch("/me/accept-cgu")
+async def accept_cgu(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Enregistre l'acceptation des CGU par l'utilisateur."""
+    from datetime import datetime, timezone
+    current_user.cgu_accepted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"cgu_accepted_at": current_user.cgu_accepted_at.isoformat()}

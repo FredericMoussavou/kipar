@@ -108,8 +108,8 @@ async def resolve_dispute(
     """
     decision = payload.get("decision", "").strip()
     resolution = payload.get("resolution", "").strip()
-    if decision not in ("resolved_sender", "resolved_carrier"):
-        raise HTTPException(status_code=400, detail="decision must be resolved_sender or resolved_carrier")
+    if decision not in ("resolved_sender", "resolved_carrier", "split"):
+        raise HTTPException(status_code=400, detail="decision must be resolved_sender, resolved_carrier or split")
     if not resolution:
         raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
 
@@ -129,10 +129,45 @@ async def resolve_dispute(
     dispute.resolved_at = datetime.now(timezone.utc)
 
     if booking:
-        booking.status = "cancelled" if decision == "resolved_carrier" else "disputed"
+        if decision == "resolved_sender":
+            # Expediteur gagne -> transporteur fautif -> remboursement expediteur
+            booking.status = "cancelled"
+            booking.cancellation_reason = "dispute_resolved_sender"
+            # Frais litige 10EUR a charge du transporteur
+            print(f"[DISPUTE] Frais litige {settings.DISPUTE_FEE}EUR factures au transporteur booking {booking.id}")
+            # TODO Sprint 4 : prelevement reel Stripe/Flutterwave
+        elif decision == "resolved_carrier":
+            # Transporteur gagne -> service rendu, liberer escrow
+            booking.status = "delivered"
+            booking.delivery_confirmed_at = datetime.now(timezone.utc)
+            # Frais litige 10EUR a charge de l'expediteur/recepteur fautif
+            print(f"[DISPUTE] Frais litige {settings.DISPUTE_FEE}EUR factures a l'expediteur booking {booking.id}")
+            # TODO Sprint 4 : prelevement reel Stripe/Flutterwave
+            from app.workers.booking_tasks import release_payment_after_delivery
+            release_payment_after_delivery.delay(str(booking.id))
+        else:
+            # Split -> torts partages, admin decide la repartition
+            booking.status = "disputed_split"
+            print(f"[DISPUTE] Split decision booking {booking.id} - repartition manuelle requise")
+
+    # Notifier les parties
+    from app.services.notif_db_service import create_notification
+    if booking:
+        await create_notification(
+            db=db,
+            user_id=booking.sender_id,
+            type="dispute_resolved",
+            title="Litige resolu",
+            body=f"Decision admin : {decision}. {resolution}",
+            link=f"/packages/{booking.id}",
+        )
 
     await db.commit()
-    return {"status": decision, "dispute_id": dispute_id}
+    return {
+        "status": decision,
+        "dispute_id": dispute_id,
+        "dispute_fee": settings.DISPUTE_FEE,
+    }
 
 
 @router.get("/users")
@@ -254,6 +289,40 @@ async def update_kyc(
         user.trust_score = min(100.0, user.trust_score + 20.0)
 
     return {"user_id": user_id, "kyc_status": decision}
+
+
+@router.patch("/bookings/{booking_id}/justify-cancellation")
+async def justify_cancellation(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+    lang: str = Depends(get_lang),
+):
+    """Force majeure - admin uniquement.
+    Pose cancellation_justified=True sur un booking annule.
+    Declenche remboursement 100% + trust neutre + 0EUR Kipar (sauf forfait dossier deja preleve).
+    """
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status not in ("cancelled_by_sender", "cancelled_by_carrier", "cancelled"):
+        raise HTTPException(status_code=400, detail="Booking must be cancelled to justify")
+
+    booking.cancellation_justified = True
+    await db.commit()
+
+    from app.services.notif_db_service import create_notification
+    await create_notification(
+        db=db,
+        user_id=booking.sender_id,
+        type="cancellation_justified",
+        title="Annulation justifiee",
+        body="Votre annulation a ete reconnue comme force majeure. Le remboursement integral va etre traite.",
+        link=f"/packages/{booking.id}",
+    )
+    await db.commit()
+    return {"booking_id": booking_id, "cancellation_justified": True}
 
 
 @router.patch("/users/{user_id}/ban")

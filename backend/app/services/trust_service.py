@@ -81,6 +81,28 @@ async def compute_trust_score(user: User, db: AsyncSession) -> float:
     refused_count = refused.scalar() or 0
     score -= min(refused_count * 5.0, 15.0)
 
+    # Annulations transporteur non justifiees (max -15)
+    cancelled_carrier = await db.execute(
+        select(func.count(Booking.id)).join(Trip, Trip.id == Booking.trip_id).where(
+            Trip.carrier_id == user.id,
+            Booking.status == "cancelled_by_carrier",
+            Booking.cancellation_justified == False,
+        )
+    )
+    cancelled_carrier_count = cancelled_carrier.scalar() or 0
+    score -= min(cancelled_carrier_count * 5.0, 15.0)
+
+    # Pickup failed declare par expediteur (transporteur fautif) - penalite severe (max -20)
+    pickup_failed_carrier = await db.execute(
+        select(func.count(Booking.id)).join(Trip, Trip.id == Booking.trip_id).where(
+            Trip.carrier_id == user.id,
+            Booking.status == "cancelled",
+            Booking.pickup_failed_by == "sender",
+        )
+    )
+    pickup_failed_carrier_count = pickup_failed_carrier.scalar() or 0
+    score -= min(pickup_failed_carrier_count * 10.0, 20.0)
+
     return round(max(0.0, min(score, 100.0)), 1)
 
 

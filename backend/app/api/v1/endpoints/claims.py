@@ -171,14 +171,14 @@ async def resolve_claim(
     Résout un litige — admin uniquement.
     resolution : 'favor_sender' → remboursement | 'favor_carrier' → libération paiement
     """
-    if not current_user.is_superuser:
+    if not current_user.is_admin:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
 
     result = await db.execute(select(Claim).where(Claim.id == claim_id))
     claim = result.scalar_one_or_none()
     if not claim:
         raise HTTPException(status_code=404, detail=t("errors.claim_not_found", lang))
-    if claim.status in ("resolved_sender", "resolved_carrier", "closed"):
+    if claim.status in ("resolved_sender", "resolved_carrier", "resolved_split", "closed"):
         raise HTTPException(status_code=400, detail=t("errors.claim_already_resolved", lang))
 
     result = await db.execute(select(Booking).where(Booking.id == claim.booking_id))
@@ -187,11 +187,16 @@ async def resolve_claim(
     if payload.resolution == "favor_sender":
         booking.status = "refunded"
         claim.status = "resolved_sender"
-        # TODO Sprint suivant : déclencher remboursement via Stripe/Flutterwave
-    else:
+        # TODO Sprint 4 : declencher remboursement via Stripe/Flutterwave
+    elif payload.resolution == "favor_carrier":
         booking.status = "delivered"
         claim.status = "resolved_carrier"
-        # TODO Sprint suivant : déclencher libération paiement
+        # TODO Sprint 4 : declencher liberation paiement
+    else:
+        # split : torts partages, repartition a discretion admin
+        booking.status = "disputed_split"
+        claim.status = "resolved_split"
+        # TODO Sprint 4 : repartition manuelle
 
     claim.resolution_note = payload.resolution_note
     claim.insurance_payout = payload.insurance_payout

@@ -190,6 +190,27 @@ async def accept_booking(
     # Heriter weight_unit et currency du trip
     booking.weight_unit = trip.weight_unit if trip else "kg"
     booking.currency = trip.currency if trip else "EUR"
+    # Assurance optionnelle - si souscrite et feature activee
+    if booking.insurance_subscribed and settings.INSURANCE_ENABLED:
+        from app.models.insurance import Insurance
+        declared_value = getattr(booking, "declared_value", booking.amount)
+        premium = max(
+            declared_value * settings.INSURANCE_RATE_DEFAULT,
+            declared_value * settings.INSURANCE_RATE_MIN
+        )
+        insurance = Insurance(
+            booking_id=booking.id,
+            user_id=booking.sender_id,
+            declared_value=declared_value,
+            rate=settings.INSURANCE_RATE_DEFAULT,
+            premium=premium,
+            is_self_covered=declared_value <= settings.INSURANCE_SELF_COVER_MAX,
+        )
+        db.add(insurance)
+        print(f"[INSURANCE] Assurance souscrite booking {booking.id} prime={premium:.2f}EUR")
+    elif booking.insurance_subscribed and not settings.INSURANCE_ENABLED:
+        # Feature desactivee - ignorer silencieusement
+        booking.insurance_subscribed = False
     # Forfait dossier 1.50EUR - acquis definitvement a la confirmation
     booking.booking_fee_collected = True
     print(f"[ESCROW] Forfait dossier {settings.BOOKING_FLAT_FEE}EUR preleve booking {booking.id}")

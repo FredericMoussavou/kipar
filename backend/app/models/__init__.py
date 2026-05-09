@@ -14,6 +14,7 @@ from app.models.package_request import PackageRequest, Application
 from app.models.notification import Notification
 from app.models.verification_code import VerificationCode
 from app.models.dispute import Dispute
+from app.models.scan_credit import ScanCredit
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
@@ -24,4 +25,5 @@ __all__ = [
     "Notification",
     "VerificationCode",
     "Dispute",
+    "ScanCredit",
 ]

@@ -57,6 +57,100 @@ async def analyze_only(
         simulated=scan_result.get("simulated", False),
     )
 
+
+FREE_SCANS_PER_MONTH = 3
+
+
+async def get_or_create_scan_credit(db, user_id):
+    from app.models.scan_credit import ScanCredit
+    from datetime import datetime, timezone
+    result = await db.execute(
+        select(ScanCredit).where(ScanCredit.user_id == user_id)
+    )
+    credit = result.scalar_one_or_none()
+    if not credit:
+        credit = ScanCredit(
+            user_id=user_id,
+            free_credits_used=0,
+            paid_credits=0,
+            total_scans=0,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        db.add(credit)
+        await db.commit()
+        await db.refresh(credit)
+    return credit
+
+
+async def check_and_consume_scan(db, user_id, lang: str):
+    from datetime import datetime, timezone
+    from calendar import monthrange
+    credit = await get_or_create_scan_credit(db, user_id)
+    now = datetime.now(timezone.utc)
+    if credit.free_credits_reset_at is None or credit.free_credits_reset_at < now.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+        credit.free_credits_used = 0
+        last_day = monthrange(now.year, now.month)[1]
+        credit.free_credits_reset_at = now.replace(day=last_day, hour=23, minute=59, second=59)
+    if credit.free_credits_used < FREE_SCANS_PER_MONTH:
+        credit.free_credits_used += 1
+    elif credit.paid_credits > 0:
+        credit.paid_credits -= 1
+    else:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "quota_exceeded",
+                "message": "Quota mensuel de scans atteint. Achetez des credits pour continuer.",
+                "free_used": credit.free_credits_used,
+                "free_limit": FREE_SCANS_PER_MONTH,
+                "paid_remaining": credit.paid_credits,
+            }
+        )
+    credit.total_scans += 1
+    credit.updated_at = datetime.now(timezone.utc)
+    await db.commit()
+    return credit
+
+
+@router.get("/quota")
+async def get_scan_quota(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    credit = await get_or_create_scan_credit(db, current_user.id)
+    return {
+        "free_used": credit.free_credits_used,
+        "free_limit": FREE_SCANS_PER_MONTH,
+        "free_remaining": max(0, FREE_SCANS_PER_MONTH - credit.free_credits_used),
+        "paid_credits": credit.paid_credits,
+        "total_scans": credit.total_scans,
+        "reset_at": credit.free_credits_reset_at.isoformat() if credit.free_credits_reset_at else None,
+    }
+
+
+@router.post("/buy-credits")
+async def buy_scan_credits(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    quantity = int(payload.get("quantity", 0))
+    if quantity <= 0 or quantity > 100:
+        raise HTTPException(status_code=400, detail="Quantite invalide (1-100)")
+    credit = await get_or_create_scan_credit(db, current_user.id)
+    credit.paid_credits += quantity
+    from datetime import datetime, timezone
+    credit.updated_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {
+        "paid_credits": credit.paid_credits,
+        "purchased": quantity,
+        "message": f"{quantity} credit(s) ajoute(s) avec succes",
+    }
+
+
 @router.post("/{package_id}", response_model=ScanResponse)
 async def scan_package(
     package_id: str,
@@ -70,6 +164,9 @@ async def scan_package(
     Analyse une photo du colis via KiparScan (OpenAI Vision).
     Met à jour le Package avec le résultat et le flag prohibé.
     """
+    # Verifier et consommer le quota de scan
+    await check_and_consume_scan(db, current_user.id, lang)
+
     # Vérifie que le colis existe et appartient à l'expéditeur
     result = await db.execute(select(Package).where(Package.id == package_id))
     package = result.scalar_one_or_none()

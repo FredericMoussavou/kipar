@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     PRICE_SUGGESTION_WINDOW_DAYS: int = 90       # Historique fourchette prix corridor
     PRICE_SUGGESTION_MIN_SAMPLES: int = 5        # Seuil donnees corridor suffisantes
     DELIVERY_TIMEOUT_DAYS: int = 7               # Timeout livraison sans confirmation
+    INSURANCE_ENABLED: bool = False    # Active quand partenariat assureur signe
+    INSURANCE_RATE_DEFAULT: float = 0.03  # 3% valeur declaree
+    INSURANCE_SELF_COVER_MAX: float = 200.0  # Auto-assurance Kipar sous ce seuil
     INSURANCE_RATE_MIN: float = 0.02   # 2% valeur déclarée
     INSURANCE_RATE_MAX: float = 0.04   # 4% valeur déclarée
     INSURANCE_RATE_DEFAULT: float = 0.03  # 3% par défaut

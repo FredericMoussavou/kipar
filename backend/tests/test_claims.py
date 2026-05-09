@@ -189,7 +189,7 @@ async def test_resolve_claim_as_admin(client, db_session):
     # Passe l'expéditeur en admin
     await db_session.execute(
         update(User).where(User.email == "sender_cl7@kipar.com")
-        .values(is_superuser=True)
+        .values(is_superuser=True, is_admin=True)
     )
     await db_session.flush()
 

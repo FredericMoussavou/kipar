@@ -225,3 +225,81 @@ async def get_trip(
         carrier_avg_rating=round(float(avg_rating), 1) if avg_rating else None,
         carrier_review_count=review_count or 0,
     )
+
+
+
+@router.get("/price-suggestion")
+async def get_price_suggestion(
+    origin: str,
+    destination: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Fourchette de prix suggeree pour un corridor.
+    Percentile 25/75 sur les 90 derniers jours, min 5 echantillons.
+    Si donnees insuffisantes : fourchette globale plateforme.
+    """
+    from datetime import date, timedelta
+    from sqlalchemy import func
+    from app.core.config import settings
+
+    cutoff = date.today() - timedelta(days=settings.PRICE_SUGGESTION_WINDOW_DAYS)
+
+    # Prix sur ce corridor
+    corridor_result = await db.execute(
+        select(Trip.price_per_kg).where(
+            Trip.origin.ilike(f"%{origin}%"),
+            Trip.destination.ilike(f"%{destination}%"),
+            Trip.departure_date >= cutoff,
+            Trip.deleted_at.is_(None),
+            Trip.status != "cancelled",
+        )
+    )
+    prices = [row[0] for row in corridor_result.fetchall() if row[0] and row[0] > 0]
+
+    if len(prices) >= settings.PRICE_SUGGESTION_MIN_SAMPLES:
+        prices_sorted = sorted(prices)
+        n = len(prices_sorted)
+        p25_idx = max(0, int(n * 0.25) - 1)
+        p75_idx = min(n - 1, int(n * 0.75))
+        return {
+            "corridor": f"{origin} → {destination}",
+            "price_low": round(prices_sorted[p25_idx], 2),
+            "price_high": round(prices_sorted[p75_idx], 2),
+            "sample_count": n,
+            "is_corridor_data": True,
+            "window_days": settings.PRICE_SUGGESTION_WINDOW_DAYS,
+        }
+
+    # Fallback : fourchette globale plateforme
+    global_result = await db.execute(
+        select(Trip.price_per_kg).where(
+            Trip.departure_date >= cutoff,
+            Trip.deleted_at.is_(None),
+            Trip.status != "cancelled",
+        )
+    )
+    global_prices = sorted([r[0] for r in global_result.fetchall() if r[0] and r[0] > 0])
+
+    if len(global_prices) >= settings.PRICE_SUGGESTION_MIN_SAMPLES:
+        n = len(global_prices)
+        p25_idx = max(0, int(n * 0.25) - 1)
+        p75_idx = min(n - 1, int(n * 0.75))
+        return {
+            "corridor": f"{origin} → {destination}",
+            "price_low": round(global_prices[p25_idx], 2),
+            "price_high": round(global_prices[p75_idx], 2),
+            "sample_count": n,
+            "is_corridor_data": False,
+            "window_days": settings.PRICE_SUGGESTION_WINDOW_DAYS,
+            "note": "Estimation indicative - donnees corridor insuffisantes",
+        }
+
+    # Aucune donnee disponible
+    return {
+        "corridor": f"{origin} → {destination}",
+        "price_low": None,
+        "price_high": None,
+        "sample_count": 0,
+        "is_corridor_data": False,
+        "note": "Aucune donnee disponible pour ce corridor",
+    }

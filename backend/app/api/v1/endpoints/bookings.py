@@ -187,6 +187,9 @@ async def accept_booking(
 
     booking.status = "accepted"
     booking.accepted_at = datetime.now(timezone.utc)
+    # Heriter weight_unit et currency du trip
+    booking.weight_unit = trip.weight_unit if trip else "kg"
+    booking.currency = trip.currency if trip else "EUR"
     # Forfait dossier 1.50EUR - acquis definitvement a la confirmation
     booking.booking_fee_collected = True
     print(f"[ESCROW] Forfait dossier {settings.BOOKING_FLAT_FEE}EUR preleve booking {booking.id}")

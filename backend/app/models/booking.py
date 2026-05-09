@@ -22,6 +22,9 @@ class Booking(Base):
 
     # Financials
     amount: Mapped[float] = mapped_column(Float)
+    amount_local: Mapped[float | None] = mapped_column(Float, nullable=True)  # montant dans la devise du trip
+    weight_unit: Mapped[str] = mapped_column(String(5), default="kg")  # kg | lb - herite du trip
+    currency: Mapped[str] = mapped_column(String(5), default="EUR")  # ISO 4217 - herite du trip
     insurance_subscribed: Mapped[bool] = mapped_column(Boolean, default=False)
     insurance_amount: Mapped[float] = mapped_column(Float, default=0.0)
 

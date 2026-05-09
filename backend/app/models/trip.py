@@ -34,6 +34,8 @@ class Trip(Base):
     remaining_kg: Mapped[float] = mapped_column(Float)
     max_kg_per_package: Mapped[float] = mapped_column(Float, default=5.0)
     price_per_kg: Mapped[float] = mapped_column(Float)
+    weight_unit: Mapped[str] = mapped_column(String(5), default="kg")  # kg | lb
+    currency: Mapped[str] = mapped_column(String(5), default="EUR")  # ISO 4217
 
     # Statut : open / full / in_transit / completed / cancelled
     status: Mapped[str] = mapped_column(String(20), default="open", index=True)

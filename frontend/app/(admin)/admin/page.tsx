@@ -41,18 +41,31 @@ interface AdminUser {
   selfie?: string | null
 }
 
+interface DisputeParty {
+  id: string; full_name: string; email: string; phone: string | null
+  address: string | null; trust_score: number
+}
+interface DisputeDetail {
+  id: string; status: string; reason: string; resolution: string | null
+  incident_type: string; incident_stage: string; initiated_by_role: string
+  initiator: DisputeParty | null; respondent_comment: string | null
+  respondent_evidence_urls: string[]; evidence_urls: string[]
+  has_insurance: boolean; insurance_payout: number
+  insurer_dossier_sent: boolean; insurer_reference: string | null
+  admin_notes: string | null
+  booking: { id: string; status: string; amount: number; currency: string } | null
+  package: { content_description: string; declared_value: number | null; weight_kg: number; photo_urls: string[] } | null
+  trip: { origin: string; destination: string; departure_date: string; flight_number: string | null } | null
+  sender: DisputeParty | null; carrier: DisputeParty | null; receiver: DisputeParty | null
+  timeline: { created_at: string; pickup_failed_at: string | null; delivery_failed_at: string | null; incident_response_deadline: string | null; resolved_at: string | null }
+  created_at: string; resolved_at: string | null
+}
 interface Dispute {
-  id: string
-  booking_id: string
-  status: string
-  reason: string
-  resolution: string | null
-  created_at: string
-  resolved_at: string | null
-  booking_status: string | null
-  amount: number | null
-  initiated_by?: string
-  sender?: string
+  id: string; booking_id: string; status: string; reason: string
+  incident_type: string; incident_stage: string; initiated_by_role: string
+  resolution: string | null; created_at: string
+  booking: { amount: number; currency: string } | null
+  initiator: DisputeParty | null
 }
 
 // ─── Composants utilitaires ───────────────────────────────────────────────────
@@ -497,177 +510,269 @@ function FinanceTab() {
 function DisputesTab({ onToast }: { onToast: (msg: string, type: 'success' | 'error') => void }) {
   const [disputes, setDisputes] = useState<Dispute[]>([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<Dispute | null>(null)
+  const [selected, setSelected] = useState<DisputeDetail | null>(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
   const [resolution, setResolution] = useState('')
   const [resolving, setResolving] = useState(false)
 
+  const INCIDENT_LABELS: Record<string, string> = {
+    pickup_failed: 'Non remis (pickup)', delivery_failed: 'Non livre',
+    damaged: 'Colis endommage', lost: 'Perdu', wrong_content: 'Mauvais contenu', other: 'Autre',
+  }
+  const STAGE_LABELS: Record<string, string> = {
+    pickup: 'A la remise', transit: 'En transit', delivery: 'A la livraison',
+  }
+  const ROLE_LABELS: Record<string, string> = {
+    sender: 'Expediteur', carrier: 'Transporteur', receiver: 'Recepteur',
+  }
+
   const load = async () => {
     setLoading(true)
-    try {
-      const res = await api.get('/admin/disputes')
-      setDisputes(res.data)
-    } finally { setLoading(false) }
+    try { const res = await api.get('/admin/disputes'); setDisputes(res.data) }
+    finally { setLoading(false) }
+  }
+
+  const loadDetail = async (id: string) => {
+    setLoadingDetail(true)
+    try { const res = await api.get(`/admin/disputes/${id}`); setSelected(res.data) }
+    catch { onToast('Erreur chargement detail', 'error') }
+    finally { setLoadingDetail(false) }
   }
 
   useEffect(() => { load() }, [])
 
-  const resolve = async (decision: 'resolved_sender' | 'resolved_carrier') => {
+  const resolve = async (decision: 'resolved_sender' | 'resolved_carrier' | 'split') => {
     if (!selected || !resolution.trim()) return
     setResolving(true)
     try {
-      await api.post(`/admin/disputes/${selected.id}/resolve`, { decision, resolution })
-      setDisputes(d => d.map(x => x.id === selected.id ? { ...x, status: decision, resolution } : x))
-      onToast('Litige résolu', 'success')
-      setSelected(null)
+      await api.patch(`/admin/disputes/${selected.id}/resolve`, { decision, resolution })
+      setDisputes(d => d.map(x => x.id === selected.id ? { ...x, status: decision } : x))
+      setSelected(s => s ? { ...s, status: decision, resolution } : s)
+      onToast('Litige resolu', 'success')
       setResolution('')
     } catch { onToast('Erreur', 'error') }
     finally { setResolving(false) }
   }
 
+  const InfoRow = ({ label, value }: { label: string; value: string | null | undefined }) => !value ? null : (
+    <div style={{ marginBottom: 6 }}>
+      <p style={{ fontSize: 11, color: TAUPE, margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>{label}</p>
+      <p style={{ fontSize: 13, color: CHARCOAL, margin: '2px 0 0' }}>{value}</p>
+    </div>
+  )
+
+  const PartyBlock = ({ label, party, accent }: { label: string; party: DisputeParty | null; accent?: string }) => !party ? null : (
+    <div style={{ background: accent ? '#FFF8F8' : '#F8F9FF', border: `1px solid ${accent || '#E0E7FF'}`, borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+      <p style={{ fontSize: 11, color: accent || '#3B5BDB', margin: '0 0 5px', fontWeight: 700, textTransform: 'uppercase' }}>{label}</p>
+      <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: '0 0 2px' }}>{party.full_name}</p>
+      <p style={{ fontSize: 12, color: TAUPE, margin: 0 }}>{party.email}{party.phone ? ` · ${party.phone}` : ''}</p>
+      {party.address && <p style={{ fontSize: 12, color: TAUPE, margin: '2px 0 0' }}>{party.address}</p>}
+      <p style={{ fontSize: 11, color: TAUPE, margin: '4px 0 0' }}>KiparTrust : {(party.trust_score || 0).toFixed(0)}/100</p>
+    </div>
+  )
+
   return (
     <div style={{ display: 'flex', gap: 20 }}>
-      {/* Liste */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 20 }}>Litiges ({disputes.length})</h2>
         {loading ? <p style={{ color: TAUPE }}>Chargement...</p> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {disputes.map(d => (
-              <div key={d.id} onClick={() => setSelected(d)}
-                style={{ background: WHITE, border: `1px solid ${selected?.id === d.id ? RED : BORDER}`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer', transition: 'border-color 0.15s' }}>
+              <div key={d.id} onClick={() => loadDetail(d.id)}
+                style={{ background: WHITE, border: `1px solid ${selected?.id === d.id ? RED : BORDER}`, borderRadius: 12, padding: '12px 16px', cursor: 'pointer', transition: 'border-color 0.15s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <Badge status={d.status} />
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <Badge status={d.status} />
+                    {d.incident_type && <span style={{ fontSize: 11, background: '#FEF3C7', color: '#92400E', borderRadius: 6, padding: '2px 7px', fontWeight: 500 }}>{INCIDENT_LABELS[d.incident_type] || d.incident_type}</span>}
+                    {d.initiated_by_role && <span style={{ fontSize: 11, background: '#F3F4F6', color: CHARCOAL, borderRadius: 6, padding: '2px 7px' }}>par {ROLE_LABELS[d.initiated_by_role] || d.initiated_by_role}</span>}
+                  </div>
                   <span style={{ fontSize: 11, color: TAUPE }}>{new Date(d.created_at).toLocaleDateString('fr-FR')}</span>
                 </div>
-                <p style={{ fontSize: 13, color: CHARCOAL, margin: 0, fontWeight: 500 }}>{d.reason.slice(0, 80)}{d.reason.length > 80 ? '...' : ''}</p>
-                {d.amount && <p style={{ fontSize: 12, color: TAUPE, margin: '4px 0 0' }}>{d.amount} €</p>}
+                <p style={{ fontSize: 13, color: CHARCOAL, margin: 0 }}>{d.reason.slice(0, 80)}{d.reason.length > 80 ? '...' : ''}</p>
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  {d.booking?.amount && <p style={{ fontSize: 12, color: TAUPE, margin: 0 }}>{d.booking.amount} {d.booking.currency || 'EUR'}</p>}
+                  {d.initiator && <p style={{ fontSize: 12, color: TAUPE, margin: 0 }}>{d.initiator.full_name}</p>}
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Détail */}
-      {selected && (
-        <div style={{ width: 340, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, height: 'fit-content', position: 'sticky', top: 24 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 16 }}>Détail du litige</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-            <div><p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Statut</p><Badge status={selected.status} /></div>
-            <div><p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Raison</p><p style={{ fontSize: 13, color: CHARCOAL, margin: '2px 0 0' }}>{selected.reason}</p></div>
-            {selected.amount && <div><p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Montant</p><p style={{ fontSize: 13, color: CHARCOAL, margin: '2px 0 0', fontWeight: 600 }}>{selected.amount} €</p></div>}
-            {selected.initiated_by && <div><p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Initié par</p><p style={{ fontSize: 13, color: CHARCOAL, margin: '2px 0 0' }}>{selected.initiated_by}</p></div>}
-          </div>
+      {(selected || loadingDetail) && (
+        <div style={{ width: 380, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, height: 'fit-content', position: 'sticky', top: 24, maxHeight: '90vh', overflowY: 'auto' }}>
+          {loadingDetail && !selected ? <p style={{ color: TAUPE }}>Chargement...</p> : selected && (<>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 12 }}>Detail du litige</h3>
 
-          {selected.status === 'open' && (
-            <>
-              <textarea value={resolution} onChange={e => setResolution(e.target.value)}
-                placeholder="Résolution (obligatoire)..."
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: CHARCOAL, resize: 'vertical', minHeight: 80, outline: 'none', boxSizing: 'border-box' }} />
-              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button type="button" onClick={() => resolve('resolved_sender')} disabled={resolving || !resolution.trim()}
-                  style={{ flex: 1, padding: '9px', borderRadius: 10, border: 'none', background: '#16A34A', color: WHITE, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !resolution.trim() ? 0.5 : 1 }}>
-                  Expéditeur gagne
-                </button>
-                <button type="button" onClick={() => resolve('resolved_carrier')} disabled={resolving || !resolution.trim()}
-                  style={{ flex: 1, padding: '9px', borderRadius: 10, border: 'none', background: RED, color: WHITE, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: !resolution.trim() ? 0.5 : 1 }}>
-                  Transporteur gagne
-                </button>
-              </div>
-            </>
-          )}
-          {selected.resolution && (
-            <div style={{ background: SAND, borderRadius: 10, padding: '10px 14px', marginTop: 12 }}>
-              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 4 }}>Résolution</p>
-              <p style={{ fontSize: 13, color: CHARCOAL, margin: 0 }}>{selected.resolution}</p>
+            <div style={{ display: 'flex', gap: 5, marginBottom: 12, flexWrap: 'wrap' }}>
+              <Badge status={selected.status} />
+              {selected.incident_type && <span style={{ fontSize: 11, background: '#FEF3C7', color: '#92400E', borderRadius: 6, padding: '2px 8px', fontWeight: 600 }}>{INCIDENT_LABELS[selected.incident_type]}</span>}
+              {selected.incident_stage && <span style={{ fontSize: 11, background: '#EEF2FF', color: '#3730A3', borderRadius: 6, padding: '2px 8px', fontWeight: 600 }}>{STAGE_LABELS[selected.incident_stage]}</span>}
+              {selected.has_insurance && <span style={{ fontSize: 11, background: '#ECFDF5', color: '#065F46', borderRadius: 6, padding: '2px 8px', fontWeight: 600 }}>Assure</span>}
             </div>
-          )}
+
+            <PartyBlock label={`Declarant — ${ROLE_LABELS[selected.initiated_by_role] || selected.initiated_by_role}`} party={selected.initiator} accent={RED} />
+            {selected.initiated_by_role !== 'sender' && <PartyBlock label="Expediteur" party={selected.sender} />}
+            {selected.initiated_by_role !== 'carrier' && <PartyBlock label="Transporteur" party={selected.carrier} />}
+            {selected.initiated_by_role !== 'receiver' && selected.receiver && <PartyBlock label="Recepteur" party={selected.receiver} />}
+
+            {selected.booking && (
+              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase' }}>Booking</p>
+                <InfoRow label="Montant" value={`${selected.booking.amount} ${selected.booking.currency}`} />
+                <InfoRow label="Statut" value={selected.booking.status} />
+                {selected.trip && <InfoRow label="Corridor" value={`${selected.trip.origin} → ${selected.trip.destination}`} />}
+                {selected.trip?.departure_date && <InfoRow label="Depart" value={new Date(selected.trip.departure_date).toLocaleDateString('fr-FR')} />}
+                {selected.trip?.flight_number && <InfoRow label="Vol" value={selected.trip.flight_number} />}
+              </div>
+            )}
+
+            {selected.package && (
+              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase' }}>Colis</p>
+                <InfoRow label="Description" value={selected.package.content_description} />
+                <InfoRow label="Valeur declaree" value={selected.package.declared_value ? `${selected.package.declared_value} EUR` : null} />
+                <InfoRow label="Poids" value={`${selected.package.weight_kg} kg`} />
+                {selected.package.photo_urls?.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                    {selected.package.photo_urls.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer">
+                        <img src={url} alt={`colis ${i+1}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: `1px solid ${BORDER}` }} />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 4px', fontWeight: 700, textTransform: 'uppercase' }}>Motif declarant</p>
+              <p style={{ fontSize: 13, color: CHARCOAL, margin: 0, lineHeight: 1.5 }}>{selected.reason}</p>
+            </div>
+
+            {selected.evidence_urls?.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 4px', fontWeight: 700, textTransform: 'uppercase' }}>Photos declarant</p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {selected.evidence_urls.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt={`preuve ${i+1}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: `1px solid ${BORDER}` }} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selected.respondent_comment && (
+              <div style={{ background: '#EEF2FF', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: '#3730A3', margin: '0 0 4px', fontWeight: 700, textTransform: 'uppercase' }}>Reponse partie adverse</p>
+                <p style={{ fontSize: 13, color: CHARCOAL, margin: 0 }}>{selected.respondent_comment}</p>
+                {selected.respondent_evidence_urls?.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                    {selected.respondent_evidence_urls.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer">
+                        <img src={url} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6 }} />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selected.has_insurance && (
+              <div style={{ background: '#ECFDF5', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: '#065F46', margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase' }}>Assurance</p>
+                <InfoRow label="Dossier envoye assureur" value={selected.insurer_dossier_sent ? 'Oui' : 'Non'} />
+                {selected.insurer_reference && <InfoRow label="Reference assureur" value={selected.insurer_reference} />}
+              </div>
+            )}
+
+            <div style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 6px', fontWeight: 700, textTransform: 'uppercase' }}>Timeline</p>
+              <InfoRow label="Litige cree" value={new Date(selected.timeline.created_at).toLocaleString('fr-FR')} />
+              {selected.timeline.pickup_failed_at && <InfoRow label="Pickup failed" value={new Date(selected.timeline.pickup_failed_at).toLocaleString('fr-FR')} />}
+              {selected.timeline.delivery_failed_at && <InfoRow label="Delivery failed" value={new Date(selected.timeline.delivery_failed_at).toLocaleString('fr-FR')} />}
+              {selected.timeline.incident_response_deadline && <InfoRow label="Echeance reponse" value={new Date(selected.timeline.incident_response_deadline).toLocaleString('fr-FR')} />}
+              {selected.timeline.resolved_at && <InfoRow label="Resolu le" value={new Date(selected.timeline.resolved_at).toLocaleString('fr-FR')} />}
+            </div>
+
+            {selected.status === 'open' && (
+              <>
+                <textarea value={resolution} onChange={e => setResolution(e.target.value)}
+                  placeholder="Resolution (obligatoire)..."
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: CHARCOAL, resize: 'vertical', minHeight: 80, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }} />
+                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                  <button type="button" onClick={() => resolve('resolved_sender')} disabled={resolving || !resolution.trim()}
+                    style={{ flex: 1, padding: '8px', borderRadius: 10, border: 'none', background: '#16A34A', color: WHITE, fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: !resolution.trim() ? 0.5 : 1 }}>
+                    Expediteur gagne
+                  </button>
+                  <button type="button" onClick={() => resolve('resolved_carrier')} disabled={resolving || !resolution.trim()}
+                    style={{ flex: 1, padding: '8px', borderRadius: 10, border: 'none', background: RED, color: WHITE, fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: !resolution.trim() ? 0.5 : 1 }}>
+                    Transporteur gagne
+                  </button>
+                  <button type="button" onClick={() => resolve('split')} disabled={resolving || !resolution.trim()}
+                    style={{ flex: 1, padding: '8px', borderRadius: 10, border: 'none', background: '#F59E0B', color: WHITE, fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: !resolution.trim() ? 0.5 : 1 }}>
+                    Partage
+                  </button>
+                </div>
+              </>
+            )}
+            {selected.resolution && (
+              <div style={{ background: '#F0FDF4', borderRadius: 10, padding: '10px 12px' }}>
+                <p style={{ fontSize: 11, color: '#166534', margin: '0 0 4px', fontWeight: 700, textTransform: 'uppercase' }}>Resolution</p>
+                <p style={{ fontSize: 13, color: CHARCOAL, margin: 0 }}>{selected.resolution}</p>
+              </div>
+            )}
+          </>)}
         </div>
       )}
     </div>
   )
 }
 
-// ─── Page principale ───────────────────────────────────────────────────────────
-
 export default function AdminPage() {
-  const { user, logout } = useAuthStore()
-  const router = useRouter()
   const [tab, setTab] = useState<Tab>('dashboard')
   const [stats, setStats] = useState<Stats | null>(null)
-  const [statsLoading, setStatsLoading] = useState(true)
+  const [finance, setFinance] = useState<any>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const showToast = (message: string, type: 'success' | 'error') => setToast({ message, type })
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type })
-  }
-
-  const loadStats = async () => {
-    setStatsLoading(true)
-    try {
-      const res = await api.get('/admin/stats')
-      setStats(res.data)
-    } finally { setStatsLoading(false) }
-  }
-
-  useEffect(() => { loadStats() }, [])
+  useEffect(() => {
+    api.get('/admin/stats').then(r => setStats(r.data)).catch(() => {})
+    api.get('/admin/finance').then(r => setFinance(r.data)).catch(() => {})
+  }, [])
 
   const navItems: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { id: 'users',     icon: <Users size={18} />,           label: 'Utilisateurs' },
-    { id: 'kyc',       icon: <ShieldCheck size={18} />,     label: 'KYC' },
+    { id: 'users',     icon: <Users size={18} />,     label: 'Utilisateurs' },
+    { id: 'kyc',       icon: <Shield size={18} />,    label: 'KYC' },
     { id: 'disputes',  icon: <AlertTriangle size={18} />,   label: 'Litiges' },
-    { id: 'finance',   icon: <TrendingUp size={18} />,       label: 'Finance' },
+    { id: 'finance',   icon: <TrendingUp size={18} />, label: 'Finance' },
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'rgba(240,237,232,0.4)' }}>
-
+    <div style={{ display: 'flex', minHeight: '100vh', background: SAND }}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Sidebar */}
-      <aside style={{ width: 240, background: WHITE, borderRight: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 10 }}>
-        {/* Logo */}
-        <div style={{ padding: '28px 24px 20px', borderBottom: `1px solid ${BORDER}` }}>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 900, color: CHARCOAL, margin: 0, letterSpacing: '-0.02em' }}>
-            KIPAR<span style={{ color: RED }}>.</span>
-          </h1>
-          <p style={{ fontSize: 11, color: TAUPE, margin: '4px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Admin</p>
+      <nav style={{ width: 220, background: WHITE, borderRight: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'column', padding: '24px 0', position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 100 }}>
+        <div style={{ padding: '0 20px 24px', borderBottom: `1px solid ${BORDER}`, marginBottom: 12 }}>
+          <p style={{ fontSize: 20, fontWeight: 800, color: RED, margin: 0, fontFamily: 'var(--font-syne,Syne)' }}>KIPAR.</p>
+          <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>Administration</p>
         </div>
-        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
-          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: SAND, fontSize: 12, color: CHARCOAL2, textDecoration: 'none', fontWeight: 500 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ChevronLeft size={14} color={TAUPE} /><span>Retour au dashboard</span></span>
-          </Link>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 12px' }}>
-          {navItems.map(item => (
-            <button key={item.id} type="button" onClick={() => setTab(item.id)}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 10, border: 'none', background: tab === item.id ? 'rgba(220,0,41,0.06)' : 'transparent', color: tab === item.id ? RED : CHARCOAL2, fontSize: 14, fontWeight: tab === item.id ? 600 : 400, cursor: 'pointer', marginBottom: 4, textAlign: 'left', transition: 'all 0.15s' }}>
-              <span style={{ color: tab === item.id ? RED : TAUPE }}>{item.icon}</span>
-              {item.label}
-              {item.id === 'kyc' && stats && stats.kyc_pending > 0 && (
-                <span style={{ marginLeft: 'auto', background: '#EA580C', color: WHITE, borderRadius: 99, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{stats.kyc_pending}</span>
-              )}
-              {item.id === 'disputes' && stats && stats.open_disputes > 0 && (
-                <span style={{ marginLeft: 'auto', background: RED, color: WHITE, borderRadius: 99, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{stats.open_disputes}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* User + logout */}
-        <div style={{ padding: '16px 20px', borderTop: `1px solid ${BORDER}` }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: 0 }}>{user?.first_name} {user?.last_name}</p>
-          <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 8px' }}>{user?.email}</p>
-          <button type="button" onClick={() => { logout(); router.push('/login') }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 8, border: `1px solid ${BORDER}`, background: 'transparent', fontSize: 12, color: TAUPE, cursor: 'pointer' }}>
-            <LogOut size={13} /> Déconnexion
+        {navItems.map(item => (
+          <button key={item.id} type="button" onClick={() => setTab(item.id)}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', background: tab === item.id ? SAND : 'transparent', border: 'none', borderLeft: tab === item.id ? `3px solid ${RED}` : '3px solid transparent', color: tab === item.id ? RED : CHARCOAL2, fontSize: 13, fontWeight: tab === item.id ? 600 : 400, cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+            {item.icon}
+            {item.label}
+            {item.id === 'disputes' && stats && stats.open_disputes > 0 && (
+              <span style={{ marginLeft: 'auto', background: RED, color: WHITE, borderRadius: 99, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>{stats.open_disputes}</span>
+            )}
           </button>
-        </div>
-      </aside>
-
-      {/* Contenu */}
-      <main style={{ marginLeft: 240, flex: 1, padding: '32px 40px', minHeight: '100vh' }}>
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        {tab === 'dashboard' && <DashboardTab stats={stats} loading={statsLoading} onRefresh={loadStats} onTabChange={setTab} />}
+        ))}
+      </nav>
+      {/* Main */}
+      <main style={{ marginLeft: 220, flex: 1, padding: '32px 32px', maxWidth: 'calc(100vw - 220px)' }}>
+        {tab === 'dashboard' && <DashboardTab stats={stats} loading={!stats} onRefresh={() => api.get('/admin/stats').then(r => setStats(r.data))} onTabChange={setTab} />}
         {tab === 'users'     && <UsersTab onToast={showToast} />}
         {tab === 'kyc'       && <KycTab onToast={showToast} />}
         {tab === 'disputes'  && <DisputesTab onToast={showToast} />}

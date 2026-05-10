@@ -577,3 +577,101 @@ async def get_user_bookings_summary(
             "disputed": len([b for b in carrier_bookings if b.status == "disputed"]),
         },
     }
+
+
+@router.get("/disputes/{dispute_id}/export-pdf")
+async def export_dispute_pdf(
+    dispute_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Genere et retourne le dossier litige en PDF - admin uniquement."""
+    from fastapi.responses import Response
+    from app.services.dispute_pdf_service import generate_dispute_pdf
+    from app.models.package import Package
+
+    result = await db.execute(select(Dispute).where(Dispute.id == dispute_id))
+    dispute = result.scalar_one_or_none()
+    if not dispute:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+
+    # Recuperer toutes les donnees via le meme endpoint get_dispute
+    booking_result = await db.execute(select(Booking).where(Booking.id == dispute.booking_id))
+    booking = booking_result.scalar_one_or_none()
+    initiator_result = await db.execute(select(User).where(User.id == dispute.initiated_by))
+    initiator = initiator_result.scalar_one_or_none()
+    sender, carrier, receiver, trip, pkg = None, None, None, None, None
+    if booking:
+        sender_r = await db.execute(select(User).where(User.id == booking.sender_id))
+        sender = sender_r.scalar_one_or_none()
+        trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+        trip = trip_r.scalar_one_or_none()
+        if trip:
+            carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+            carrier = carrier_r.scalar_one_or_none()
+        if booking.receiver_id:
+            recv_r = await db.execute(select(User).where(User.id == booking.receiver_id))
+            receiver = recv_r.scalar_one_or_none()
+        pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
+        pkg = pkg_r.scalar_one_or_none()
+
+    def u(user): return {
+        "id": str(user.id), "full_name": user.full_name,
+        "email": user.email, "phone": user.phone,
+        "address": user.address, "trust_score": user.trust_score,
+    } if user else None
+
+    dispute_data = {
+        "id": str(dispute.id),
+        "status": dispute.status,
+        "incident_type": dispute.incident_type,
+        "incident_stage": dispute.incident_stage,
+        "initiated_by_role": dispute.initiated_by_role,
+        "reason": dispute.reason,
+        "evidence_urls": dispute.evidence_urls or [],
+        "respondent_comment": dispute.respondent_comment,
+        "respondent_evidence_urls": dispute.respondent_evidence_urls or [],
+        "has_insurance": dispute.has_insurance,
+        "insurance_payout": dispute.insurance_payout,
+        "insurer_dossier_sent": dispute.insurer_dossier_sent,
+        "insurer_dossier_sent_at": dispute.insurer_dossier_sent_at.isoformat() if dispute.insurer_dossier_sent_at else None,
+        "insurer_reference": dispute.insurer_reference,
+        "resolution": dispute.resolution,
+        "created_at": dispute.created_at.isoformat(),
+        "resolved_at": dispute.resolved_at.isoformat() if dispute.resolved_at else None,
+        "initiator": u(initiator),
+        "sender": u(sender),
+        "carrier": u(carrier),
+        "receiver": u(receiver),
+        "booking": {
+            "amount": booking.amount, "currency": booking.currency,
+            "status": booking.status,
+        } if booking else None,
+        "package": {
+            "content_description": pkg.content_description,
+            "declared_value": pkg.declared_value,
+            "weight_kg": pkg.weight_kg,
+            "photo_urls": pkg.photo_urls or [],
+        } if pkg else None,
+        "trip": {
+            "origin": trip.origin_airport_code,
+            "destination": trip.destination_airport_code,
+            "departure_date": str(trip.departure_date),
+            "flight_number": trip.flight_number,
+        } if trip else None,
+        "timeline": {
+            "created_at": dispute.created_at.isoformat(),
+            "pickup_failed_at": booking.pickup_failed_at.isoformat() if booking and booking.pickup_failed_at else None,
+            "delivery_failed_at": booking.delivery_failed_at.isoformat() if booking and booking.delivery_failed_at else None,
+            "incident_response_deadline": booking.incident_response_deadline.isoformat() if booking and booking.incident_response_deadline else None,
+            "resolved_at": dispute.resolved_at.isoformat() if dispute.resolved_at else None,
+        },
+    }
+
+    pdf_bytes = generate_dispute_pdf(dispute_data)
+    filename = f"kipar_litige_{str(dispute.id)[:8].upper()}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )

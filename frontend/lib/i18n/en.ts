@@ -1,702 +1,1419 @@
-export const en = {
-  statuses: {
-    awaiting_receiver: 'Awaiting receiver',
-    pending: 'Pending approval',
-    accepted: 'Accepted',
-    refused: 'Refused',
-    paid: 'Paid',
-    in_transit: 'In transit',
-    delivered: 'Delivered',
-    disputed: 'Dispute opened',
-    refunded: 'Refunded',
-    open: 'Available',
-    full: 'Full',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-    cancelled_by_sender: 'Cancelled by sender',
-    cancelled_by_carrier: 'Cancelled by carrier',
-    pickup_failed: 'Package not delivered',
-  },
-  auth: {
-    login_title: 'Sign In',
-    login_subtitle: 'Ship, Travel, Share',
-    email_label: 'Email / Phone number',
-    email_placeholder: 'example@kipar.fr',
-    password_label: 'Password',
-    forgot_password: 'Forgot password?',
-    login_btn: 'SIGN IN',
-    or_connect_with: 'Or connect with:',
-    no_account: 'New to Kipar?',
-    sign_up: 'Sign up',
-    register_title: 'Create an account',
-    register_subtitle: 'Join the Kipar community',
-    first_name: 'First name',
-    last_name: 'Last name',
-    register_btn: 'CREATE MY ACCOUNT',
-    already_account: 'Already have an account?',
-    sign_in: 'Sign in',
-    stat_carriers: 'Carriers',
-    stat_destinations: 'Destinations',
-    stat_rating: 'Average rating',
-    stat_carriers_value: '10K+',
-    stat_destinations_value: '50+',
-    stat_rating_value: '4.9★',
-    google: 'Continue with Google',
-    apple: 'Continue with Apple',
-  },
-  nav: {
-    home: 'Home',
-    my_packages: 'My packages',
-    trips: 'Trips',
-    profile: 'Profile',
-    carrier: 'Carrier',
-    messages: 'Messages',
-  },
-  dashboard: {
-    greeting: 'Hello',
-    search_placeholder: 'Search for a trip...',
-    popular_corridors: 'Popular corridors',
-    available_trips: 'Available trips',
-    no_trips: 'No trips available on this corridor',
-    hero_sub: 'Find a trusted carrier for your packages',
-    no_trips_sub: 'No trips available on this corridor',
-    loading: 'Loading...',
-  },
-  trip: {
-    available_kg: 'kg available',
-    max_per_package: 'Max/package',
-    departure: 'Departure',
-    price_per_kg: '€/kg',
-    kg_available: '{n} kg avail.',
-    max_kg: 'Max {n} kg',
-    trust_score: 'KiparTrust',
-    kyc_verified: '✓ KYC Verified',
-    send_package: 'Send a package →',
-    trip_detail: 'Trip detail',
-    verified_carrier: 'Kipar verified carrier',
-    insurance_available: 'Package insurance available',
-    insurance_desc: 'Protect your package — 3% of declared value',
-    not_found: 'Trip not found',
-    trips_done: 'trips',
-    reviews: 'reviews',
-    member_since: 'Member since',
-  },
-  booking: {
-    title: 'Describe your package',
-    subtitle: 'This information will be shared with the carrier',
-    receiver_label: "Receiver's email",
-    receiver_placeholder: 'receiver@email.com',
-    content_label: 'Package contents',
-    content_placeholder: 'Clothes, books, medicine...',
-    weight_label: 'Weight (kg)',
-    value_label: 'Declared value (€)',
-    transport_cost: 'Transport',
-    commission: 'Kipar commission (13%)',
-    total: 'Total',
-    confirm_btn: 'Confirm booking →',
-    fill_fields: 'Please fill in all required fields',
-    insurance_label: 'Package insurance',
-    insurance_desc: '3% of declared value',
-    insurance_enter_value: 'Enter a value',
-    insurance_line: 'Insurance',
-  },
-  payment: {
-    title: 'Payment method',
-    card: 'Bank card',
-    card_desc: 'Visa, Mastercard, Apple Pay',
-    mobile_money: 'Mobile Money',
-    mobile_money_desc: 'Orange Money, Wave, MTN MoMo',
-    subtotal: 'Subtotal',
-    insurance: 'Package insurance (3%)',
-    total: 'Total',
-    pay_btn: 'Pay now →',
-    secure: 'Secure payment · Funds released on delivery',
-    simulated: 'Simulated payment — showing tracking',
-      cancel_policy_title: 'Cancellation policy',
-    cancel_policy_full: 'Free cancellation up to 3 days before departure.',
-    cancel_policy_partial: 'Cancellation 1 to 3 days before departure: 50% refund.',
-    cancel_policy_none: 'Cancellation on departure day: no refund.',
-},
-  tracking: {
-    title: 'Package tracking',
-    step_confirmed: 'Booking confirmed',
-    step_waiting: 'Awaiting approval',
-    step_escrow: 'Secure payment (escrow)',
-    step_transit: 'Package in transit',
-    step_delivered: 'Delivery confirmed',
-    code_label: 'Give this code to the carrier',
-    code_valid: 'Valid until delivery',
-    carrier_notified: 'Carrier notified',
-    today: 'Today',
-  },
-  packages: {
-    title: 'My packages',
-    empty: 'No bookings yet',
-    login_required: 'Sign in to view your packages',
-    empty_sub: 'Find a trip and send your first package',
-    booking_count_one: '{n} booking',
-    booking_count_many: '{n} bookings',
-    default_content: 'Package',
-    tab_listings: 'My listings',
-    tab_bookings: 'My bookings',
-    filter_all: 'All',
-    cancel_booking: 'Cancel booking',
-    confirm_cancel: 'Confirm cancellation',
-    booking_cancelled: 'Booking cancelled',
-    refund_full: 'Full refund',
-    refund_partial: 'Partial refund (50%)',
-    refund_none: 'No refund',
-    cancel_reason_placeholder: 'Explain the reason for your cancellation...',
-    cancel_reason_required: 'Please provide a reason before confirming.',
-    cancel_reason_label: 'Cancellation reason',
-    pickup_failed_btn: 'Package not delivered',
-    pickup_failed_title: 'Report undelivered package',
-    pickup_failed_warning: 'This action notifies the sender. A mandatory comment is required.',
-    pickup_failed_placeholder: 'Describe why the package could not be delivered...',
-    pickup_failed_success: 'Report sent to sender',
-    pickup_failed_confirmed: 'Cancellation confirmed',
-    confirm_pickup_failed: 'Confirm non-delivery',
-    dispute_btn: 'Dispute',
-    dispute_title: 'Dispute non-delivery',
-    dispute_placeholder: 'Explain why you are disputing...',
-    dispute_opened: 'Dispute opened — our team will review the situation',
-    reason_required: 'A reason is required',
-  },
-  profile: {
-    title: 'My profile',
-    trust_score: 'KiparTrust Score',
-    kyc_status: 'KYC Status',
-    kyc_verified: '✓ Verified',
-    kyc_pending: 'Pending',
-    my_bookings: 'My bookings',
-    logout: 'Sign out',
-  },
-  search: {
-    title: 'Search',
-    origin_label: 'Departure',
-    origin_placeholder: 'Ex: CDG, Paris...',
-    dest_label: 'Destination',
-    dest_placeholder: 'Ex: DSS, Dakar...',
-    search_btn: 'Search',
-    no_results: 'No trips found',
-    empty_title: 'No trips yet',
-    empty_subtitle: 'Enter a destination to search for trips',
-    filter_date: 'Date',
-    filter_sort: 'Sort by',
-    sort_price_asc: 'Price low to high',
-    sort_price_desc: 'Price high to low',
-    sort_date: 'Departure date',
-    results_count: 'trip found',
-    no_results_sub: 'Try different search criteria',
-    results_count_plural: 'trips found',
-  },
-  carrier: {
-  onboarding_title: 'Become a carrier',
-  onboarding_sub: 'Monetize your luggage allowance by carrying packages for the Kipar community',
-  onboarding_btn: 'Activate carrier mode',
-  onboarding_kyc: 'KYC verification is required to become a carrier',
-  dashboard_title: 'My carrier space',
-  my_trips: 'My listings',
-  new_trip: 'New listing',
-  pending_bookings: 'Pending bookings',
-  no_trips: 'No listings posted',
-  no_bookings: 'No pending bookings',
-  accept: 'Accept',
-  pickup_btn: 'I picked up the package',
-  refuse: 'Refuse',
-  trip_form_title: 'Post a listing',
-  origin_label: 'Departure airport',
-  dest_label: 'Destination airport',
-  date_label: 'Departure date',
-  departure_time_label: 'Departure time',
-  arrival_time_label: 'Arrival time',
-  flight_label: 'Flight number',
-  kg_label: 'Available kg',
-  max_kg_label: 'Max kg per package',
-  price_label: 'Price per kg (€)',
-  step1: 'Activate carrier mode',
-  step2: 'Complete your KYC verification',
-  step3: 'Post your trip listings',
-  no_bookings_sub: 'New bookings will appear here',
-  no_treated_bookings: 'No treated bookings',
-  no_treated_bookings_sub: 'Accepted and refused bookings will appear here',
-  no_trips_sub: 'Post your first listing',
-  submit_btn: 'Publish my listing',
-  tab_pending: 'Pending',
-  tab_treated: 'Tracking',
-  tab_trips: 'My listings',
-  accepted_bookings: 'Accepted',
-  refused_bookings: 'Refused',
-  section_departure: 'Departure',
-  section_destination: 'Destination',
-  section_flight: 'Flight',
-  section_capacity: 'Capacity & Price',
-  airport_selected: '✓ Selected',
-  trip_published: 'Listing published!',
-  trip_delete_confirm: 'Delete this listing?',
-  trip_deleted: 'Listing deleted',
-},
-profile_public: {
-    member_since: 'Member since',
-    months: 'months',
-    years: 'years',
-    year: 'year',
-    deliveries_as_sender: 'Packages sent',
-    deliveries_as_carrier: 'Packages delivered',
-    trips_posted: 'Trips posted',
-    reviews_received: 'Reviews received',
-    avg_rating: 'Average rating',
-    kyc_verified: 'Identity verified',
-    kyc_pending: 'KYC pending',
-    is_carrier_badge: 'Carrier',
-    is_sender_badge: 'Sender',
-    no_reviews: 'No reviews yet',
-    no_reviews_sub: 'Reviews will appear here after the first deliveries',
-    reviews_title: 'Reviews received',
-    see_all: 'See all reviews',
-    load_more: 'Load more',
-    see_less: 'See less',
-    user_not_found: 'User not found',
-    loading: 'Loading profile...',
-    back: 'Back',
-    no_comment: 'No comment',
-  },
-  profile_edit: {
-    // Header & sections
-    title: 'My account',
-    subtitle: 'Manage your information and preferences',
-    section_info: 'Personal information',
-    section_preferences: 'Preferences',
-    section_security: 'Security',
-    section_danger: 'Danger zone',
-
-    // Profile display
-    field_email: 'Email',
-    field_first_name: 'First name',
-    field_last_name: 'Last name',
-    field_phone: 'Phone',
-    field_phone_empty: 'Not provided',
-    field_member_since: 'Member since',
-    view_public_profile: 'View my public profile',
-    change_photo: 'Change photo',
-    edit: 'Edit',
-    save: 'Save',
-    cancel: 'Cancel',
-    saving: 'Saving...',
-
-    // Phone modal
-    modal_phone_title: 'Update your phone',
-    modal_phone_desc: 'International format recommended',
-    modal_phone_placeholder: '+33 6 12 34 56 78',
-    modal_phone_format: 'Accepted format: +33612345678 or 0612345678',
-    error_iban_invalid: 'Invalid IBAN',
-    error_phone_invalid: 'Invalid phone format',
-    error_phone_already_used: 'This number is already in use',
-    success_phone_updated: 'Phone updated',
-    success_weight_unit_updated: 'Weight unit updated',
-    weight_unit_active_listings: "Cannot change weight unit: you have active listings. Please delete them first.",
-    edit_btn: 'Edit',
-    add_btn: 'Add',
-
-    // Password modal
-    modal_password_title: 'Change password',
-    modal_password_desc: 'Choose a strong new password',
-    field_old_password: 'Current password',
-    field_new_password: 'New password',
-    field_confirm_password: 'Confirm new password',
-    password_requirements: 'Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character',
-    error_password_old_invalid: 'Current password is incorrect',
-    error_password_same: 'New password must be different',
-    error_password_mismatch: 'Passwords do not match',
-    error_password_weak: 'Password too weak',
-    success_password_changed: 'Password changed',
-
-    // Avatar modal
-    modal_avatar_title: 'Profile picture',
-    modal_avatar_desc: 'JPG, PNG or WebP — 5 MB max',
-    upload_choose: 'Choose a file',
-    upload_uploading: 'Uploading...',
-    upload_success: 'Photo updated',
-    upload_error: 'Upload error',
-    upload_too_large: 'File too large (5 MB max)',
-    upload_wrong_type: 'Unsupported format (JPG, PNG or WebP only)',
-    avatar_remove: 'Remove photo',
-
-    // Language preference
-    pref_language: 'Language',
-    pref_language_desc: 'Interface language',
-    lang_fr: 'Français',
-    lang_en: 'English',
-    lang_es: 'Español',
-    success_language_updated: 'Language updated',
-
-    // Theme preference
-    pref_weight: 'Weight unit',
-    pref_payout: 'Payment preferences',
-    pref_payout_desc: 'Currency and payout method',
-    pref_currency: 'Currency',
-    pref_payment_method: 'Payment method',
-    payment_method_iban: 'IBAN transfer',
-    payment_method_mobile: 'Mobile Money',
-    pref_payment_country: 'Country',
-    pref_iban: 'IBAN',
-    pref_mobile_money: 'Mobile Money number',
-    pref_mobile_money_placeholder: 'e.g. +241 07 00 00 00',
-        criteria_punctuality: 'Punctuality',
-    criteria_communication: 'Communication',
-    criteria_package_care: 'Package care',
-    criteria_compliance: 'Compliance',
-    criteria_package_prepared: 'Well prepared package',
-    criteria_dropoff_punctuality: 'Drop-off punctuality',
-    criteria_reliability: 'Reliability',
-    criteria_availability: 'Availability',
-    criteria_delivery_punctuality: 'Delivery punctuality',
-    criteria_professionalism: 'Professionalism',
-    section_review: 'Leave a review',
-    review_btn: 'Leave a review',
-    review_submitted: 'Review submitted',
-    review_already: 'Review already submitted',
-    review_comment_placeholder: 'Optional comment...',
-    review_submit_btn: 'Submit review',
-    success_payout_updated: 'Payment preferences updated',
-    field_username: "Username",
-    field_address: "Address",
-    field_username_hint: "4 to 15 characters, lowercase letters, digits, underscore",
-    username_cooldown: "Next change available on",
-    username_taken: "Username already taken",
-    username_available: "Username available",
-    username_checking: "Checking...",
-    success_username_updated: "Username updated",
-    success_name_updated: "Name updated",
-    success_address_updated: "Address updated",
-        currency_EUR: 'Euro',
-    currency_GBP: 'British Pound',
-    currency_USD: 'US Dollar',
-    currency_CHF: 'Swiss Franc',
-    currency_CAD: 'Canadian Dollar',
-    currency_AUD: 'Australian Dollar',
-    currency_XOF: 'CFA Franc (UEMOA)',
-    currency_XAF: 'CFA Franc (CEMAC)',
-    currency_MAD: 'Moroccan Dirham',
-    currency_EGP: 'Egyptian Pound',
-    currency_KES: 'Kenyan Shilling',
-    currency_NGN: 'Nigerian Naira',
-    currency_GHS: 'Ghanaian Cedi',
-    currency_ZAR: 'South African Rand',
-    currency_HTG: 'Haitian Gourde',
-    currency_BRL: 'Brazilian Real',
-    currency_MXN: 'Mexican Peso',
-    currency_AED: 'UAE Dirham',
-    currency_INR: 'Indian Rupee',
-    currency_CNY: 'Chinese Yuan',
-    pref_weight_desc: 'Unit used to enter weights',
-    weight_unit_kg: 'kg',
-    weight_unit_lb: 'lb',
-    weight_unit_g: 'g',
-
-    pref_theme: 'Theme',
-    pref_theme_desc: 'Application appearance',
-    theme_light: 'Light',
-    theme_dark: 'Dark',
-    theme_auto: 'Automatic',
-
-    // Notifications preferences
-    pref_notifications: 'Notifications',
-    notify_by_email: 'Email',
-    notify_by_email_desc: 'Booking updates, invoices, security',
-    notify_by_push: 'Push notifications',
-    notify_by_push_desc: 'Real-time alerts on this device',
-    notify_by_sms: 'SMS',
-    notify_by_sms_desc: 'For urgent actions only',
-    success_notifications_updated: 'Preferences updated',
-
-    // KYC
-    kyc_title: 'Identity verification',
-    kyc_status_verified: 'Identity verified',
-    kyc_status_pending: 'KYC pending',
-    kyc_status_unverified: 'Not verified',
-    kyc_action_verify: 'Verify my identity',
-
-    // Logout
-    logout: 'Sign out',
-
-    // Danger zone — Account deletion
-    danger_title: 'Delete my account',
-    danger_desc: 'This action is permanent. Delivered packages and payment history will be retained (legal requirement) but your profile will be anonymized.',
-    delete_account: 'Delete my account',
-    modal_delete_title: 'Confirm deletion',
-    modal_delete_warning: 'This action is irreversible.',
-    modal_delete_desc: 'Your personal data will be erased and your account deactivated. Transaction history will be retained for legal reasons.',
-    modal_delete_password_label: 'Confirm with your password',
-    modal_delete_password_placeholder: 'Current password',
-    delete_confirm: 'Delete permanently',
-    error_delete_password_invalid: 'Incorrect password',
-    success_account_deleted: 'Account deleted',
-  },
-  errors: {
-    server_unreachable: 'Unable to reach server',
-    invalid_credentials: 'Invalid credentials',
-    generic: 'An error occurred',
-  },
-  package_detail: {
-    not_found: 'Booking not found',
-    section_package: 'Package',
-    section_carrier: 'Carrier',
-    section_sender: 'Sender',
-    section_receiver: 'Receiver',
-    section_photos: 'KiparScan Photos',
-    field_content: 'Contents',
-    field_weight: 'Weight',
-    field_declared_value: 'Declared value',
-    field_amount_paid: 'Amount paid',
-    field_insurance: 'Insurance',
-    insurance_yes: 'Yes',
-    insurance_no: 'No',
-    ai_flag_warning: '⚠️ Content flagged by KiparScan',
-    role_carrier: 'Carrier',
-    role_sender: 'Sender',
-    role_receiver: 'Receiver',
-    see_profile: '→ Profile',
-    kyc_verified: '· ✓ KYC Verified',
-  },
-  kiparscan: {
-    btn: 'KiparScan AI',
-    scanning: 'Analyzing...',
-    result_title: 'KiparScan Result',
-    description: 'Description',
-    weight: 'Estimated weight',
-    dimensions: 'Dimensions',
-    confidence: 'Confidence',
-    confidence_low: 'Low',
-    confidence_medium: 'Medium',
-    confidence_high: 'High',
-    prohibited_flag: 'Potentially prohibited content',
-    prohibited_reason: 'Reason',
-    simulated: 'Simulation (no OpenAI key)',
-    apply_btn: 'Pre-fill form',
-    error: 'KiparScan analysis failed',
-  },
-  requests: {
-    title: 'Package listings',
-    my_requests: 'My listings',
-    new_request: '+ New listing',
-    empty: 'No listings yet',
-    empty_sub: 'Post your first listing to find a carrier',
-    post_btn: 'Find a carrier',
-    create_alert_btn: 'Create an alert',
-    form_title: 'Describe my package',
-    field_content: 'Package description',
-    field_content_placeholder: 'Clothes, books, medicine...',
-    field_weight: 'Weight (kg)',
-    field_value: 'Declared value (€)',
-    field_budget: 'Max budget (€/kg)',
-    field_deadline: 'Deadline',
-    field_receiver: 'Receiver email or phone',
-    field_photos: 'Photos (max 3)',
-    submit_btn: 'Post my listing',
-    success_created: 'Listing published!',
-    applications: 'Applications',
-    other_accepted: 'Another carrier accepted',
-    no_applications: 'No applications yet',
-    accept_btn: 'Choose this carrier',
-    accepted: 'Carrier chosen',
-    budget_label: 'Budget',
-    deadline_label: 'Deadline',
-    apply_btn: 'Candidater',
-    apply_success: 'Application sent!',
-    already_applied: 'Already applied',
-    price_above_budget: 'The sender’s maximum budget is exceeded',
-    carrier_requests: 'Sender listings',
-    no_carrier_requests: 'No listings available',
-    no_carrier_requests_sub: 'Sender listings matching your trips will appear here',
-    status_open: 'Open',
-    status_matched: 'Matched',
-    status_expired: 'Expired',
-    status_cancelled: 'Cancelled',
-    delete_confirm: 'Delete this listing?',
-    deleted: 'Listing deleted',
-  },
-  delivery: {
-    section_code: 'Delivery code',
-    code_label: 'Show this code to the carrier',
-    qr_label: 'or scan this QR code',
-    expires: 'Valid until',
-    generate_hint: 'Did you receive your package? Generate your code to confirm delivery.',
-    generate_btn: 'Generate delivery code',
-    generating: 'Generating...',
-    confirm_title: 'Confirm delivery',
-    enter_code: '6-digit code',
-    code_placeholder: '000000',
-    scan_qr: 'Scan QR code',
-    confirm_btn: 'Confirm delivery',
-    confirming: 'Confirming...',
-    delivered_toast: 'Delivery confirmed!',
-    invalid_code: 'Invalid code',
-    error_generic: 'An error occurred',
-    status_delivered: 'Delivered ✓',
-  },
-  receiver: {
-    loading: 'Loading...',
-    title: 'A package is on its way !',
-    from: 'From',
-    route: 'Route',
-    content: 'Contents',
-    weight: 'Weight',
-    value: 'Declared value',
-    expires: 'Link valid until',
-    confirm_btn: 'Confirm receipt',
-    refuse_btn: 'Decline',
-    confirming: 'Confirming...',
-    refusing: 'Declining...',
-    confirmed_title: 'Receipt confirmed !',
-    confirmed_desc: 'Your Kipar account has been created. Sign in with your email and the temporary password below.',
-    confirmed_existing: 'Thank you! The booking is confirmed. You can track the package in your Kipar dashboard.',
-    temp_password_label: 'Temporary password',
-    temp_password_note: 'Please change it after your first login.',
-    login_btn: 'Sign in to Kipar',
-    refused_title: 'Invitation declined',
-    refused_desc: 'The sender will be notified and may designate another recipient.',
-    expired_title: 'Link expired',
-    expired_desc: 'This link is no longer valid. Contact the sender to get a new link.',
-    already_title: 'Already processed',
-    already_desc: 'This invitation has already been accepted or declined.',
-    not_found_title: 'Invalid link',
-    not_found_desc: 'This recipient link could not be found.',
-    error_generic: 'An error occurred. Please try again.',
-  },
-  verify: {
-    email_label: 'Email',
-    phone_label: 'Phone',
-    verified: 'Verified',
-    not_verified: 'Not verified',
-    verify_btn: 'Verify',
-    code_sent: 'Code sent! Check your inbox.',
-    code_sent_phone: 'Code sent by SMS.',
-    enter_code: 'Enter the 6-digit code',
-    resend: 'Resend code',
-    confirm_btn: 'Confirm',
-    sending: 'Sending...',
-    confirming: 'Verifying...',
-    email_verified: 'Email verified ✓',
-    phone_verified: 'Phone verified ✓',
-    invalid_code: 'Invalid or expired code',
-    modal_email_title: 'Verify your email',
-    modal_phone_title: 'Verify your phone',
-    modal_email_desc: 'A 6-digit code will be sent to your email address.',
-    modal_phone_desc: 'A 6-digit code will be sent by SMS to your number.',
-  },
-  notifications: {
-    title: 'Notifications',
-    empty: 'No notifications',
-    mark_all_read: 'Mark all as read',
-    trip_match: 'New trip available',
-    new_application: 'New application',
-    just_now: 'Just now',
-  see_all: 'See all',
-    delete_read: 'Delete read',
-  },
-  chat: {
-    title: 'Messaging',
-    placeholder: 'Your message...',
-    readonly_notice: 'Archived conversation — read only',
-    send: 'Send',
-    you: 'You',
-    loading: 'Loading...',
-    error_connect: 'Unable to connect to chat',
-    error_send: 'Error sending message',
-  },
-  support: {
-    section_title: 'Support',
-    chat_label: 'Contact support',
-    chat_desc: 'Our team is available to help you',
-    faq_label: 'FAQ',
-    faq_desc: 'Browse our frequently asked questions',
-  },
-  onboarding: {
-    step_label: "Step",
-    personal_title: "Your information",
-    personal_subtitle: "Complete your profile to get started",
-    pref_title: "Your preferences",
-    pref_subtitle: "Customize your Kipar experience",
-    payment_title: "Your bank details",
-    payment_subtitle: "To receive payments as a carrier",
-    identity_title: "Identity verification",
-    identity_subtitle: "Upload your documents to be KYC verified",
-    id_front: "ID document front",
-    id_back: "ID document back",
-    selfie: "Selfie with your ID",
-    upload_btn: "Click to upload",
-    done_title: "Profile completed",
-    done_subtitle: "Welcome to Kipar.",
-    done_btn: "Go to dashboard",
-    next_btn: "Continue",
-    back_btn: "Back",
-    finish_btn: "Finish",
-    skip_btn: "Skip this step",
-    field_first_name: "First name",
-    field_last_name: "Last name",
-    field_username: "Username",
-    field_username_hint: "4 to 15 characters, lowercase letters, digits, underscore",
-    field_address: "Address",
-    field_address_hint: "Enter your address or search for it",
-    username_available: "Username available",
-    username_taken: "Username already taken",
-    username_invalid: "Invalid format (4-15 chars, lowercase, digits, _)",
-    username_checking: "Checking...",
-  },
-  landing: {
-    hero_badge: "KiparTrust verified carriers",
-    hero_title_1: "Every parcel",
-    hero_title_2: "deserves",
-    hero_title_3: "a trusted",
-    hero_title_4: "carrier.",
-    hero_tagline: "Ship, Travel, Share.",
-    hero_desc: "The first peer-to-peer parcel delivery marketplace with identity verification and KiparTrust confidence score.",
-    hero_cta_primary: "Get started for free",
-    hero_cta_secondary: "How it works",
-    stat_carriers: "Active carriers",
-    stat_destinations: "Destinations",
-    stat_success: "Successful deliveries",
-    stat_rating: "Average rating",
-    how_tag: "Simple & Fast",
-    how_title: "How does it work?",
-    how_step1_title: "Post your listing",
-    how_step1_desc: "Describe your parcel, its weight and destination. Our KiparScan AI analyzes your photos to validate the contents.",
-    how_step2_title: "Choose a carrier",
-    how_step2_desc: "Browse KiparTrust-verified travelers on your corridor. Check their trust score, reviews and rates.",
-    how_step3_title: "Secure delivery",
-    how_step3_desc: "The carrier hands over the parcel with a unique QR code. Payment is released only after delivery confirmation.",
-    role_sender: "Sender",
-    role_sender_desc: "Send your parcels with peace of mind",
-    role_carrier: "Carrier",
-    role_carrier_desc: "Monetize your trips",
-    role_receiver: "Receiver",
-    role_receiver_desc: "Receive your parcels safely",
-    video_title: "KIPAR in action",
-    video_placeholder: "Presentation video — coming soon",
-    why_tag: "Our promise",
-    why_title: "Why choose KIPAR?",
-    why_trust_title: "KiparTrust",
-    why_trust_desc: "Our unique trust score system verifies every carrier: identity, history, customer reviews.",
-    why_scan_title: "KiparScan AI",
-    why_scan_desc: "Our AI analyzes your parcel photos to validate content and speed up matching.",
-    why_globe_title: "50+ destinations",
-    why_globe_desc: "CDG, ORY, LYS to Abidjan, Dakar, Libreville, Lagos, Casablanca and many more.",
-    why_community_title: "Verified community",
-    why_community_desc: "Every member is verified through our KYC process. Email, phone, ID document.",
-    corridors_title: "Popular corridors",
-    testimonials_tag: "They trust us",
-    testimonials_title: "What they say about KIPAR",
-    cta_title_1: "Ready to join",
-    cta_title_2: "the community",
-    cta_desc: "Join thousands of members who trust KIPAR for their international shipments.",
-    cta_primary: "Create a free account",
-    cta_secondary: "Sign in",
-    nav_how: "How it works",
-    nav_why: "Why KIPAR",
-    nav_testimonials: "Testimonials",
-    nav_login: "Sign in",
-    nav_login_mobile: "Login",
-    footer_rights: "© 2026 KIPAR. All rights reserved.",
-  },
-}
+export const en = {
+
+  statuses: {
+
+    awaiting_receiver: 'Awaiting receiver',
+
+    pending: 'Pending approval',
+
+    accepted: 'Accepted',
+
+    refused: 'Refused',
+
+    paid: 'Paid',
+
+    in_transit: 'In transit',
+
+    delivered: 'Delivered',
+
+    disputed: 'Dispute opened',
+
+    refunded: 'Refunded',
+
+    open: 'Available',
+
+    full: 'Full',
+
+    completed: 'Completed',
+
+    cancelled: 'Cancelled',
+
+    cancelled_by_sender: 'Cancelled by sender',
+
+    cancelled_by_carrier: 'Cancelled by carrier',
+
+    pickup_failed: 'Package not delivered',
+
+  },
+
+  auth: {
+
+    login_title: 'Sign In',
+
+    login_subtitle: 'Ship, Travel, Share',
+
+    email_label: 'Email / Phone number',
+
+    email_placeholder: 'example@kipar.fr',
+
+    password_label: 'Password',
+
+    forgot_password: 'Forgot password?',
+
+    login_btn: 'SIGN IN',
+
+    or_connect_with: 'Or connect with:',
+
+    no_account: 'New to Kipar?',
+
+    sign_up: 'Sign up',
+
+    register_title: 'Create an account',
+
+    register_subtitle: 'Join the Kipar community',
+
+    first_name: 'First name',
+
+    last_name: 'Last name',
+
+    register_btn: 'CREATE MY ACCOUNT',
+
+    already_account: 'Already have an account?',
+
+    sign_in: 'Sign in',
+
+    stat_carriers: 'Carriers',
+
+    stat_destinations: 'Destinations',
+
+    stat_rating: 'Average rating',
+
+    stat_carriers_value: '10K+',
+
+    stat_destinations_value: '50+',
+
+    stat_rating_value: '4.9★',
+
+    google: 'Continue with Google',
+
+    apple: 'Continue with Apple',
+
+  },
+
+  nav: {
+
+    home: 'Home',
+
+    my_packages: 'My packages',
+
+    trips: 'Trips',
+
+    profile: 'Profile',
+
+    carrier: 'Carrier',
+
+    messages: 'Messages',
+
+  },
+
+  dashboard: {
+
+    greeting: 'Hello',
+
+    search_placeholder: 'Search for a trip...',
+
+    popular_corridors: 'Popular corridors',
+
+    available_trips: 'Available trips',
+
+    no_trips: 'No trips available on this corridor',
+
+    hero_sub: 'Find a trusted carrier for your packages',
+
+    no_trips_sub: 'No trips available on this corridor',
+
+    loading: 'Loading...',
+
+  },
+
+  trip: {
+
+    available_kg: 'kg available',
+
+    max_per_package: 'Max/package',
+
+    departure: 'Departure',
+
+    price_per_kg: '€/kg',
+
+    kg_available: '{n} kg avail.',
+
+    max_kg: 'Max {n} kg',
+
+    trust_score: 'KiparTrust',
+
+    kyc_verified: '✓ KYC Verified',
+
+    send_package: 'Send a package →',
+
+    trip_detail: 'Trip detail',
+
+    verified_carrier: 'Kipar verified carrier',
+
+    insurance_available: 'Package insurance available',
+
+    insurance_desc: 'Protect your package — 3% of declared value',
+
+    not_found: 'Trip not found',
+
+    trips_done: 'trips',
+
+    reviews: 'reviews',
+
+    member_since: 'Member since',
+
+  },
+
+  booking: {
+
+    title: 'Describe your package',
+
+    subtitle: 'This information will be shared with the carrier',
+
+    receiver_label: "Receiver's email",
+
+    receiver_placeholder: 'receiver@email.com',
+
+    content_label: 'Package contents',
+
+    content_placeholder: 'Clothes, books, medicine...',
+
+    weight_label: 'Weight (kg)',
+
+    value_label: 'Declared value (€)',
+
+    transport_cost: 'Transport',
+
+    commission: 'Kipar commission (13%)',
+
+    total: 'Total',
+
+    confirm_btn: 'Confirm booking →',
+
+    fill_fields: 'Please fill in all required fields',
+
+    insurance_label: 'Package insurance',
+
+    insurance_desc: '3% of declared value',
+
+    insurance_enter_value: 'Enter a value',
+
+    insurance_line: 'Insurance',
+
+  },
+
+  payment: {
+
+    title: 'Payment method',
+
+    card: 'Bank card',
+
+    card_desc: 'Visa, Mastercard, Apple Pay',
+
+    mobile_money: 'Mobile Money',
+
+    mobile_money_desc: 'Orange Money, Wave, MTN MoMo',
+
+    subtotal: 'Subtotal',
+
+    insurance: 'Package insurance (3%)',
+
+    total: 'Total',
+
+    pay_btn: 'Pay now →',
+
+    secure: 'Secure payment · Funds released on delivery',
+
+    simulated: 'Simulated payment — showing tracking',
+
+      cancel_policy_title: 'Cancellation policy',
+
+    cancel_policy_full: 'Free cancellation up to 3 days before departure.',
+
+    cancel_policy_partial: 'Cancellation 1 to 3 days before departure: 50% refund.',
+
+    cancel_policy_none: 'Cancellation on departure day: no refund.',
+
+},
+
+  tracking: {
+
+    title: 'Package tracking',
+
+    step_confirmed: 'Booking confirmed',
+
+    step_waiting: 'Awaiting approval',
+
+    step_escrow: 'Secure payment (escrow)',
+
+    step_transit: 'Package in transit',
+
+    step_delivered: 'Delivery confirmed',
+
+    code_label: 'Give this code to the carrier',
+
+    code_valid: 'Valid until delivery',
+
+    carrier_notified: 'Carrier notified',
+
+    today: 'Today',
+
+  },
+
+  packages: {
+
+    title: 'My packages',
+
+    empty: 'No bookings yet',
+
+    login_required: 'Sign in to view your packages',
+
+    empty_sub: 'Find a trip and send your first package',
+
+    booking_count_one: '{n} booking',
+
+    booking_count_many: '{n} bookings',
+
+    default_content: 'Package',
+
+    tab_listings: 'My listings',
+
+    tab_bookings: 'My bookings',
+
+    filter_all: 'All',
+
+    cancel_booking: 'Cancel booking',
+
+    confirm_cancel: 'Confirm cancellation',
+
+    booking_cancelled: 'Booking cancelled',
+
+    refund_full: 'Full refund',
+
+    refund_partial: 'Partial refund (50%)',
+
+    refund_none: 'No refund',
+
+    cancel_reason_placeholder: 'Explain the reason for your cancellation...',
+
+    cancel_reason_required: 'Please provide a reason before confirming.',
+
+    cancel_reason_label: 'Cancellation reason',
+
+    pickup_failed_btn: 'Package not delivered',
+
+    pickup_failed_title: 'Report undelivered package',
+
+    pickup_failed_warning: 'This action notifies the sender. A mandatory comment is required.',
+
+    pickup_failed_placeholder: 'Describe why the package could not be delivered...',
+
+    pickup_failed_success: 'Report sent to sender',
+
+    pickup_failed_confirmed: 'Cancellation confirmed',
+
+    confirm_pickup_failed: 'Confirm non-delivery',
+
+    dispute_btn: 'Dispute',
+
+    dispute_title: 'Dispute non-delivery',
+
+    dispute_placeholder: 'Explain why you are disputing...',
+
+    dispute_opened: 'Dispute opened — our team will review the situation',
+
+    dispute_type: 'Incident type',
+    dispute_stage: 'When did it happen',
+    dispute_value: 'Declared value (EUR)',
+    dispute_value_placeholder: 'e.g. 150',
+    dispute_reason_label: 'Reason (required)',
+    dispute_photos: 'Evidence photos',
+    dispute_type_pickup: 'Not collected at pickup',
+    dispute_type_delivery: 'Not delivered',
+    dispute_type_damaged: 'Damaged parcel',
+    dispute_type_lost: 'Lost parcel',
+    dispute_type_wrong_content: 'Wrong content',
+    dispute_type_other: 'Other',
+    dispute_stage_pickup: 'At pickup',
+    dispute_stage_transit: 'In transit',
+    dispute_stage_delivery: 'At delivery',
+    reason_required: 'A reason is required',
+
+  },
+
+  profile: {
+
+    title: 'My profile',
+
+    trust_score: 'KiparTrust Score',
+
+    kyc_status: 'KYC Status',
+
+    kyc_verified: '✓ Verified',
+
+    kyc_pending: 'Pending',
+
+    my_bookings: 'My bookings',
+
+    logout: 'Sign out',
+
+  },
+
+  search: {
+
+    title: 'Search',
+
+    origin_label: 'Departure',
+
+    origin_placeholder: 'Ex: CDG, Paris...',
+
+    dest_label: 'Destination',
+
+    dest_placeholder: 'Ex: DSS, Dakar...',
+
+    search_btn: 'Search',
+
+    no_results: 'No trips found',
+
+    empty_title: 'No trips yet',
+
+    empty_subtitle: 'Enter a destination to search for trips',
+
+    filter_date: 'Date',
+
+    filter_sort: 'Sort by',
+
+    sort_price_asc: 'Price low to high',
+
+    sort_price_desc: 'Price high to low',
+
+    sort_date: 'Departure date',
+
+    results_count: 'trip found',
+
+    no_results_sub: 'Try different search criteria',
+
+    results_count_plural: 'trips found',
+
+  },
+
+  carrier: {
+
+  onboarding_title: 'Become a carrier',
+
+  onboarding_sub: 'Monetize your luggage allowance by carrying packages for the Kipar community',
+
+  onboarding_btn: 'Activate carrier mode',
+
+  onboarding_kyc: 'KYC verification is required to become a carrier',
+
+  dashboard_title: 'My carrier space',
+
+  my_trips: 'My listings',
+
+  new_trip: 'New listing',
+
+  pending_bookings: 'Pending bookings',
+
+  no_trips: 'No listings posted',
+
+  no_bookings: 'No pending bookings',
+
+  accept: 'Accept',
+
+  pickup_btn: 'I picked up the package',
+
+  refuse: 'Refuse',
+
+  trip_form_title: 'Post a listing',
+
+  origin_label: 'Departure airport',
+
+  dest_label: 'Destination airport',
+
+  date_label: 'Departure date',
+
+  departure_time_label: 'Departure time',
+
+  arrival_time_label: 'Arrival time',
+
+  flight_label: 'Flight number',
+
+  kg_label: 'Available kg',
+
+  max_kg_label: 'Max kg per package',
+
+  price_label: 'Price per kg (€)',
+
+  step1: 'Activate carrier mode',
+
+  step2: 'Complete your KYC verification',
+
+  step3: 'Post your trip listings',
+
+  no_bookings_sub: 'New bookings will appear here',
+
+  no_treated_bookings: 'No treated bookings',
+
+  no_treated_bookings_sub: 'Accepted and refused bookings will appear here',
+
+  no_trips_sub: 'Post your first listing',
+
+  submit_btn: 'Publish my listing',
+
+  tab_pending: 'Pending',
+
+  tab_treated: 'Tracking',
+
+  tab_trips: 'My listings',
+
+  accepted_bookings: 'Accepted',
+
+  refused_bookings: 'Refused',
+
+  section_departure: 'Departure',
+
+  section_destination: 'Destination',
+
+  section_flight: 'Flight',
+
+  section_capacity: 'Capacity & Price',
+
+  airport_selected: '✓ Selected',
+
+  trip_published: 'Listing published!',
+
+  trip_delete_confirm: 'Delete this listing?',
+
+  trip_deleted: 'Listing deleted',
+
+},
+
+profile_public: {
+
+    member_since: 'Member since',
+
+    months: 'months',
+
+    years: 'years',
+
+    year: 'year',
+
+    deliveries_as_sender: 'Packages sent',
+
+    deliveries_as_carrier: 'Packages delivered',
+
+    trips_posted: 'Trips posted',
+
+    reviews_received: 'Reviews received',
+
+    avg_rating: 'Average rating',
+
+    kyc_verified: 'Identity verified',
+
+    kyc_pending: 'KYC pending',
+
+    is_carrier_badge: 'Carrier',
+
+    is_sender_badge: 'Sender',
+
+    no_reviews: 'No reviews yet',
+
+    no_reviews_sub: 'Reviews will appear here after the first deliveries',
+
+    reviews_title: 'Reviews received',
+
+    see_all: 'See all reviews',
+
+    load_more: 'Load more',
+
+    see_less: 'See less',
+
+    user_not_found: 'User not found',
+
+    loading: 'Loading profile...',
+
+    back: 'Back',
+
+    no_comment: 'No comment',
+
+  },
+
+  profile_edit: {
+
+    // Header & sections
+
+    title: 'My account',
+
+    subtitle: 'Manage your information and preferences',
+
+    section_info: 'Personal information',
+
+    section_preferences: 'Preferences',
+
+    section_security: 'Security',
+
+    section_danger: 'Danger zone',
+
+
+
+    // Profile display
+
+    field_email: 'Email',
+
+    field_first_name: 'First name',
+
+    field_last_name: 'Last name',
+
+    field_phone: 'Phone',
+
+    field_phone_empty: 'Not provided',
+
+    field_member_since: 'Member since',
+
+    view_public_profile: 'View my public profile',
+
+    change_photo: 'Change photo',
+
+    edit: 'Edit',
+
+    save: 'Save',
+
+    cancel: 'Cancel',
+
+    saving: 'Saving...',
+
+
+
+    // Phone modal
+
+    modal_phone_title: 'Update your phone',
+
+    modal_phone_desc: 'International format recommended',
+
+    modal_phone_placeholder: '+33 6 12 34 56 78',
+
+    modal_phone_format: 'Accepted format: +33612345678 or 0612345678',
+
+    error_iban_invalid: 'Invalid IBAN',
+
+    error_phone_invalid: 'Invalid phone format',
+
+    error_phone_already_used: 'This number is already in use',
+
+    success_phone_updated: 'Phone updated',
+
+    success_weight_unit_updated: 'Weight unit updated',
+
+    weight_unit_active_listings: "Cannot change weight unit: you have active listings. Please delete them first.",
+
+    edit_btn: 'Edit',
+
+    add_btn: 'Add',
+
+
+
+    // Password modal
+
+    modal_password_title: 'Change password',
+
+    modal_password_desc: 'Choose a strong new password',
+
+    field_old_password: 'Current password',
+
+    field_new_password: 'New password',
+
+    field_confirm_password: 'Confirm new password',
+
+    password_requirements: 'Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character',
+
+    error_password_old_invalid: 'Current password is incorrect',
+
+    error_password_same: 'New password must be different',
+
+    error_password_mismatch: 'Passwords do not match',
+
+    error_password_weak: 'Password too weak',
+
+    success_password_changed: 'Password changed',
+
+
+
+    // Avatar modal
+
+    modal_avatar_title: 'Profile picture',
+
+    modal_avatar_desc: 'JPG, PNG or WebP — 5 MB max',
+
+    upload_choose: 'Choose a file',
+
+    upload_uploading: 'Uploading...',
+
+    upload_success: 'Photo updated',
+
+    upload_error: 'Upload error',
+
+    upload_too_large: 'File too large (5 MB max)',
+
+    upload_wrong_type: 'Unsupported format (JPG, PNG or WebP only)',
+
+    avatar_remove: 'Remove photo',
+
+
+
+    // Language preference
+
+    pref_language: 'Language',
+
+    pref_language_desc: 'Interface language',
+
+    lang_fr: 'Français',
+
+    lang_en: 'English',
+
+    lang_es: 'Español',
+
+    success_language_updated: 'Language updated',
+
+
+
+    // Theme preference
+
+    pref_weight: 'Weight unit',
+
+    pref_payout: 'Payment preferences',
+
+    pref_payout_desc: 'Currency and payout method',
+
+    pref_currency: 'Currency',
+
+    pref_payment_method: 'Payment method',
+
+    payment_method_iban: 'IBAN transfer',
+
+    payment_method_mobile: 'Mobile Money',
+
+    pref_payment_country: 'Country',
+
+    pref_iban: 'IBAN',
+
+    pref_mobile_money: 'Mobile Money number',
+
+    pref_mobile_money_placeholder: 'e.g. +241 07 00 00 00',
+
+        criteria_punctuality: 'Punctuality',
+
+    criteria_communication: 'Communication',
+
+    criteria_package_care: 'Package care',
+
+    criteria_compliance: 'Compliance',
+
+    criteria_package_prepared: 'Well prepared package',
+
+    criteria_dropoff_punctuality: 'Drop-off punctuality',
+
+    criteria_reliability: 'Reliability',
+
+    criteria_availability: 'Availability',
+
+    criteria_delivery_punctuality: 'Delivery punctuality',
+
+    criteria_professionalism: 'Professionalism',
+
+    section_review: 'Leave a review',
+
+    review_btn: 'Leave a review',
+
+    review_submitted: 'Review submitted',
+
+    review_already: 'Review already submitted',
+
+    review_comment_placeholder: 'Optional comment...',
+
+    review_submit_btn: 'Submit review',
+
+    success_payout_updated: 'Payment preferences updated',
+
+    field_username: "Username",
+
+    field_address: "Address",
+
+    field_username_hint: "4 to 15 characters, lowercase letters, digits, underscore",
+
+    username_cooldown: "Next change available on",
+
+    username_taken: "Username already taken",
+
+    username_available: "Username available",
+
+    username_checking: "Checking...",
+
+    success_username_updated: "Username updated",
+
+    success_name_updated: "Name updated",
+
+    success_address_updated: "Address updated",
+
+        currency_EUR: 'Euro',
+
+    currency_GBP: 'British Pound',
+
+    currency_USD: 'US Dollar',
+
+    currency_CHF: 'Swiss Franc',
+
+    currency_CAD: 'Canadian Dollar',
+
+    currency_AUD: 'Australian Dollar',
+
+    currency_XOF: 'CFA Franc (UEMOA)',
+
+    currency_XAF: 'CFA Franc (CEMAC)',
+
+    currency_MAD: 'Moroccan Dirham',
+
+    currency_EGP: 'Egyptian Pound',
+
+    currency_KES: 'Kenyan Shilling',
+
+    currency_NGN: 'Nigerian Naira',
+
+    currency_GHS: 'Ghanaian Cedi',
+
+    currency_ZAR: 'South African Rand',
+
+    currency_HTG: 'Haitian Gourde',
+
+    currency_BRL: 'Brazilian Real',
+
+    currency_MXN: 'Mexican Peso',
+
+    currency_AED: 'UAE Dirham',
+
+    currency_INR: 'Indian Rupee',
+
+    currency_CNY: 'Chinese Yuan',
+
+    pref_weight_desc: 'Unit used to enter weights',
+
+    weight_unit_kg: 'kg',
+
+    weight_unit_lb: 'lb',
+
+    weight_unit_g: 'g',
+
+
+
+    pref_theme: 'Theme',
+
+    pref_theme_desc: 'Application appearance',
+
+    theme_light: 'Light',
+
+    theme_dark: 'Dark',
+
+    theme_auto: 'Automatic',
+
+
+
+    // Notifications preferences
+
+    pref_notifications: 'Notifications',
+
+    notify_by_email: 'Email',
+
+    notify_by_email_desc: 'Booking updates, invoices, security',
+
+    notify_by_push: 'Push notifications',
+
+    notify_by_push_desc: 'Real-time alerts on this device',
+
+    notify_by_sms: 'SMS',
+
+    notify_by_sms_desc: 'For urgent actions only',
+
+    success_notifications_updated: 'Preferences updated',
+
+
+
+    // KYC
+
+    kyc_title: 'Identity verification',
+
+    kyc_status_verified: 'Identity verified',
+
+    kyc_status_pending: 'KYC pending',
+
+    kyc_status_unverified: 'Not verified',
+
+    kyc_action_verify: 'Verify my identity',
+
+
+
+    // Logout
+
+    logout: 'Sign out',
+
+
+
+    // Danger zone — Account deletion
+
+    danger_title: 'Delete my account',
+
+    danger_desc: 'This action is permanent. Delivered packages and payment history will be retained (legal requirement) but your profile will be anonymized.',
+
+    delete_account: 'Delete my account',
+
+    modal_delete_title: 'Confirm deletion',
+
+    modal_delete_warning: 'This action is irreversible.',
+
+    modal_delete_desc: 'Your personal data will be erased and your account deactivated. Transaction history will be retained for legal reasons.',
+
+    modal_delete_password_label: 'Confirm with your password',
+
+    modal_delete_password_placeholder: 'Current password',
+
+    delete_confirm: 'Delete permanently',
+
+    error_delete_password_invalid: 'Incorrect password',
+
+    success_account_deleted: 'Account deleted',
+
+  },
+
+  errors: {
+
+    server_unreachable: 'Unable to reach server',
+
+    invalid_credentials: 'Invalid credentials',
+
+    generic: 'An error occurred',
+
+  },
+
+  package_detail: {
+
+    not_found: 'Booking not found',
+
+    section_package: 'Package',
+
+    section_carrier: 'Carrier',
+
+    section_sender: 'Sender',
+
+    section_receiver: 'Receiver',
+
+    section_photos: 'KiparScan Photos',
+
+    field_content: 'Contents',
+
+    field_weight: 'Weight',
+
+    field_declared_value: 'Declared value',
+
+    field_amount_paid: 'Amount paid',
+
+    field_insurance: 'Insurance',
+
+    insurance_yes: 'Yes',
+
+    insurance_no: 'No',
+
+    ai_flag_warning: '⚠️ Content flagged by KiparScan',
+
+    role_carrier: 'Carrier',
+
+    role_sender: 'Sender',
+
+    role_receiver: 'Receiver',
+
+    see_profile: '→ Profile',
+
+    kyc_verified: '· ✓ KYC Verified',
+
+  },
+
+  kiparscan: {
+
+    btn: 'KiparScan AI',
+
+    scanning: 'Analyzing...',
+
+    result_title: 'KiparScan Result',
+
+    description: 'Description',
+
+    weight: 'Estimated weight',
+
+    dimensions: 'Dimensions',
+
+    confidence: 'Confidence',
+
+    confidence_low: 'Low',
+
+    confidence_medium: 'Medium',
+
+    confidence_high: 'High',
+
+    prohibited_flag: 'Potentially prohibited content',
+
+    prohibited_reason: 'Reason',
+
+    simulated: 'Simulation (no OpenAI key)',
+
+    apply_btn: 'Pre-fill form',
+
+    error: 'KiparScan analysis failed',
+
+  },
+
+  requests: {
+
+    title: 'Package listings',
+
+    my_requests: 'My listings',
+
+    new_request: '+ New listing',
+
+    empty: 'No listings yet',
+
+    empty_sub: 'Post your first listing to find a carrier',
+
+    post_btn: 'Find a carrier',
+
+    create_alert_btn: 'Create an alert',
+
+    form_title: 'Describe my package',
+
+    field_content: 'Package description',
+
+    field_content_placeholder: 'Clothes, books, medicine...',
+
+    field_weight: 'Weight (kg)',
+
+    field_value: 'Declared value (€)',
+
+    field_budget: 'Max budget (€/kg)',
+
+    field_deadline: 'Deadline',
+
+    field_receiver: 'Receiver email or phone',
+
+    field_photos: 'Photos (max 3)',
+
+    submit_btn: 'Post my listing',
+
+    success_created: 'Listing published!',
+
+    applications: 'Applications',
+
+    other_accepted: 'Another carrier accepted',
+
+    no_applications: 'No applications yet',
+
+    accept_btn: 'Choose this carrier',
+
+    accepted: 'Carrier chosen',
+
+    budget_label: 'Budget',
+
+    deadline_label: 'Deadline',
+
+    apply_btn: 'Candidater',
+
+    apply_success: 'Application sent!',
+
+    already_applied: 'Already applied',
+
+    price_above_budget: 'The sender’s maximum budget is exceeded',
+
+    carrier_requests: 'Sender listings',
+
+    no_carrier_requests: 'No listings available',
+
+    no_carrier_requests_sub: 'Sender listings matching your trips will appear here',
+
+    status_open: 'Open',
+
+    status_matched: 'Matched',
+
+    status_expired: 'Expired',
+
+    status_cancelled: 'Cancelled',
+
+    delete_confirm: 'Delete this listing?',
+
+    deleted: 'Listing deleted',
+
+  },
+
+  delivery: {
+
+    section_code: 'Delivery code',
+
+    code_label: 'Show this code to the carrier',
+
+    qr_label: 'or scan this QR code',
+
+    expires: 'Valid until',
+
+    generate_hint: 'Did you receive your package? Generate your code to confirm delivery.',
+
+    generate_btn: 'Generate delivery code',
+
+    generating: 'Generating...',
+
+    confirm_title: 'Confirm delivery',
+
+    enter_code: '6-digit code',
+
+    code_placeholder: '000000',
+
+    scan_qr: 'Scan QR code',
+
+    confirm_btn: 'Confirm delivery',
+
+    confirming: 'Confirming...',
+
+    delivered_toast: 'Delivery confirmed!',
+
+    invalid_code: 'Invalid code',
+
+    error_generic: 'An error occurred',
+
+    status_delivered: 'Delivered ✓',
+
+  },
+
+  receiver: {
+
+    loading: 'Loading...',
+
+    title: 'A package is on its way !',
+
+    from: 'From',
+
+    route: 'Route',
+
+    content: 'Contents',
+
+    weight: 'Weight',
+
+    value: 'Declared value',
+
+    expires: 'Link valid until',
+
+    confirm_btn: 'Confirm receipt',
+
+    refuse_btn: 'Decline',
+
+    confirming: 'Confirming...',
+
+    refusing: 'Declining...',
+
+    confirmed_title: 'Receipt confirmed !',
+
+    confirmed_desc: 'Your Kipar account has been created. Sign in with your email and the temporary password below.',
+
+    confirmed_existing: 'Thank you! The booking is confirmed. You can track the package in your Kipar dashboard.',
+
+    temp_password_label: 'Temporary password',
+
+    temp_password_note: 'Please change it after your first login.',
+
+    login_btn: 'Sign in to Kipar',
+
+    refused_title: 'Invitation declined',
+
+    refused_desc: 'The sender will be notified and may designate another recipient.',
+
+    expired_title: 'Link expired',
+
+    expired_desc: 'This link is no longer valid. Contact the sender to get a new link.',
+
+    already_title: 'Already processed',
+
+    already_desc: 'This invitation has already been accepted or declined.',
+
+    not_found_title: 'Invalid link',
+
+    not_found_desc: 'This recipient link could not be found.',
+
+    error_generic: 'An error occurred. Please try again.',
+
+  },
+
+  verify: {
+
+    email_label: 'Email',
+
+    phone_label: 'Phone',
+
+    verified: 'Verified',
+
+    not_verified: 'Not verified',
+
+    verify_btn: 'Verify',
+
+    code_sent: 'Code sent! Check your inbox.',
+
+    code_sent_phone: 'Code sent by SMS.',
+
+    enter_code: 'Enter the 6-digit code',
+
+    resend: 'Resend code',
+
+    confirm_btn: 'Confirm',
+
+    sending: 'Sending...',
+
+    confirming: 'Verifying...',
+
+    email_verified: 'Email verified ✓',
+
+    phone_verified: 'Phone verified ✓',
+
+    invalid_code: 'Invalid or expired code',
+
+    modal_email_title: 'Verify your email',
+
+    modal_phone_title: 'Verify your phone',
+
+    modal_email_desc: 'A 6-digit code will be sent to your email address.',
+
+    modal_phone_desc: 'A 6-digit code will be sent by SMS to your number.',
+
+  },
+
+  notifications: {
+
+    title: 'Notifications',
+
+    empty: 'No notifications',
+
+    mark_all_read: 'Mark all as read',
+
+    trip_match: 'New trip available',
+
+    new_application: 'New application',
+
+    just_now: 'Just now',
+
+  see_all: 'See all',
+
+    delete_read: 'Delete read',
+
+  },
+
+  chat: {
+
+    title: 'Messaging',
+
+    placeholder: 'Your message...',
+
+    readonly_notice: 'Archived conversation — read only',
+
+    send: 'Send',
+
+    you: 'You',
+
+    loading: 'Loading...',
+
+    error_connect: 'Unable to connect to chat',
+
+    error_send: 'Error sending message',
+
+  },
+
+  support: {
+
+    section_title: 'Support',
+
+    chat_label: 'Contact support',
+
+    chat_desc: 'Our team is available to help you',
+
+    faq_label: 'FAQ',
+
+    faq_desc: 'Browse our frequently asked questions',
+
+  },
+
+  onboarding: {
+
+    step_label: "Step",
+
+    personal_title: "Your information",
+
+    personal_subtitle: "Complete your profile to get started",
+
+    pref_title: "Your preferences",
+
+    pref_subtitle: "Customize your Kipar experience",
+
+    payment_title: "Your bank details",
+
+    payment_subtitle: "To receive payments as a carrier",
+
+    identity_title: "Identity verification",
+
+    identity_subtitle: "Upload your documents to be KYC verified",
+
+    id_front: "ID document front",
+
+    id_back: "ID document back",
+
+    selfie: "Selfie with your ID",
+
+    upload_btn: "Click to upload",
+
+    done_title: "Profile completed",
+
+    done_subtitle: "Welcome to Kipar.",
+
+    done_btn: "Go to dashboard",
+
+    next_btn: "Continue",
+
+    back_btn: "Back",
+
+    finish_btn: "Finish",
+
+    skip_btn: "Skip this step",
+
+    field_first_name: "First name",
+
+    field_last_name: "Last name",
+
+    field_username: "Username",
+
+    field_username_hint: "4 to 15 characters, lowercase letters, digits, underscore",
+
+    field_address: "Address",
+
+    field_address_hint: "Enter your address or search for it",
+
+    username_available: "Username available",
+
+    username_taken: "Username already taken",
+
+    username_invalid: "Invalid format (4-15 chars, lowercase, digits, _)",
+
+    username_checking: "Checking...",
+
+  },
+
+  landing: {
+
+    hero_badge: "KiparTrust verified carriers",
+
+    hero_title_1: "Every parcel",
+
+    hero_title_2: "deserves",
+
+    hero_title_3: "a trusted",
+
+    hero_title_4: "carrier.",
+
+    hero_tagline: "Ship, Travel, Share.",
+
+    hero_desc: "The first peer-to-peer parcel delivery marketplace with identity verification and KiparTrust confidence score.",
+
+    hero_cta_primary: "Get started for free",
+
+    hero_cta_secondary: "How it works",
+
+    stat_carriers: "Active carriers",
+
+    stat_destinations: "Destinations",
+
+    stat_success: "Successful deliveries",
+
+    stat_rating: "Average rating",
+
+    how_tag: "Simple & Fast",
+
+    how_title: "How does it work?",
+
+    how_step1_title: "Post your listing",
+
+    how_step1_desc: "Describe your parcel, its weight and destination. Our KiparScan AI analyzes your photos to validate the contents.",
+
+    how_step2_title: "Choose a carrier",
+
+    how_step2_desc: "Browse KiparTrust-verified travelers on your corridor. Check their trust score, reviews and rates.",
+
+    how_step3_title: "Secure delivery",
+
+    how_step3_desc: "The carrier hands over the parcel with a unique QR code. Payment is released only after delivery confirmation.",
+
+    role_sender: "Sender",
+
+    role_sender_desc: "Send your parcels with peace of mind",
+
+    role_carrier: "Carrier",
+
+    role_carrier_desc: "Monetize your trips",
+
+    role_receiver: "Receiver",
+
+    role_receiver_desc: "Receive your parcels safely",
+
+    video_title: "KIPAR in action",
+
+    video_placeholder: "Presentation video — coming soon",
+
+    why_tag: "Our promise",
+
+    why_title: "Why choose KIPAR?",
+
+    why_trust_title: "KiparTrust",
+
+    why_trust_desc: "Our unique trust score system verifies every carrier: identity, history, customer reviews.",
+
+    why_scan_title: "KiparScan AI",
+
+    why_scan_desc: "Our AI analyzes your parcel photos to validate content and speed up matching.",
+
+    why_globe_title: "50+ destinations",
+
+    why_globe_desc: "CDG, ORY, LYS to Abidjan, Dakar, Libreville, Lagos, Casablanca and many more.",
+
+    why_community_title: "Verified community",
+
+    why_community_desc: "Every member is verified through our KYC process. Email, phone, ID document.",
+
+    corridors_title: "Popular corridors",
+
+    testimonials_tag: "They trust us",
+
+    testimonials_title: "What they say about KIPAR",
+
+    cta_title_1: "Ready to join",
+
+    cta_title_2: "the community",
+
+    cta_desc: "Join thousands of members who trust KIPAR for their international shipments.",
+
+    cta_primary: "Create a free account",
+
+    cta_secondary: "Sign in",
+
+    nav_how: "How it works",
+
+    nav_why: "Why KIPAR",
+
+    nav_testimonials: "Testimonials",
+
+    nav_login: "Sign in",
+
+    nav_login_mobile: "Login",
+
+    footer_rights: "© 2026 KIPAR. All rights reserved.",
+
+  },
+
+}
+

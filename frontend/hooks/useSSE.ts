@@ -76,7 +76,9 @@ export function useSSE(token: string | null) {
     })
     setNotifications(prev => {
       const notif = prev.find(n => n.id === id)
-      if (notif && !notif.is_read) updateUnread(c => Math.max(0, c - 1))
+      if (notif && !notif.is_read) {
+        setTimeout(() => updateUnread(c => Math.max(0, c - 1)), 0)
+      }
       return prev.map(n => n.id === id ? { ...n, is_read: true } : n)
     })
   }

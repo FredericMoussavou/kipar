@@ -602,7 +602,31 @@ function DisputesTab({ onToast }: { onToast: (msg: string, type: 'success' | 'er
       {(selected || loadingDetail) && (
         <div style={{ width: 380, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 20, height: 'fit-content', position: 'sticky', top: 24, maxHeight: '90vh', overflowY: 'auto' }}>
           {loadingDetail && !selected ? <p style={{ color: TAUPE }}>Chargement...</p> : selected && (<>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 12 }}>Detail du litige</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, margin: 0 }}>Detail du litige</h3>
+              <button type='button' onClick={async () => {
+                try {
+                  const token = useAuthStore.getState().token
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/disputes/${selected.id}/export-pdf`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  })
+                  if (!res.ok) { const err = await res.text(); onToast('Erreur: ' + err, 'error'); return }
+                  const arrayBuffer = await res.arrayBuffer()
+                  const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `kipar_litige_${selected.id.slice(0,8).toUpperCase()}.pdf`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  setTimeout(() => URL.revokeObjectURL(url), 1000)
+                } catch { onToast('Erreur export PDF', 'error') }
+              }}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: WHITE, background: RED, border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
+                Exporter PDF
+              </button>
+            </div>
 
             <div style={{ display: 'flex', gap: 5, marginBottom: 12, flexWrap: 'wrap' }}>
               <Badge status={selected.status} />
@@ -769,6 +793,23 @@ export default function AdminPage() {
             )}
           </button>
         ))}
+        {/* Bas de sidebar */}
+        <div style={{ marginTop: 'auto', padding: '12px 20px', borderTop: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Link href='/dashboard'
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, color: CHARCOAL2, fontSize: 12, textDecoration: 'none', background: 'transparent' }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = SAND}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'}>
+            <ChevronLeft size={14} />
+            Retour au dashboard
+          </Link>
+          <button type='button' onClick={() => { useAuthStore.getState().logout(); window.location.href = '/login' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, color: RED, fontSize: 12, background: 'transparent', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#FFF0F0'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}>
+            <LogOut size={14} />
+            Deconnexion
+          </button>
+        </div>
       </nav>
       {/* Main */}
       <main style={{ marginLeft: 220, flex: 1, padding: '32px 32px', maxWidth: 'calc(100vw - 220px)' }}>

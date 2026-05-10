@@ -86,6 +86,7 @@ export default function BookingDetailPage() {
   const { user } = useAuthStore()
 
   const queryClient = useQueryClient()
+  const disputeReasonRef = useRef<HTMLTextAreaElement>(null)
   const [deliveryData, setDeliveryData] = useState<{qr_token: string; code?: string; expires_at: string} | null>(null)
   const [generating, setGenerating] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
@@ -98,6 +99,11 @@ export default function BookingDetailPage() {
   const [disputeOpen, setDisputeOpen] = useState(false)
   const [disputeReason, setDisputeReason] = useState('')
   const [disputeLoading, setDisputeLoading] = useState(false)
+  const [disputeType, setDisputeType] = useState('other')
+  const [disputeStage, setDisputeStage] = useState('delivery')
+  const [disputeValue, setDisputeValue] = useState('')
+  const [disputePhotos, setDisputePhotos] = useState<string[]>([])
+  const [disputePhotoLoading, setDisputePhotoLoading] = useState(false)
   const [confirmPickupFailedLoading, setConfirmPickupFailedLoading] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [reviewTargetId, setReviewTargetId] = useState<string | null>(null)
@@ -136,14 +142,40 @@ export default function BookingDetailPage() {
     finally { setConfirmPickupFailedLoading(false) }
   }
 
+  const handleDisputePhotoUpload = async (file: File) => {
+    setDisputePhotoLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'kipar_package_photos')
+      const res = await fetch('https://api.cloudinary.com/v1_1/' + process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME + '/image/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.secure_url) setDisputePhotos(p => [...p, data.secure_url])
+    } catch { toast.error('Erreur upload photo') }
+    finally { setDisputePhotoLoading(false) }
+  }
+
   const handleDispute = async () => {
-    if (!disputeReason.trim()) { toast.error(t.packages.reason_required); return }
+    const reason = disputeReasonRef.current?.value?.trim() || ''
+    if (!reason) { toast.error(t.packages.reason_required); return }
+    setDisputeReason(reason)
     setDisputeLoading(true)
     try {
-      await api.patch(`/bookings/${id}/dispute`, { reason: disputeReason })
+      await api.patch(`/bookings/${id}/dispute`, {
+        reason: reason,
+        incident_type: disputeType,
+        incident_stage: disputeStage,
+        declared_value: disputeValue ? parseFloat(disputeValue) : undefined,
+        evidence_urls: disputePhotos,
+      })
       toast.success(t.packages.dispute_opened)
       setDisputeOpen(false)
       setDisputeReason('')
+      if (disputeReasonRef.current) disputeReasonRef.current.value = ''
+      setDisputeType('other')
+      setDisputeStage('delivery')
+      setDisputeValue('')
+      setDisputePhotos([])
       queryClient.invalidateQueries({ queryKey: ['booking', id] })
     } catch { toast.error(t.errors.generic) }
     finally { setDisputeLoading(false) }
@@ -534,10 +566,66 @@ export default function BookingDetailPage() {
           </button>
         </div>
       </Modal>
-      <Modal isOpen={disputeOpen} onClose={() => { setDisputeOpen(false); setDisputeReason('') }} title={t.packages.dispute_title}>
-        <textarea value={disputeReason} onChange={e => setDisputeReason(e.target.value)}
-          placeholder={t.packages.dispute_placeholder} rows={3}
-          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+      <Modal isOpen={disputeOpen} onClose={() => { setDisputeOpen(false); setDisputeReason(''); setDisputeType('other'); setDisputeStage('delivery'); setDisputeValue(''); setDisputePhotos([]) }} title={t.packages.dispute_title}>
+        {/* Type d'incident */}
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>{t.packages.dispute_type}</label>
+          <select value={disputeType} onChange={e => setDisputeType(e.target.value)}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, background: 'white', boxSizing: 'border-box' }}>
+            <option value='' disabled>{t.packages.dispute_type}</option>
+            <option value='pickup_failed'>{t.packages.dispute_type_pickup}</option>
+            <option value='delivery_failed'>{t.packages.dispute_type_delivery}</option>
+            <option value='damaged'>{t.packages.dispute_type_damaged}</option>
+            <option value='lost'>{t.packages.dispute_type_lost}</option>
+            <option value='wrong_content'>{t.packages.dispute_type_wrong_content}</option>
+            <option value='other'>{t.packages.dispute_type_other}</option>
+          </select>
+        </div>
+        {/* Moment de l'incident */}
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>{t.packages.dispute_stage}</label>
+          <select value={disputeStage} onChange={e => setDisputeStage(e.target.value)}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, background: 'white', boxSizing: 'border-box' }}>
+            <option value='' disabled>{t.packages.dispute_stage}</option>
+            <option value='pickup'>{t.packages.dispute_stage_pickup}</option>
+            <option value='transit'>{t.packages.dispute_stage_transit}</option>
+            <option value='delivery'>{t.packages.dispute_stage_delivery}</option>
+          </select>
+        </div>
+        {/* Valeur declaree */}
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>{t.packages.dispute_value}</label>
+          <input type='number' value={disputeValue} onChange={e => setDisputeValue(Math.max(0, parseFloat(e.target.value) || 0).toString())} tabIndex={-1} min='0' step='0.01'
+            placeholder={t.packages.dispute_value_placeholder}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, boxSizing: 'border-box' }} />
+        </div>
+        {/* Motif */}
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>{t.packages.dispute_reason_label}</label>
+          <textarea ref={disputeReasonRef} defaultValue={disputeReason}
+            placeholder={t.packages.dispute_placeholder} rows={3}
+            style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 0, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        </div>
+        {/* Upload photos */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>{t.packages.dispute_photos} (max 5)</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+            {disputePhotos.map((url, i) => (
+              <div key={i} style={{ position: 'relative' }}>
+                <img src={url} alt={`preuve ${i+1}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, border: '1px solid ' + BORDER }} />
+                <button type='button' onClick={() => setDisputePhotos(p => p.filter((_, j) => j !== i))}
+                  style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: '50%', background: RED, border: 'none', color: 'white', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>x</button>
+              </div>
+            ))}
+            {disputePhotos.length < 5 && (
+              <label style={{ width: 56, height: 56, borderRadius: 8, border: '2px dashed ' + BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: TAUPE, fontSize: 22 }}>
+                {disputePhotoLoading ? '...' : '+'}
+                <input type='file' accept='image/*' style={{ display: 'none' }}
+                  onChange={e => { if (e.target.files?.[0]) handleDisputePhotoUpload(e.target.files[0]) }} />
+              </label>
+            )}
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={() => { setDisputeOpen(false); setDisputeReason('') }} disabled={disputeLoading}
             style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>

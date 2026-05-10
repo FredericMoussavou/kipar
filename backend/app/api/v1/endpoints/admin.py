@@ -63,7 +63,10 @@ async def get_dispute(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    """Detail d un litige — admin uniquement."""
+    """Detail complet d'un litige - admin uniquement.
+    Retourne : declarant, partie adverse, booking, colis, preuves, timeline.
+    """
+    from app.models.package import Package
     result = await db.execute(select(Dispute).where(Dispute.id == dispute_id))
     dispute = result.scalar_one_or_none()
     if not dispute:
@@ -72,29 +75,98 @@ async def get_dispute(
     booking_result = await db.execute(select(Booking).where(Booking.id == dispute.booking_id))
     booking = booking_result.scalar_one_or_none()
 
-    sender_result = await db.execute(select(User).where(User.id == booking.sender_id)) if booking else None
-    sender = sender_result.scalar_one_or_none() if sender_result else None
-
+    # Parties
     initiator_result = await db.execute(select(User).where(User.id == dispute.initiated_by))
     initiator = initiator_result.scalar_one_or_none()
+    sender, carrier, receiver, trip, pkg = None, None, None, None, None
+    if booking:
+        sender_r = await db.execute(select(User).where(User.id == booking.sender_id))
+        sender = sender_r.scalar_one_or_none()
+        trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+        trip = trip_r.scalar_one_or_none()
+        if trip:
+            carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+            carrier = carrier_r.scalar_one_or_none()
+        if booking.receiver_id:
+            recv_r = await db.execute(select(User).where(User.id == booking.receiver_id))
+            receiver = recv_r.scalar_one_or_none()
+        pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
+        pkg = pkg_r.scalar_one_or_none()
+
+    def user_info(u):
+        if not u: return None
+        return {
+            "id": str(u.id), "full_name": u.full_name,
+            "email": u.email, "phone": u.phone,
+            "address": u.address, "trust_score": u.trust_score,
+        }
 
     return {
+        # Litige
         "id": str(dispute.id),
-        "booking_id": str(dispute.booking_id),
         "status": dispute.status,
+        "incident_type": dispute.incident_type,
+        "incident_stage": dispute.incident_stage,
         "reason": dispute.reason,
+        "evidence_urls": dispute.evidence_urls,
+        "admin_notes": dispute.admin_notes,
         "resolution": dispute.resolution,
-        "created_at": dispute.created_at.isoformat(),
-        "resolved_at": dispute.resolved_at.isoformat() if dispute.resolved_at else None,
-        "initiated_by": initiator.full_name if initiator else None,
-        "booking_status": booking.status if booking else None,
-        "amount": booking.amount if booking else None,
-        "pickup_failed_reason": booking.pickup_failed_reason if booking else None,
-        "sender": sender.full_name if sender else None,
+        # Declarant
+        "initiated_by_role": dispute.initiated_by_role,
+        "initiator": user_info(initiator),
+        # Partie adverse
+        "respondent_comment": dispute.respondent_comment,
+        "respondent_evidence_urls": dispute.respondent_evidence_urls,
+        # Assurance
+        "has_insurance": dispute.has_insurance,
+        "insurance_payout": dispute.insurance_payout,
+        "insurer_dossier_sent": dispute.insurer_dossier_sent,
+        "insurer_dossier_sent_at": dispute.insurer_dossier_sent_at.isoformat() if dispute.insurer_dossier_sent_at else None,
+        "insurer_reference": dispute.insurer_reference,
+        # Booking
+        "booking": {
+            "id": str(booking.id) if booking else None,
+            "status": booking.status if booking else None,
+            "amount": booking.amount if booking else None,
+            "currency": booking.currency if booking else None,
+            "weight_unit": booking.weight_unit if booking else None,
+            "insurance_subscribed": booking.insurance_subscribed if booking else None,
+            "cancellation_reason": booking.cancellation_reason if booking else None,
+        } if booking else None,
+        # Colis
+        "package": {
+            "content_description": pkg.content_description if pkg else None,
+            "declared_value": dispute.declared_value or (pkg.declared_value if pkg else None),
+            "weight_kg": pkg.weight_kg if pkg else None,
+            "photo_urls": pkg.photo_urls if pkg else [],
+            "ai_prohibited_flag": pkg.ai_prohibited_flag if pkg else None,
+        } if pkg else None,
+        # Corridor
+        "trip": {
+            "origin": trip.origin_airport_code if trip else None,
+            "destination": trip.destination_airport_code if trip else None,
+            "departure_date": str(trip.departure_date) if trip else None,
+            "flight_number": trip.flight_number if trip else None,
+        } if trip else None,
+        # Parties
+        "sender": user_info(sender),
+        "carrier": user_info(carrier),
+        "receiver": user_info(receiver),
+        # Timeline
+        "timeline": {
+            "created_at": dispute.created_at.isoformat(),
+            "pickup_failed_at": booking.pickup_failed_at.isoformat() if booking and booking.pickup_failed_at else None,
+            "delivery_failed_at": booking.delivery_failed_at.isoformat() if booking and booking.delivery_failed_at else None,
+            "incident_response_deadline": booking.incident_response_deadline.isoformat() if booking and booking.incident_response_deadline else None,
+            "resolved_at": dispute.resolved_at.isoformat() if dispute.resolved_at else None,
+        },
+        # Lien messagerie
+        "conversation_id": str(dispute.conversation_id) if dispute.conversation_id else None,
     }
 
 
-@router.post("/disputes/{dispute_id}/resolve")
+
+@router.patch("/disputes/{dispute_id}/resolve")
 async def resolve_dispute(
     dispute_id: str,
     payload: dict,

@@ -3,7 +3,7 @@ from app.api.v1.endpoints.receiver import router as receiver_router
 from app.api.v1.endpoints import (
     auth, trips, bookings, messages,
     delivery, tracking, payments, users, kyc, reviews,
-    kiparscan, claims, pir, insurance, airports, oauth, requests, notifications, verify, admin,
+    kiparscan, pir, insurance, airports, oauth, requests, notifications, verify, admin,
     currencies
 )
 
@@ -21,7 +21,6 @@ api_router.include_router(payments.router)
 api_router.include_router(kyc.router)
 api_router.include_router(reviews.router)
 api_router.include_router(kiparscan.router)
-api_router.include_router(claims.router)
 api_router.include_router(pir.router)
 api_router.include_router(insurance.router)
 api_router.include_router(requests.router)

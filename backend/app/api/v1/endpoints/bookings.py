@@ -782,48 +782,78 @@ async def confirm_pickup_failed(
 @router.patch("/{booking_id}/dispute")
 async def open_dispute(
     booking_id: str,
-    payload: ReasonPayload,
+    payload: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """L'expediteur conteste le pickup_failed — ouvre un litige."""
-    reason = payload.reason.strip()
+    from app.models.dispute import Dispute
+    from app.models.package import Package
+    reason = (payload.get("reason") or "").strip()
     if not reason:
         raise HTTPException(status_code=400, detail=t("errors.reason_required", lang))
-
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-    if booking.status != "pickup_failed":
-        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
-    if booking.sender_id != current_user.id:
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    is_sender   = booking.sender_id == current_user.id
+    is_carrier  = trip and trip.carrier_id == current_user.id
+    is_receiver = booking.receiver_id == current_user.id
+    if not is_sender and not is_carrier and not is_receiver:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-
-    from app.models.dispute import Dispute
-    existing = await db.execute(
-        select(Dispute).where(Dispute.booking_id == booking.id)
-    )
+    if booking.status not in ("pickup_failed", "delivery_failed", "in_transit", "paid", "accepted", "delivered"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    existing = await db.execute(select(Dispute).where(Dispute.booking_id == booking.id))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail=t("errors.dispute_already_exists", lang))
-
+    pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
+    pkg = pkg_result.scalar_one_or_none()
+    declared_value = payload.get("declared_value") or (pkg.declared_value if pkg else None)
+    role = "carrier" if is_carrier else "receiver" if is_receiver else "sender"
     booking.status = "disputed"
     dispute = Dispute(
         booking_id=booking.id,
         initiated_by=current_user.id,
+        initiated_by_role=role,
+        incident_type=payload.get("incident_type", "other"),
+        incident_stage=payload.get("incident_stage", "delivery"),
         reason=reason,
+        evidence_urls=payload.get("evidence_urls", []),
+        declared_value=declared_value,
+        has_insurance=booking.insurance_subscribed,
         status="open",
     )
     db.add(dispute)
     await db.commit()
-
+    await db.refresh(dispute)
     await create_notification(
-        db=db,
-        user_id=booking.sender_id,
-        type="dispute_opened",
-        title="Litige ouvert",
-        body="Votre litige a été enregistré. Notre équipe va examiner la situation.",
+        db=db, user_id=booking.sender_id,
+        type="dispute_opened", title="Litige ouvert",
+        body="Un litige a ete ouvert. Notre equipe va examiner la situation.",
         link=f"/packages/{booking.id}",
     )
-    return {"status": "disputed", "dispute_id": str(dispute.id)}
+    if booking.insurance_subscribed and settings.INSURANCE_ENABLED:
+        from app.services.resend_service import send_email
+        try:
+            html = ("<h2>Sinistre KIPAR</h2>"
+                + "<p>Booking : " + str(booking.id) + "</p>"
+                + "<p>Declarant : " + role + " - " + current_user.email + "</p>"
+                + "<p>Type : " + dispute.incident_type + "</p>"
+                + "<p>Motif : " + reason + "</p>"
+                + "<p>Valeur declaree : " + str(declared_value) + " EUR</p>")
+            await send_email(to="assureur@kipar.app",
+                subject="Sinistre KIPAR " + str(booking.id)[:8], html=html)
+            dispute.insurer_dossier_sent = True
+            from datetime import datetime, timezone
+            dispute.insurer_dossier_sent_at = datetime.now(timezone.utc)
+            await db.commit()
+        except Exception as e:
+            print(f"[INSURER] Erreur envoi dossier: {e}")
+    await db.commit()
+    return {
+        "status": "disputed", "dispute_id": str(dispute.id),
+        "has_insurance": dispute.has_insurance,
+        "insurer_notified": dispute.insurer_dossier_sent, "role": role,
+    }

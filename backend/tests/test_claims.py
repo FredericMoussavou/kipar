@@ -1,7 +1,12 @@
+"""
+Tests disputes (anciennement claims).
+Les claims ont ete migres vers disputes - ce fichier teste le nouveau systeme unifie.
+"""
 from datetime import date, timedelta
 from sqlalchemy import update, select
 from app.models.user import User
 from app.models.booking import Booking
+from app.models.dispute import Dispute
 
 VALID_PASSWORD = "Kipar@2025"
 TOMORROW = str(date.today() + timedelta(days=1))
@@ -31,177 +36,128 @@ async def make_verified_carrier(client, db_session, email: str) -> str:
 
 
 async def setup_in_transit_booking(client, db_session, suffix: str) -> tuple:
-    """Crée une réservation en statut in_transit."""
     carrier_token = await make_verified_carrier(
         client, db_session, f"carrier_cl{suffix}@kipar.com"
     )
     sender_token = await register_and_login(client, f"sender_cl{suffix}@kipar.com")
-
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
         "destination_city": "Dakar", "destination_airport_code": "DSS",
         "departure_date": TOMORROW, "total_kg": 15.0,
         "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {carrier_token}"})
-
     booking = await client.post("/api/v1/bookings", json={
         "trip_id": trip.json()["id"],
         "receiver_email_or_phone": f"receiver_cl{suffix}@kipar.com",
         "weight_kg": 3.0, "content_description": "Livres",
-        "declared_value": 30.0
+        "declared_value": 50.0, "insurance_subscribed": False,
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
     booking_id = booking.json()["id"]
-    await db_session.execute(
-        update(Booking).where(Booking.id == booking_id).values(status="in_transit")
-    )
-    await db_session.flush()
-
+    await client.patch(f"/api/v1/bookings/{booking_id}/accept",
+        headers={"Authorization": f"Bearer {carrier_token}"})
+    await client.patch(f"/api/v1/bookings/{booking_id}/in-transit",
+        headers={"Authorization": f"Bearer {carrier_token}"})
     return booking_id, sender_token
 
 
-async def test_open_claim(client, db_session):
-    """L'expéditeur peut ouvrir un litige sur une réservation en transit."""
+async def test_open_dispute(client, db_session):
+    """Un expediteur peut ouvrir un litige sur un booking in_transit."""
     booking_id, sender_token = await setup_in_transit_booking(client, db_session, "1")
-
-    res = await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "non_delivery",
-        "description": "Le colis n'a pas été livré à la date prévue.",
-        "evidence_urls": []
+    res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Colis endommage a la livraison.",
+        "incident_type": "damaged",
+        "incident_stage": "delivery",
+        "declared_value": 50.0,
+        "evidence_urls": [],
     }, headers={"Authorization": f"Bearer {sender_token}"})
+    assert res.status_code == 200
+    assert res.json()["status"] == "disputed"
+    assert res.json()["dispute_id"] is not None
+    assert res.json()["role"] == "sender"
 
-    assert res.status_code == 201
-    data = res.json()
-    assert data["status"] == "open"
-    assert data["claim_type"] == "non_delivery"
 
-
-async def test_claim_freezes_booking(client, db_session):
-    """L'ouverture d'un litige passe la réservation en 'disputed'."""
+async def test_dispute_duplicate_fails(client, db_session):
+    """Impossible d'ouvrir deux litiges sur le meme booking."""
     booking_id, sender_token = await setup_in_transit_booking(client, db_session, "2")
-
-    await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "damaged",
-        "description": "Colis endommagé à la réception.",
+    await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Premier litige.", "incident_type": "damaged",
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
-    result = await db_session.execute(
-        select(Booking).where(Booking.id == booking_id)
-    )
-    booking = result.scalar_one()
-    assert booking.status == "disputed"
+    res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Deuxieme litige.", "incident_type": "lost",
+    }, headers={"Authorization": f"Bearer {sender_token}"})
+    assert res.status_code in (409, 400)  # 409 si booking encore ouvert, 400 si deja disputed
 
 
-async def test_claim_duplicate_fails(client, db_session):
-    """Impossible d'ouvrir deux litiges sur la même réservation."""
+async def test_dispute_reason_required(client, db_session):
+    """Le motif est obligatoire pour ouvrir un litige."""
     booking_id, sender_token = await setup_in_transit_booking(client, db_session, "3")
-
-    await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "non_delivery",
-        "description": "Premier litige.",
+    res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "", "incident_type": "damaged",
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
-    res = await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "damaged",
-        "description": "Deuxième litige.",
-    }, headers={"Authorization": f"Bearer {sender_token}"})
-
     assert res.status_code == 400
 
 
-async def test_get_claim(client, db_session):
-    """Consulte un litige existant."""
+async def test_admin_get_dispute(client, db_session):
+    """Admin peut voir le detail complet d'un litige."""
     booking_id, sender_token = await setup_in_transit_booking(client, db_session, "4")
-
-    claim = await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "lost_airline",
-        "description": "Bagage perdu par la compagnie.",
-        "pir_document_url": "https://s3.kipar.app/pir/doc123.pdf"
+    dispute_res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Test admin view.", "incident_type": "damaged",
     }, headers={"Authorization": f"Bearer {sender_token}"})
+    dispute_id = dispute_res.json()["dispute_id"]
 
-    claim_id = claim.json()["id"]
-    res = await client.get(
-        f"/api/v1/claims/{claim_id}",
-        headers={"Authorization": f"Bearer {sender_token}"}
+    await db_session.execute(
+        update(User).where(User.email == "sender_cl4@kipar.com")
+        .values(is_admin=True)
     )
+    await db_session.flush()
+    admin_token = (await client.post("/api/v1/auth/login", json={
+        "email": "sender_cl4@kipar.com", "password": VALID_PASSWORD
+    })).json()["access_token"]
+
+    res = await client.get(f"/api/v1/admin/disputes/{dispute_id}",
+        headers={"Authorization": f"Bearer {admin_token}"})
     assert res.status_code == 200
-    assert res.json()["pir_document_url"] == "https://s3.kipar.app/pir/doc123.pdf"
+    data = res.json()
+    assert data["incident_type"] == "damaged"
+    assert data["initiated_by_role"] == "sender"
+    assert data["initiator"] is not None
+    assert data["booking"] is not None
+    assert "timeline" in data
 
 
-async def test_list_my_claims(client, db_session):
-    """Liste les litiges de l'utilisateur connecté."""
+async def test_resolve_dispute_requires_admin(client, db_session):
+    """Seul un admin peut resoudre un litige."""
     booking_id, sender_token = await setup_in_transit_booking(client, db_session, "5")
-
-    await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "wrong_content",
-        "description": "Contenu ne correspond pas.",
+    dispute_res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Test resolve auth.", "incident_type": "other",
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
-    res = await client.get(
-        "/api/v1/claims",
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
-    assert res.status_code == 200
-    assert len(res.json()) >= 1
-
-
-async def test_resolve_claim_requires_admin(client, db_session):
-    """Seul un admin peut résoudre un litige."""
-    booking_id, sender_token = await setup_in_transit_booking(client, db_session, "6")
-
-    claim = await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "non_delivery",
-        "description": "Test resolve.",
+    dispute_id = dispute_res.json()["dispute_id"]
+    res = await client.patch(f"/api/v1/admin/disputes/{dispute_id}/resolve", json={
+        "decision": "resolved_sender", "resolution": "Test."
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
-    claim_id = claim.json()["id"]
-    res = await client.patch(
-        f"/api/v1/claims/{claim_id}/resolve",
-        json={
-            "resolution": "favor_sender",
-            "resolution_note": "Litige en faveur expéditeur.",
-            "insurance_payout": 0.0
-        },
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
     assert res.status_code == 403
 
 
-async def test_resolve_claim_as_admin(client, db_session):
-    """Un admin peut résoudre un litige."""
-    booking_id, sender_token = await setup_in_transit_booking(client, db_session, "7")
-
-    claim = await client.post("/api/v1/claims", json={
-        "booking_id": booking_id,
-        "claim_type": "non_delivery",
-        "description": "Test admin resolve.",
+async def test_resolve_dispute_as_admin(client, db_session):
+    """Un admin peut resoudre un litige."""
+    booking_id, sender_token = await setup_in_transit_booking(client, db_session, "6")
+    dispute_res = await client.patch(f"/api/v1/bookings/{booking_id}/dispute", json={
+        "reason": "Colis non livre.", "incident_type": "non_delivery",
     }, headers={"Authorization": f"Bearer {sender_token}"})
+    dispute_id = dispute_res.json()["dispute_id"]
 
-    claim_id = claim.json()["id"]
-
-    # Passe l'expéditeur en admin
     await db_session.execute(
-        update(User).where(User.email == "sender_cl7@kipar.com")
-        .values(is_superuser=True, is_admin=True)
+        update(User).where(User.email == "sender_cl6@kipar.com")
+        .values(is_admin=True)
     )
     await db_session.flush()
+    admin_token = (await client.post("/api/v1/auth/login", json={
+        "email": "sender_cl6@kipar.com", "password": VALID_PASSWORD
+    })).json()["access_token"]
 
-    res = await client.patch(
-        f"/api/v1/claims/{claim_id}/resolve",
-        json={
-            "resolution": "favor_sender",
-            "resolution_note": "Colis non livré confirmé.",
-            "insurance_payout": 30.0
-        },
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
+    res = await client.patch(f"/api/v1/admin/disputes/{dispute_id}/resolve", json={
+        "decision": "resolved_sender",
+        "resolution": "Litige en faveur expediteur confirme."
+    }, headers={"Authorization": f"Bearer {admin_token}"})
     assert res.status_code == 200
     assert res.json()["status"] == "resolved_sender"
-    assert res.json()["insurance_payout"] == 30.0

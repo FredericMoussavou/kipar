@@ -85,8 +85,8 @@ export default function NewTripPage() {
     try {
       await api.post('/trips', {
         ...data,
-        total_kg: toKg(parseFloat(data.total_kg), weightUnit),
-        max_kg_per_package: toKg(parseFloat(data.max_kg_per_package), weightUnit),
+        total_kg: parseFloat(data.total_kg),
+        max_kg_per_package: parseFloat(data.max_kg_per_package),
         price_per_kg: parseFloat(data.price_per_kg),
         weight_unit: weightUnit,
         currency: tripCurrency,
@@ -232,9 +232,9 @@ export default function NewTripPage() {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <Input label={`${t.carrier.kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
-            <Input label={`${t.carrier.max_kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
-            <Input label={`${t.carrier.price_label} (${tripCurrency}/${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
+            <Input label={`Capacite disponible (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
+            <Input label={`Max par colis (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
+            <Input label={`Prix par ${unitLabel(weightUnit)} (${tripCurrency})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
           </div>
         </div>
 

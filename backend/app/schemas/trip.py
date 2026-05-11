@@ -16,6 +16,8 @@ class TripCreate(BaseModel):
     total_kg: float
     max_kg_per_package: float = 5.0
     price_per_kg: float
+    weight_unit: str = "kg"
+    currency: str = "EUR"
 
     @field_validator("origin_airport_code", "destination_airport_code")
     @classmethod
@@ -65,4 +67,7 @@ class TripResponse(BaseModel):
     carrier_trip_count: int | None = None
     carrier_avg_rating: float | None = None
     carrier_review_count: int | None = None
+    carrier_username: str | None = None
+    weight_unit: str | None = None
+    currency: str | None = None
     model_config = {"from_attributes": False}

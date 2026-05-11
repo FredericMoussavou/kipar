@@ -43,12 +43,16 @@ async def create_trip(
         destination_city=payload.destination_city,
         destination_airport_code=payload.destination_airport_code,
         departure_date=payload.departure_date,
+        departure_time=payload.departure_time,
+        arrival_time=payload.arrival_time,
         flight_number=payload.flight_number,
         airline=payload.airline,
         total_kg=payload.total_kg,
         remaining_kg=payload.total_kg,
         max_kg_per_package=payload.max_kg_per_package,
         price_per_kg=payload.price_per_kg,
+        weight_unit=payload.weight_unit if hasattr(payload, "weight_unit") else "kg",
+        currency=payload.currency if hasattr(payload, "currency") else "EUR",
     )
     db.add(trip)
     await db.flush()
@@ -127,8 +131,12 @@ async def search_trips(
             "remaining_kg": trip.remaining_kg,
             "max_kg_per_package": trip.max_kg_per_package,
             "price_per_kg": trip.price_per_kg,
+            "weight_unit": trip.weight_unit,
+            "currency": trip.currency,
             "status": trip.status,
             "trust_score": carrier.trust_score if carrier else 50.0,
+            "carrier_username": carrier.username if carrier else None,
+            "carrier_avatar_url": carrier.avatar_url if carrier else None,
         }
         enriched.append(trip_dict)
     return enriched
@@ -215,6 +223,8 @@ async def get_trip(
         remaining_kg=trip.remaining_kg,
         max_kg_per_package=trip.max_kg_per_package,
         price_per_kg=trip.price_per_kg,
+        weight_unit=trip.weight_unit,
+        currency=trip.currency,
         status=trip.status,
         trust_score=carrier.trust_score if carrier else 50.0,
         carrier_full_name=carrier.full_name if carrier else None,
@@ -224,6 +234,7 @@ async def get_trip(
         carrier_trip_count=trip_count,
         carrier_avg_rating=round(float(avg_rating), 1) if avg_rating else None,
         carrier_review_count=review_count or 0,
+        carrier_username=carrier.username if carrier else None,
     )
 
 

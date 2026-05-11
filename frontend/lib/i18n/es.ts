@@ -489,6 +489,8 @@ export const es = {
 
   trip_delete_confirm: '¿Eliminar este anuncio?',
 
+  weight_unit_label: 'Unidad de peso',
+  currency_label: 'Divisa',
   trip_deleted: 'Anuncio eliminado',
 
     success_carrier_mode: '¡Modo transportista activado!',

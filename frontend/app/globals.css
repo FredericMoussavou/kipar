@@ -78,3 +78,64 @@ body {
 .delay-3 { animation-delay: 0.15s; opacity: 0; }
 .delay-4 { animation-delay: 0.20s; opacity: 0; }
 .delay-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* ── Date / Time inputs — KIPAR style ───────────────────────── */
+input[type="date"],
+input[type="time"] {
+  color-scheme: light;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.45;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+  background-color: rgba(220, 0, 41, 0.08);
+}
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="time"]::-webkit-datetime-edit-text {
+  color: #B5AFAB;
+  padding: 0 2px;
+}
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+  color: #3D3D3D;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus,
+input[type="time"]::-webkit-datetime-edit-hour-field:focus,
+input[type="time"]::-webkit-datetime-edit-minute-field:focus {
+  background-color: #DC0029;
+  color: #ffffff;
+  outline: none;
+}
+
+/* ── Select — KIPAR style ────────────────────────────────────── */
+select {
+  color-scheme: light;
+}
+select::-webkit-scrollbar {
+  width: 6px;
+}
+select::-webkit-scrollbar-track {
+  background: #F0EDE8;
+  border-radius: 99px;
+}
+select::-webkit-scrollbar-thumb {
+  background: #B5AFAB;
+  border-radius: 99px;
+}

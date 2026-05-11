@@ -9,6 +9,9 @@ import { ArrowLeft, Search, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
+import Select from '@/components/ui/kipar/Select'
+import DatePicker from '@/components/ui/kipar/DatePicker'
+import TimePicker from '@/components/ui/kipar/TimePicker'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/theme'
@@ -35,9 +38,13 @@ export default function NewTripPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { user } = useAuthStore()
-  const weightUnit = (user?.weight_unit ?? 'kg') as WeightUnit
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
+  const [tripCurrency, setTripCurrency] = useState(user?.currency ?? 'EUR')
 
   const [originInput, setOriginInput] = useState('')
+  const [departureDate, setDepartureDate] = useState('')
+  const [departureTime, setDepartureTime] = useState('')
+  const [arrivalTime, setArrivalTime] = useState('')
   const [destInput, setDestInput] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<any[]>([])
   const [destSuggestions, setDestSuggestions] = useState<any[]>([])
@@ -81,6 +88,8 @@ export default function NewTripPage() {
         total_kg: toKg(parseFloat(data.total_kg), weightUnit),
         max_kg_per_package: toKg(parseFloat(data.max_kg_per_package), weightUnit),
         price_per_kg: parseFloat(data.price_per_kg),
+        weight_unit: weightUnit,
+        currency: tripCurrency,
       })
       toast.success(t.carrier.trip_published)
       router.push('/carrier')
@@ -186,22 +195,46 @@ export default function NewTripPage() {
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <Input label={t.carrier.date_label} type="date" error={errors.departure_date?.message} {...register('departure_date')} />
+            <DatePicker label={t.carrier.date_label} value={departureDate}
+              onChange={v => { setDepartureDate(v); setValue('departure_date', v) }}
+              error={errors.departure_date?.message}
+              min={new Date().toISOString().slice(0,10)} />
             <Input label={t.carrier.flight_label} placeholder="AF502" {...register('flight_number')} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Input label={t.carrier.departure_time_label} type="time" {...register('departure_time')} />
-            <Input label={t.carrier.arrival_time_label} type="time" {...register('arrival_time')} />
+            <TimePicker label={t.carrier.departure_time_label} value={departureTime}
+              onChange={v => { setDepartureTime(v); setValue('departure_time', v) }} />
+            <TimePicker label={t.carrier.arrival_time_label} value={arrivalTime}
+              onChange={v => { setArrivalTime(v); setValue('arrival_time', v) }} />
           </div>
         </div>
 
         {/* Capacité et Prix */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_capacity}</p>
+          {/* Selecteurs unite et devise par trip */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.weight_unit_label ?? 'Unité de poids'}</p>
+              <Select value={weightUnit} onChange={e => setWeightUnit(e.target.value as WeightUnit)}>
+                <option value='kg'>kg — Kilogramme</option>
+                <option value='lb'>lb — Livre</option>
+                <option value='g'>g — Gramme</option>
+              </Select>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.currency_label ?? 'Devise'}</p>
+              <Select value={tripCurrency} onChange={e => setTripCurrency(e.target.value)}>
+                {['EUR','USD','GBP','XOF','XAF','MAD','NGN','GHS','KES','CAD','CHF'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </Select>
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <Input label={`${t.carrier.kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
             <Input label={`${t.carrier.max_kg_label} (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
-            <Input label={t.carrier.price_label} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
+            <Input label={`${t.carrier.price_label} (${tripCurrency}/${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
           </div>
         </div>
 

@@ -485,6 +485,8 @@ export const fr = {
 
   trip_delete_confirm: 'Supprimer cette annonce ?',
 
+  weight_unit_label: 'Unité de poids',
+  currency_label: 'Devise',
   trip_deleted: 'Annonce supprimée',
 
 },

@@ -485,6 +485,8 @@ export const en = {
 
   trip_delete_confirm: 'Delete this listing?',
 
+  weight_unit_label: 'Weight unit',
+  currency_label: 'Currency',
   trip_deleted: 'Listing deleted',
 
 },

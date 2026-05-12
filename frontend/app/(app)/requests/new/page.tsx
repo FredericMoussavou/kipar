@@ -8,6 +8,7 @@ import { ArrowLeft, Search, X, Upload, Image as ImageIcon, Scan, AlertTriangle, 
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
+import DatePicker from '@/components/ui/kipar/DatePicker'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, WHITE, GREEN } from '@/lib/theme'
@@ -49,6 +50,7 @@ export default function NewRequestPage() {
   const scanRef = useRef<HTMLInputElement>(null)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanning, setScanning] = useState(false)
+  const [deadlineDate, setDeadlineDate] = useState('')
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -325,8 +327,9 @@ export default function NewRequestPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Input label={t.requests.field_receiver} placeholder={t.booking.receiver_placeholder}
               error={errors.receiver_email_or_phone?.message} {...register('receiver_email_or_phone')} />
-            <Input label={t.requests.field_deadline} type="date"
-              error={errors.deadline_date?.message} {...register('deadline_date')} />
+            <DatePicker label={t.requests.field_deadline} value={deadlineDate}
+              onChange={v => { setDeadlineDate(v); setValue('deadline_date', v) }}
+              error={errors.deadline_date?.message} min={new Date().toISOString().slice(0,10)} />
           </div>
         </div>
 

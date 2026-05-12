@@ -241,7 +241,7 @@ export default function LoginPage() {
             <div style={{ width: 1, height: 40, background: BORDER }} />
             <AnimatedStat target={50} suffix="+" label={t.auth.stat_destinations} />
             <div style={{ width: 1, height: 40, background: BORDER }} />
-            <AnimatedStat target={49} suffix="★" label={t.auth.stat_rating} />
+            <AnimatedStat target={4.9} suffix="★" label={t.auth.stat_rating} />
           </div>
         </div>
       </div>

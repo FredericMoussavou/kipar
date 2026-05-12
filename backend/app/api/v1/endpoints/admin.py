@@ -92,6 +92,11 @@ async def get_dispute(
             receiver = recv_r.scalar_one_or_none()
         pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
         pkg = pkg_r.scalar_one_or_none()
+        ins = None
+        if booking.insurance_subscribed:
+            from app.models.insurance import Insurance
+            ins_r = await db.execute(select(Insurance).where(Insurance.booking_id == booking.id))
+            ins = ins_r.scalar_one_or_none()
 
     def user_info(u):
         if not u: return None
@@ -123,6 +128,13 @@ async def get_dispute(
         "insurer_dossier_sent": dispute.insurer_dossier_sent,
         "insurer_dossier_sent_at": dispute.insurer_dossier_sent_at.isoformat() if dispute.insurer_dossier_sent_at else None,
         "insurer_reference": dispute.insurer_reference,
+        "insurance_detail": {
+            "rate": ins.rate,
+            "premium_amount": ins.premium_amount,
+            "coverage_amount": ins.coverage_amount,
+            "subscribed_at": ins.subscribed_at.isoformat() if ins.subscribed_at else None,
+            "status": ins.status,
+        } if ins else None,
         # Booking
         "booking": {
             "id": str(booking.id) if booking else None,
@@ -589,6 +601,7 @@ async def export_dispute_pdf(
     from fastapi.responses import Response
     from app.services.dispute_pdf_service import generate_dispute_pdf
     from app.models.package import Package
+    from app.models.insurance import Insurance
 
     result = await db.execute(select(Dispute).where(Dispute.id == dispute_id))
     dispute = result.scalar_one_or_none()
@@ -601,6 +614,7 @@ async def export_dispute_pdf(
     initiator_result = await db.execute(select(User).where(User.id == dispute.initiated_by))
     initiator = initiator_result.scalar_one_or_none()
     sender, carrier, receiver, trip, pkg = None, None, None, None, None
+    ins = None
     if booking:
         sender_r = await db.execute(select(User).where(User.id == booking.sender_id))
         sender = sender_r.scalar_one_or_none()
@@ -614,6 +628,9 @@ async def export_dispute_pdf(
             receiver = recv_r.scalar_one_or_none()
         pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
         pkg = pkg_r.scalar_one_or_none()
+        if booking.insurance_subscribed:
+            ins_r = await db.execute(select(Insurance).where(Insurance.booking_id == booking.id))
+            ins = ins_r.scalar_one_or_none()
 
     def u(user): return {
         "id": str(user.id), "full_name": user.full_name,
@@ -655,9 +672,12 @@ async def export_dispute_pdf(
         } if pkg else None,
         "trip": {
             "origin": trip.origin_airport_code,
+            "origin_city": trip.origin_city,
             "destination": trip.destination_airport_code,
+            "destination_city": trip.destination_city,
             "departure_date": str(trip.departure_date),
             "flight_number": trip.flight_number,
+            "airline": trip.airline,
         } if trip else None,
         "timeline": {
             "created_at": dispute.created_at.isoformat(),

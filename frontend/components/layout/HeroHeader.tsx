@@ -15,15 +15,15 @@ export default function HeroHeader({ imageUrl, children, minHeight = 180, gradie
     : 'linear-gradient(180deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.80) 100%)'
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', minHeight, borderRadius: '0 0 24px 24px' }}
+    <div style={{ position: 'relative', overflow: 'visible', minHeight, borderRadius: '0 0 24px 24px' }}
       className="md:rounded-[20px] md:mb-6">
       <img
         src={imageUrl}
         alt="hero"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
       />
-      <div style={{ position: 'absolute', inset: 0, background: bg }} />
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'absolute', inset: 0, background: bg, borderRadius: 'inherit', overflow: 'hidden' }} />
+      <div style={{ position: 'relative', zIndex: 50 }}>
         {children}
       </div>
     </div>

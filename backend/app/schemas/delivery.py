@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 import uuid
+from datetime import datetime
 
 
 class DeliveryCodeResponse(BaseModel):
@@ -14,3 +15,16 @@ class ValidateDeliveryRequest(BaseModel):
 
 class ValidateDeliveryQRRequest(BaseModel):
     qr_token: str   # scanné par le transporteur
+
+class PickupCodeResponse(BaseModel):
+    booking_id: uuid.UUID
+    code: str
+
+class ValidatePickupRequest(BaseModel):
+    code: str
+
+class MeetingDateRequest(BaseModel):
+    meeting_date: datetime
+
+class AlternativeProofRequest(BaseModel):
+    proof_url: str

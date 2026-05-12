@@ -118,7 +118,7 @@ export default function TripCard({ trip, onClick, className }: {
       {/* Tags capacité */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
-          <WeightDisplay value={trip.remaining_kg} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} /> {t.trip.available ?? 'dispo'}
+          <WeightDisplay value={trip.remaining_kg} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} /> {t.trip.available_kg}
         </span>
         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 500 }}>
           max <WeightDisplay value={trip.max_kg_per_package} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} />

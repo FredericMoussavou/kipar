@@ -13,6 +13,8 @@ from app.schemas.delivery import (
     DeliveryCodeResponse,
     ValidateDeliveryRequest,
     ValidateDeliveryQRRequest,
+    MeetingDateRequest,
+    AlternativeProofRequest,
 )
 from app.services.delivery_service import (
     generate_and_hash_code,
@@ -51,7 +53,6 @@ async def generate_delivery_code(
     booking.delivery_qr_token = qr_token
     booking.delivery_code_expires_at = code_expires_at()
 
-    # Récupère les infos pour notifier le récepteur
     result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
     trip = result.scalar_one_or_none()
     result = await db.execute(select(User).where(User.id == trip.carrier_id))
@@ -98,9 +99,8 @@ async def validate_delivery(
     booking.status = "delivered"
     booking.delivery_confirmed_at = datetime.now(timezone.utc)
     booking.delivery_confirmed_by = current_user.id
-    booking.delivery_code_plain = None  # Efface le code en clair après livraison
+    booking.delivery_code_plain = None
 
-    # Notifie l'expéditeur que son colis a été livré
     sender_result = await db.execute(select(User).where(User.id == booking.sender_id))
     sender = sender_result.scalar_one_or_none()
     if sender:
@@ -144,17 +144,15 @@ async def validate_delivery_qr(
     return {"message": t("success.delivery_confirmed_qr", lang)}
 
 
-# Import ajouté en fin de fichier pour déclencher la libération du paiement
 def _schedule_payment_release(booking_id: str):
-    """Planifie la libération du paiement 24h après livraison."""
+    """Planifie la liberation du paiement 24h apres livraison."""
     try:
         from app.workers.booking_tasks import release_payment_after_delivery
         release_payment_after_delivery.apply_async(
             args=[booking_id],
-            countdown=86400  # 24h en secondes
+            countdown=86400
         )
     except Exception:
-        # Celery non disponible en test — on ignore
         pass
 
 
@@ -165,7 +163,7 @@ async def get_delivery_code(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    """Retourne le QR token + code en clair pour le récepteur uniquement."""
+    """Retourne le QR token + code en clair pour le recepteur uniquement."""
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
     if not booking:
@@ -177,9 +175,6 @@ async def get_delivery_code(
     if not booking.delivery_qr_token:
         raise HTTPException(status_code=404, detail=t("errors.delivery_code_unavailable", lang))
 
-    # Régénère le code en clair depuis le service pour le récepteur
-    # On ne stocke pas le code en clair — on génère un nouveau code lié au même hash
-    # Sécurité : seul le récepteur voit le code, l'expéditeur voit uniquement le QR token
     from app.services.delivery_service import get_plain_code_for_receiver
     plain_code = None
     if is_receiver:
@@ -206,7 +201,6 @@ async def declare_delivery_failed(
     Commentaire obligatoire. Horodatage serveur. Fenetre 48h pour justification.
     """
     from datetime import datetime, timezone, timedelta
-    from pydantic import BaseModel
     from app.core.config import settings
     from app.services.notif_db_service import create_notification
 
@@ -231,15 +225,13 @@ async def declare_delivery_failed(
 
     now = datetime.now(timezone.utc)
     booking.status = "delivery_failed"
-    booking.delivery_failed_at = now  # horodatage serveur - non editable
+    booking.delivery_failed_at = now
     booking.delivery_failed_comment = comment
     booking.delivery_failed_by = "carrier" if is_carrier else "receiver"
     booking.incident_response_deadline = now + timedelta(hours=settings.INCIDENT_RESPONSE_HOURS)
     await db.commit()
 
-    # Notifie l'autre partie
     if is_carrier:
-        # Transporteur declare -> notifie recepteur et expediteur
         if booking.receiver_id:
             await create_notification(
                 db=db,
@@ -258,7 +250,6 @@ async def declare_delivery_failed(
             link=f"/packages/{booking.id}",
         )
     else:
-        # Recepteur declare -> notifie transporteur
         carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
         carrier = carrier_result.scalar_one_or_none()
         if carrier:
@@ -321,7 +312,6 @@ async def respond_delivery_failed(
     is_sender = booking.sender_id == current_user.id
     declared_by = booking.delivery_failed_by
 
-    # Seule la partie mise en cause peut repondre
     if declared_by == "carrier" and not is_receiver and not is_sender:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if declared_by == "receiver" and not is_carrier:
@@ -332,17 +322,12 @@ async def respond_delivery_failed(
         raise HTTPException(status_code=400, detail=t("errors.incident_response_expired", lang))
 
     if response.lower() == "accept":
-        # Declarant favorise - resolution selon qui a declare
         if declared_by == "carrier":
-            # Transporteur avait raison -> recepteur fautif
-            # Transporteur recoit 87%, Kipar 13% (service rendu)
             booking.status = "delivered"
             booking.delivery_confirmed_at = now
             booking.delivery_confirmed_by = current_user.id
             resolution = "carrier_favored_receiver_fault"
         else:
-            # Recepteur avait raison -> transporteur fautif
-            # Expediteur rembourse 100%, Kipar 0EUR
             booking.status = "cancelled"
             booking.cancellation_reason = "delivery_failed_carrier_fault"
             resolution = "receiver_favored_carrier_fault"
@@ -358,7 +343,6 @@ async def respond_delivery_failed(
         await db.commit()
         return {"status": booking.status, "resolution": resolution}
     else:
-        # Contestation -> litige automatique
         existing = await db.execute(
             select(Dispute).where(Dispute.booking_id == booking.id)
         )
@@ -383,3 +367,359 @@ async def respond_delivery_failed(
         )
         await db.commit()
         return {"status": "disputed", "dispute_id": str(dispute.id)}
+
+
+# ---------------------------------------------------------------------------
+# RDV LIVRAISON
+# ---------------------------------------------------------------------------
+
+@router.post("/{booking_id}/propose-delivery-meeting")
+async def propose_delivery_meeting(
+    booking_id: str,
+    payload: MeetingDateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Carrier ou receiver propose une delivery_meeting_date."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    is_carrier = current_user.id == trip.carrier_id
+    is_receiver = current_user.id == b.receiver_id
+    if not (is_carrier or is_receiver):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if b.status not in ("in_transit", "delivery_reported"):
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+
+    # Contrainte : date posterieure a l'arrivee du vol
+    if trip.arrival_date and trip.arrival_time:
+        h, m = map(int, trip.arrival_time.split(":"))
+        arrival_dt = datetime(
+            trip.arrival_date.year, trip.arrival_date.month, trip.arrival_date.day,
+            h, m, tzinfo=timezone.utc
+        )
+        if payload.meeting_date <= arrival_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="La date de RDV doit etre posterieure a l'arrivee du vol"
+            )
+
+    b.proposed_delivery_date = payload.meeting_date
+    b.proposed_delivery_by = current_user.id
+    notif_target = b.receiver_id if is_carrier else trip.carrier_id
+    role_label = "transporteur" if is_carrier else "recepteur"
+    await create_notification(
+        db=db, user_id=notif_target, type="delivery_meeting_proposed",
+        title="RDV livraison propose",
+        body=f"Le {role_label} a proposé un nouveau RDV de livraison.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "proposed", "proposed_delivery_date": str(b.proposed_delivery_date)}
+
+
+@router.post("/{booking_id}/confirm-delivery-meeting")
+async def confirm_delivery_meeting(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """L'autre partie confirme la delivery_meeting_date proposee."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if not b.proposed_delivery_date:
+        raise HTTPException(status_code=400, detail="Aucune date proposee")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    is_carrier = current_user.id == trip.carrier_id
+    is_receiver = current_user.id == b.receiver_id
+    if not (is_carrier or is_receiver):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if current_user.id == b.proposed_delivery_by:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas confirmer votre propre proposition")
+
+    b.delivery_meeting_date = b.proposed_delivery_date
+    b.proposed_delivery_date = None
+    b.proposed_delivery_by = None
+    notif_target = b.receiver_id if is_carrier else trip.carrier_id
+    await create_notification(
+        db=db, user_id=notif_target, type="delivery_meeting_confirmed",
+        title="RDV livraison confirme",
+        body="Le RDV de livraison a été confirmé. Consultez les détails du colis.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "confirmed", "delivery_meeting_date": str(b.delivery_meeting_date)}
+
+
+@router.post("/{booking_id}/reschedule-delivery")
+async def reschedule_delivery(
+    booking_id: str,
+    payload: MeetingDateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Reporte la livraison - max 3 fois. Au-dela le bouton est bloque cote frontend."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    is_carrier = current_user.id == trip.carrier_id
+    is_receiver = current_user.id == b.receiver_id
+    if not (is_carrier or is_receiver):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if b.status not in ("in_transit", "delivery_reported"):
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+    if b.delivery_reschedule_count >= 3:
+        raise HTTPException(status_code=400, detail="Limite de 3 reports atteinte")
+
+    b.proposed_delivery_date = payload.meeting_date
+    b.proposed_delivery_by = current_user.id
+    b.delivery_reschedule_count += 1
+    b.status = "delivery_reported"
+    notif_target = b.receiver_id if is_carrier else trip.carrier_id
+    role_label = "transporteur" if is_carrier else "recepteur"
+    await create_notification(
+        db=db, user_id=notif_target, type="delivery_rescheduled",
+        title="Livraison reportee",
+        body=f"Le {role_label} demande un report ({b.delivery_reschedule_count}/3). Nouvelle date : {payload.meeting_date.strftime('%d/%m/%Y a %H:%M')}.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "delivery_reported", "reschedule_count": b.delivery_reschedule_count}
+
+
+@router.post("/{booking_id}/delivery-alternative-proof")
+async def delivery_alternative_proof(
+    booking_id: str,
+    payload: AlternativeProofRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Cas B : transporteur uploade la preuve alternative.
+    Statut -> pending_admin_validation, validation manuelle admin requise.
+    """
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    if current_user.id != trip.carrier_id:
+        raise HTTPException(status_code=403, detail="Transporteur uniquement")
+    if b.status not in ("in_transit", "delivery_reported"):
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+
+    b.delivery_alternative_proof_url = payload.proof_url
+    b.status = "pending_admin_validation"
+    await create_notification(
+        db=db, user_id=b.sender_id, type="delivery_alternative_proof",
+        title="Preuve alternative soumise",
+        body="Le transporteur a soumis une preuve alternative de livraison. En attente de validation admin.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "pending_admin_validation"}
+
+
+# ---------------------------------------------------------------------------
+# RDV PICKUP
+# ---------------------------------------------------------------------------
+
+@router.post("/{booking_id}/propose-pickup-meeting")
+async def propose_pickup_meeting(
+    booking_id: str,
+    payload: MeetingDateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Sender ou carrier propose une pickup_meeting_date."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    is_carrier = current_user.id == trip.carrier_id
+    is_sender = current_user.id == b.sender_id
+    if not (is_carrier or is_sender):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if b.status != "accepted":
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+
+    # Contrainte : au moins 3h avant le depart du vol
+    if trip.departure_date and trip.departure_time:
+        h, m = map(int, trip.departure_time.split(":"))
+        departure_dt = datetime(
+            trip.departure_date.year, trip.departure_date.month, trip.departure_date.day,
+            h, m, tzinfo=timezone.utc
+        )
+        from datetime import timedelta
+        if payload.meeting_date >= departure_dt - timedelta(hours=3):
+            raise HTTPException(
+                status_code=400,
+                detail="La date de RDV doit etre au moins 3h avant le depart du vol"
+            )
+
+    b.proposed_pickup_date = payload.meeting_date
+    b.proposed_pickup_by = current_user.id
+    b.pickup_meeting_confirmed_by_sender = False
+    b.pickup_meeting_confirmed_by_carrier = False
+    notif_target = trip.carrier_id if is_sender else b.sender_id
+    role_label = "expediteur" if is_sender else "transporteur"
+    await create_notification(
+        db=db, user_id=notif_target, type="pickup_meeting_proposed",
+        title="RDV collecte propose",
+        body=f"L'{role_label} a proposé un nouveau RDV de collecte.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "proposed", "proposed_pickup_date": str(b.proposed_pickup_date)}
+
+
+@router.post("/{booking_id}/confirm-pickup-meeting")
+async def confirm_pickup_meeting(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """L'autre partie confirme la pickup_meeting_date proposee."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if not b.proposed_pickup_date:
+        raise HTTPException(status_code=400, detail="Aucune date proposee")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    is_carrier = current_user.id == trip.carrier_id
+    is_sender = current_user.id == b.sender_id
+    if not (is_carrier or is_sender):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if current_user.id == b.proposed_pickup_by:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas confirmer votre propre proposition")
+
+    b.pickup_meeting_date = b.proposed_pickup_date
+    b.proposed_pickup_date = None
+    b.proposed_pickup_by = None
+    if is_carrier:
+        b.pickup_meeting_confirmed_by_carrier = True
+    else:
+        b.pickup_meeting_confirmed_by_sender = True
+
+    notif_target = b.sender_id if is_carrier else trip.carrier_id
+    await create_notification(
+        db=db, user_id=notif_target, type="pickup_meeting_confirmed",
+        title="RDV collecte confirme",
+        body="Le RDV de collecte a été confirmé. Consultez les détails du colis.",
+        link=f"/packages/{b.id}",
+    )
+    await db.commit()
+    return {"status": "confirmed", "pickup_meeting_date": str(b.pickup_meeting_date)}
+
+
+@router.post("/{booking_id}/generate-pickup-code")
+async def generate_pickup_code(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Transporteur genere le code pickup apres avoir recupere le colis."""
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+    if current_user.id != trip.carrier_id:
+        raise HTTPException(status_code=403, detail="Transporteur uniquement")
+    if b.status != "accepted":
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+    if not b.pickup_meeting_date:
+        raise HTTPException(status_code=400, detail="Aucun RDV collecte confirme")
+
+    code, hashed = generate_and_hash_code()
+    qr_token = Booking.generate_qr_token()
+    b.pickup_code_hash = hashed
+    b.pickup_code_plain = code
+    b.pickup_qr_token = qr_token
+    b.pickup_code_expires_at = code_expires_at()
+    await db.commit()
+    return {"booking_id": str(b.id), "code": code, "qr_token": qr_token}
+
+
+@router.post("/{booking_id}/validate-pickup-code")
+async def validate_pickup_code(
+    booking_id: str,
+    payload: ValidateDeliveryRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Expediteur valide le code pickup -> statut in_transit."""
+    from app.services.notif_db_service import create_notification
+
+    res = await db.execute(select(Booking).where(Booking.id == booking_id))
+    b = res.scalar_one_or_none()
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if current_user.id != b.sender_id:
+        raise HTTPException(status_code=403, detail="Expediteur uniquement")
+    if b.status != "accepted":
+        raise HTTPException(status_code=400, detail="Statut incompatible")
+    if not b.pickup_code_hash:
+        raise HTTPException(status_code=400, detail="Aucun code pickup genere")
+    if datetime.now(timezone.utc) > b.pickup_code_expires_at:
+        raise HTTPException(status_code=400, detail="Code pickup expire")
+    if not verify_code(payload.code, b.pickup_code_hash):
+        raise HTTPException(status_code=400, detail="Code pickup invalide")
+
+    # Passage en in_transit + decrement remaining_kg
+    trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+    trip = trip_res.scalar_one_or_none()
+
+    from app.models.package import Package
+    pkg_res = await db.execute(select(Package).where(Package.id == b.package_id))
+    pkg = pkg_res.scalar_one_or_none()
+
+    b.status = "in_transit"
+    b.pickup_code_plain = None
+    if trip and pkg:
+        trip.remaining_kg = max(0.0, trip.remaining_kg - pkg.weight_kg)
+
+    # Notifier le recepteur
+    if b.receiver_id:
+        await create_notification(
+            db=db, user_id=b.receiver_id, type="package_in_transit",
+            title="Colis en transit",
+            body="Votre colis a ete remis au transporteur et est en route.",
+            link=f"/packages/{b.id}",
+        )
+    await db.commit()
+    return {"status": "in_transit"}

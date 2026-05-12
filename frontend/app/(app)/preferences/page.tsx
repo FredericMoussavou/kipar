@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useTheme } from 'next-themes'
 import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
+import Select from '@/components/ui/kipar/Select'
 import PhoneInputField from '@/components/ui/kipar/PhoneInputField'
 import api from '@/lib/api'
 import { WeightUnit } from '@/lib/weight'
@@ -290,12 +291,12 @@ export default function PreferencesPage() {
       <Card>
         <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: '0 0 8px' }}>{t.profile_edit.pref_currency}</p>
-          <select value={user.currency ?? 'EUR'} onChange={e => handlePayoutChange({ currency: e.target.value })}
-            style={{ width: '100%', padding: '10px 12px', border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none' }}>
+          <Select value={user.currency ?? 'EUR'} onChange={e => handlePayoutChange({ currency: e.target.value })}
+            style={{ width: '100%' }}>
             {(['EUR','GBP','USD','CHF','CAD','AUD','XOF','XAF','MAD','EGP','KES','NGN','GHS','ZAR','HTG','BRL','MXN','AED','INR','CNY'] as const).map(c => (
               <option key={c} value={c}>{c} — {(t.profile_edit as any)[`currency_${c}`]}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ padding: '14px 16px', borderBottom: `1px solid ${SAND}` }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, margin: '0 0 8px' }}>{t.profile_edit.pref_payment_method}</p>

@@ -88,6 +88,27 @@ class Booking(Base):
         DateTime(timezone=True), nullable=True
     )
 
+
+    # --- Planification et Sécurité de la Collecte (Pickup) ---
+    pickup_meeting_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    proposed_pickup_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    proposed_pickup_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    pickup_reschedule_count: Mapped[int] = mapped_column(default=0)
+    pickup_meeting_confirmed_by_sender: Mapped[bool] = mapped_column(Boolean, default=False)
+    pickup_meeting_confirmed_by_carrier: Mapped[bool] = mapped_column(Boolean, default=False)
+    pickup_code_hash: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    pickup_code_plain: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    pickup_qr_token: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    pickup_code_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+    # --- Planification et Sécurité de la Livraison (Delivery) ---
+    delivery_meeting_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    proposed_delivery_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    proposed_delivery_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    delivery_reschedule_count: Mapped[int] = mapped_column(default=0)
+    delivery_alternative_proof_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # Relations
     trip: Mapped["Trip"] = relationship("Trip", back_populates="bookings")
     package: Mapped["Package"] = relationship("Package", back_populates="booking")

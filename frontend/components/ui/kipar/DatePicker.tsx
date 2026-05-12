@@ -1,10 +1,8 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 
-const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
-const DAYS = ['Lu','Ma','Me','Je','Ve','Sa','Di']
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE, BG } from '@/lib/theme'
 
 interface DatePickerProps {
   label?: string
@@ -12,14 +10,24 @@ interface DatePickerProps {
   onChange: (val: string) => void
   error?: string
   min?: string
+  max?: string
+  locale?: string
 }
 
-export default function DatePicker({ label, value, onChange, error, min }: DatePickerProps) {
+export default function DatePicker({ label, value, onChange, error, min, max, locale = 'fr-FR' }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  
+  // Normalisation d'aujourd'hui à minuit pile
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
   const parsed = value ? new Date(value) : null
   const [view, setView] = useState({ year: parsed?.getFullYear() ?? today.getFullYear(), month: parsed?.getMonth() ?? today.getMonth() })
+
+  // Génération dynamique et localisée des mois et des jours
+  const MONTHS = useMemo(() => Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2000, i, 1)).replace(/^\w/, c => c.toUpperCase())), [locale])
+  const DAYS = useMemo(() => Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, i + 1)).substring(0, 2).replace(/^\w/, c => c.toUpperCase())), [locale])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
@@ -29,7 +37,17 @@ export default function DatePicker({ label, value, onChange, error, min }: DateP
 
   const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
   const firstDay = (new Date(view.year, view.month, 1).getDay() + 6) % 7
-  const minDate = min ? new Date(min) : null
+
+  // Helper pour supprimer l'heure et éviter les faux-positifs
+  const getMidnightDate = (dStr?: string) => {
+    if (!dStr) return null
+    const d = new Date(dStr)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+  
+  const minDate = getMidnightDate(min)
+  const maxDate = getMidnightDate(max)
 
   const selectDay = (d: number) => {
     const m = String(view.month + 1).padStart(2, '0')
@@ -42,17 +60,21 @@ export default function DatePicker({ label, value, onChange, error, min }: DateP
     if (!parsed) return false
     return parsed.getFullYear() === view.year && parsed.getMonth() === view.month && parsed.getDate() === d
   }
+
   const isDisabled = (d: number) => {
-    if (!minDate) return false
     const dt = new Date(view.year, view.month, d)
-    return dt < minDate
+    dt.setHours(0, 0, 0, 0)
+    if (minDate && dt < minDate) return true
+    if (maxDate && dt > maxDate) return true
+    return false
   }
+
   const isToday = (d: number) => today.getFullYear() === view.year && today.getMonth() === view.month && today.getDate() === d
 
   const prev = () => setView(v => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 })
   const next = () => setView(v => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 })
 
-  const displayValue = parsed ? `${String(parsed.getDate()).padStart(2,'0')}/${String(parsed.getMonth()+1).padStart(2,'0')}/${parsed.getFullYear()}` : ''
+  const displayValue = parsed ? `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth() + 1).padStart(2, '0')}/${parsed.getFullYear()}` : ''
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -66,7 +88,7 @@ export default function DatePicker({ label, value, onChange, error, min }: DateP
       </div>
       {error && <p style={{ fontSize: 11, color: '#F87171', margin: 0 }}>{error}</p>}
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 1000, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 260 }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 9999, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 260 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <button type='button' onClick={prev} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: TAUPE }}>
               <ChevronLeft size={16} />

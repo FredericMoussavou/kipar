@@ -45,7 +45,7 @@ export default function TopNav() {
       boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
       position: 'sticky',
       top: 0,
-      zIndex: 40,
+      zIndex: 100,
     }}>
       <div style={{ maxWidth: 1024, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 

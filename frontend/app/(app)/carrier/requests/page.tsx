@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import HeroHeader from '@/components/layout/HeroHeader'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
+import Select from '@/components/ui/kipar/Select'
 import api from '@/lib/api'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED, GREEN } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
@@ -120,15 +121,15 @@ export default function CarrierRequestsPage() {
                     </button>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <select value={selectedTripId} onChange={e => setSelectedTripId(e.target.value)}
-                        style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none' }}>
+                      <Select value={selectedTripId} onChange={e => setSelectedTripId(e.target.value)}
+                        style={{ width: '100%' }}>
                         <option value="">-- {t.carrier.my_trips} --</option>
                         {myTrips.filter((trip: any) => trip.status === 'open').map((trip: any) => (
                           <option key={trip.id} value={trip.id}>
                             {trip.origin_airport_code} → {trip.destination_airport_code} · {trip.departure_date} · {trip.price_per_kg}€/kg
                           </option>
                         ))}
-                      </select>
+                      </Select>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={e => { e.stopPropagation(); setApplyingId(null) }}
                           style={{ flex: 1, padding: '10px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>

@@ -69,5 +69,20 @@ class BookingDetailResponse(BaseModel):
     sender_email: str | None = None
     # Annulation
     cancellation_reason: str | None = None
+    # Pickup
+    pickup_meeting_date: str | None = None
+    proposed_pickup_date: str | None = None
+    proposed_pickup_by: str | None = None
+    pickup_reschedule_count: int = 0
+    pickup_meeting_confirmed_by_sender: bool = False
+    pickup_meeting_confirmed_by_carrier: bool = False
+    pickup_code_plain: str | None = None
+    pickup_qr_token: str | None = None
+    # Delivery
+    delivery_meeting_date: str | None = None
+    proposed_delivery_date: str | None = None
+    proposed_delivery_by: str | None = None
+    delivery_reschedule_count: int = 0
+    delivery_alternative_proof_url: str | None = None
 
     model_config = {"from_attributes": False}

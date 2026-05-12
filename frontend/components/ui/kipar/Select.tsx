@@ -55,7 +55,7 @@ export default function Select({ label, value, onChange, options, children, erro
       </div>
       {error && <p style={{ fontSize: 11, color: '#F87171', margin: 0 }}>{error}</p>}
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 1000, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 220, overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 9999, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 220, overflowY: 'auto' }}>
           {opts.map(opt => (
             <div key={opt.value} onClick={() => pick(opt.value)}
               style={{ padding: '10px 14px', fontSize: 13, color: opt.value === value ? RED : CHARCOAL, fontWeight: opt.value === value ? 600 : 400, background: opt.value === value ? 'rgba(220,0,41,0.05)' : 'transparent', cursor: 'pointer', borderBottom: `1px solid ${SAND}` }}

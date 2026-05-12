@@ -8,6 +8,8 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import TripCard from '@/components/trips/TripCard'
 import HeroHeader from '@/components/layout/HeroHeader'
+import DatePicker from '@/components/ui/kipar/DatePicker'
+import Select from '@/components/ui/kipar/Select'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER } from '@/lib/theme'
 
@@ -176,49 +178,52 @@ export default function SearchPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                      style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: date ? CHARCOAL : TAUPE, outline: 'none', boxSizing: 'border-box' }} />
+                    <DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} />
                   </div>
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
-                    <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                      style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }}>
+                    <Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
                       <option value="">{t.search.sort_date}</option>
                       <option value="price_asc">{t.search.sort_price_asc}</option>
                       <option value="price_desc">{t.search.sort_price_desc}</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <button onClick={handleSearch}
-                  style={{ background: '#fff', border: 'none', borderRadius: 99, padding: '12px 36px', fontSize: 14, fontWeight: 700, color: RED, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
-                  <Search size={15} />
+                  style={{background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(8px)',WebkitBackdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 24px', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap'}}>
+                  <Search size={15} color="#fff" />
                   {t.search.search_btn}
                 </button>
               </div>
             </>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'flex-end' }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) auto', 
+              gap: 12, 
+              alignItems: 'flex-end',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
               <AirportInput {...airportInputProps.origin} />
               <AirportInput {...airportInputProps.dest} />
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: date ? CHARCOAL : TAUPE, outline: 'none', boxSizing: 'border-box' }} />
+                <DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} />
               </div>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }}>
+                <Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
                   <option value="">{t.search.sort_date}</option>
                   <option value="price_asc">{t.search.sort_price_asc}</option>
                   <option value="price_desc">{t.search.sort_price_desc}</option>
-                </select>
+                </Select>
               </div>
               <button onClick={handleSearch}
-                style={{ background: '#fff', border: 'none', borderRadius: 99, padding: '10px 24px', fontSize: 14, fontWeight: 700, color: RED, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', whiteSpace: 'nowrap' }}>
-                <Search size={15} />
+                style={{background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(8px)',WebkitBackdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 24px', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap'}}>
+                <Search size={15} color="#fff" />
                 {t.search.search_btn}
               </button>
             </div>

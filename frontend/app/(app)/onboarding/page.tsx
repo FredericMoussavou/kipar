@@ -6,6 +6,7 @@ import { ChevronRight, ChevronLeft, Check, Upload, X, CheckCircle, XCircle, Load
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import { Button, Input } from '@/components/ui/kipar'
+import Select from '@/components/ui/kipar/Select'
 import PhoneInputField from '@/components/ui/kipar/PhoneInputField'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
@@ -322,9 +323,9 @@ export default function OnboardingPage() {
             <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{t.onboarding.pref_subtitle}</p>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>{t.profile_edit.pref_language}</label>
-              <select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
+              <Select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
                 {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
+              </Select>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>{t.profile_edit.pref_weight}</label>
@@ -339,9 +340,9 @@ export default function OnboardingPage() {
             </div>
             <div>
               <label style={labelStyle}>{t.profile_edit.pref_currency}</label>
-              <select value={currency} onChange={e => setCurrency(e.target.value)} style={selectStyle}>
+              <Select value={currency} onChange={e => setCurrency(e.target.value)} style={selectStyle}>
                 {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              </Select>
             </div>
           </div>
         )}

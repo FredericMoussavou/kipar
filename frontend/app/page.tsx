@@ -127,6 +127,7 @@ function LaptopMockup() {
 }
 
 export default function LandingPage() {
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const isMobile = useIsMobile()
   const [lang, setLang] = useState<'fr' | 'en' | 'es'>('fr')
   const t = getT(lang)
@@ -164,7 +165,7 @@ export default function LandingPage() {
           {/* Sélecteur langue */}
           <div style={{ position: 'relative' }}>
             <button type="button" onClick={() => setLangOpen(o => !o)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: `1px solid ${scrolled ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)'}`, background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: scrolled ? CHARCOAL : WHITE }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, border: `1px solid ${scrolled ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.2)'}`, background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: scrolled ? CHARCOAL : WHITE, fontFamily: 'Segoe UI Emoji, Apple Color Emoji, sans-serif' }}>
               {lang === 'fr' ? '🇫🇷' : lang === 'en' ? '🇬🇧' : '🇪🇸'} {lang.toUpperCase()}
             </button>
             {langOpen && (
@@ -172,7 +173,7 @@ export default function LandingPage() {
                 {([['fr', '🇫🇷', 'Français'], ['en', '🇬🇧', 'English'], ['es', '🇪🇸', 'Español']] as const).map(([code, flag, label]) => (
                   <button key={code} type="button"
                     onClick={() => { setLang(code); setLangOpen(false) }}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: lang === code ? 'rgba(220,0,41,0.06)' : WHITE, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: lang === code ? 700 : 400, color: lang === code ? R : CHARCOAL, textAlign: 'left' }}>
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: lang === code ? 'rgba(220,0,41,0.06)' : WHITE, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: lang === code ? 700 : 400, color: lang === code ? R : CHARCOAL, textAlign: 'left', fontFamily: 'Segoe UI Emoji, Apple Color Emoji, sans-serif' }}>
                     {flag} {label}
                   </button>
                 ))}
@@ -270,19 +271,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* VIDEO */}
+{/* VIDEO */}
       <section style={{ padding: isMobile ? '60px 20px' : '80px 48px', background: WHITE }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 28 : 36, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', margin: 0 }}>{t.landing.video_title}</h2>
           </div>
+          
+          {/* Conteneur de la vidéo (Conserve le ratio 16:9) */}
           <div style={{ position: 'relative', paddingBottom: '56.25%', borderRadius: 16, overflow: 'hidden', background: CHARCOAL, boxShadow: '0 20px 56px rgba(0,0,0,0.15)' }}>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(220,0,41,0.4)', cursor: 'pointer' }}>
-                <div style={{ width: 0, height: 0, borderTop: '11px solid transparent', borderBottom: '11px solid transparent', borderLeft: '18px solid white', marginLeft: 4 }} />
+            
+            {isVideoPlaying ? (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: '#000' }}>
+                <video 
+                  src="../videos/presentation.mp4" 
+                  controls 
+                  autoPlay 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setIsVideoPlaying(false) }}
+                  style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                  ✕
+                </button>
               </div>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Vidéo de présentation — bientôt disponible</span>
-            </div>
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+                <div 
+                  onClick={() => setIsVideoPlaying(true)}
+                  style={{ width: 64, height: 64, borderRadius: '50%', background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(220,0,41,0.4)', cursor: 'pointer', transition: 'transform 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <div style={{ width: 0, height: 0, borderTop: '11px solid transparent', borderBottom: '11px solid transparent', borderLeft: '18px solid white', marginLeft: 4 }} />
+                </div>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Voir la vidéo de présentation</span>
+              </div>
+            )}
+
           </div>
         </div>
       </section>

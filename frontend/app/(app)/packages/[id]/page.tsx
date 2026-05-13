@@ -10,6 +10,7 @@ import DatePicker from '@/components/ui/kipar/DatePicker'
 import TimePicker from '@/components/ui/kipar/TimePicker'
 import Button from '@/components/ui/kipar/Button'
 import Input from '@/components/ui/kipar/Input'
+import Textarea from '@/components/ui/kipar/Textarea'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import { useState, useRef, useEffect } from 'react'
@@ -395,11 +396,9 @@ const handleCancel = () => {
                 <p style={{ fontSize: 12, color: TAUPE, marginBottom: 10 }}>{t.packages.pickup_meeting_waiting}</p>
               )}
               {!hasPendingPickup && (
-                <button
-                  onClick={() => setPickupModalOpen(true)}
-                  style={{ width: '100%', padding: 12, background: CHARCOAL, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+                <Button fullWidth onClick={() => setPickupModalOpen(true)} style={{ background: CHARCOAL }}>
                   {hasPickupMeeting ? (t.packages.pickup_meeting_reschedule_btn || 'Modifier le RDV') : t.packages.pickup_meeting_propose_btn}
-                </button>
+                </Button>
               )}
             </Section>
 
@@ -409,12 +408,9 @@ const handleCancel = () => {
                 <p style={{ fontSize: 12, color: TAUPE, textAlign: 'center' }}>{t.packages.pickup_rdv_required}</p>
               ) : isCarrier ? (
                 !pickupCodeData ? (
-                  <button
-                    onClick={() => generatePickupCodeMutation.mutate()}
-                    disabled={generatePickupCodeMutation.isPending || !canFailPickup}
-                    style={{ width: '100%', padding: 12, background: GREEN, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: canFailPickup ? 'pointer' : 'not-allowed', opacity: canFailPickup ? 1 : 0.5 }}>
-                    {generatePickupCodeMutation.isPending ? '...' : (!canFailPickup ? 'Disponible à l\'heure du RDV' : (t.packages.pickup_code_generate_btn || "J'ai récupéré le colis"))}
-                  </button>
+                  <Button fullWidth loading={generatePickupCodeMutation.isPending} disabled={generatePickupCodeMutation.isPending || !canFailPickup} onClick={() => generatePickupCodeMutation.mutate()} style={{ background: GREEN }}>
+                    {!canFailPickup ? "Disponible à l'heure du RDV" : (t.packages.pickup_code_generate_btn || "Générer le code pickup")}
+                  </Button>
                 ) : (
                   <div style={{ textAlign: 'center', padding: 16, background: SAND, borderRadius: 12, border: '1px solid ' + BORDER }}>
                     <p style={{ fontSize: 10, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.packages.pickup_code_label}</p>
@@ -436,10 +432,9 @@ const handleCancel = () => {
                   />
                 </div>
               ) : null}
-              <button onClick={() => setPickupFailedOpen(true)} disabled={!canFailPickup}
-                style={{ width: '100%', padding: 12, background: 'transparent', color: RED, border: '1px solid ' + RED + '40', borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: canFailPickup ? 'pointer' : 'not-allowed', opacity: canFailPickup ? 1 : 0.5, marginTop: 16 }}>
+              <Button fullWidth variant="ghost" disabled={!canFailPickup} onClick={() => setPickupFailedOpen(true)} style={{ marginTop: 16, color: RED, border: '1px solid ' + RED + '40' }}>
                 {t.packages.pickup_failed_btn || 'Échec collecte'}
-              </button>
+              </Button>
             </Section>
           </>
         )}        {/* INFO TRANSIT SENDER */}
@@ -474,28 +469,21 @@ const handleCancel = () => {
               )}
               {hasPendingDelivery && !isDeliveryProposedByMe && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                  <button
-                    onClick={() => confirmDeliveryMutation.mutate()}
-                    disabled={confirmDeliveryMutation.isPending}
-                    style={{ flex: 1, padding: '10px', background: GREEN, color: WHITE, borderRadius: 10, border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Button onClick={() => confirmDeliveryMutation.mutate()} loading={confirmDeliveryMutation.isPending} style={{ flex: 1, background: GREEN }}>
                     <Check size={14} /> {t.packages.accept}
-                  </button>
-                  <button
-                    onClick={() => setDeliveryModalOpen(true)}
-                    style={{ flex: 1, padding: '10px', background: SAND, color: CHARCOAL, borderRadius: 10, border: '1px solid ' + BORDER, fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  </Button>
+                  <Button variant="outline" onClick={() => setDeliveryModalOpen(true)} style={{ flex: 1 }}>
                     <X size={14} /> {t.packages.refuse}
-                  </button>
+                  </Button>
                 </div>
               )}
               {hasPendingDelivery && isDeliveryProposedByMe && (
                 <p style={{ fontSize: 12, color: TAUPE, marginBottom: 10 }}>{t.packages.delivery_meeting_waiting}</p>
               )}
               {!hasPendingDelivery && canReschedule && (
-                <button
-                  onClick={() => setDeliveryModalOpen(true)}
-                  style={{ width: '100%', padding: 12, background: CHARCOAL, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', marginTop: 4 }}>
+                <Button fullWidth onClick={() => setDeliveryModalOpen(true)} style={{ background: CHARCOAL, marginTop: 4 }}>
                   {hasDeliveryMeeting ? t.packages.delivery_meeting_reschedule_btn : t.packages.delivery_meeting_propose_btn}
-                </button>
+                </Button>
               )}
               {!canReschedule && (
                 <p style={{ fontSize: 12, color: RED, textAlign: 'center', marginTop: 8 }}>{t.packages.delivery_reschedule_max}</p>
@@ -511,12 +499,9 @@ const handleCancel = () => {
                 <p style={{ fontSize: 12, color: TAUPE, textAlign: 'center' }}>{t.packages.delivery_rdv_required}</p>
               ) : isReceiver ? (
                 !deliveryCodeData ? (
-                  <button
-                    onClick={() => generateDeliveryCodeMutation.mutate()}
-                    disabled={generateDeliveryCodeMutation.isPending || !deliveryUnlocked}
-                    style={{ width: '100%', padding: 12, background: GREEN, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: deliveryUnlocked ? 'pointer' : 'not-allowed', opacity: deliveryUnlocked ? 1 : 0.5 }}>
-                    {generateDeliveryCodeMutation.isPending ? '...' : (!deliveryUnlocked ? 'Disponible \xc3\xa0 l\'heure du RDV' : (t.packages.delivery_code_generate_btn || 'G\xc3\xa9n\xc3\xa9rer le code'))}
-                  </button>
+                  <Button fullWidth loading={generateDeliveryCodeMutation.isPending} disabled={generateDeliveryCodeMutation.isPending || !deliveryUnlocked} onClick={() => generateDeliveryCodeMutation.mutate()} style={{ background: GREEN }}>
+                    {!deliveryUnlocked ? "Disponible \xc3\xa0 l'heure du RDV" : (t.packages.delivery_code_generate_btn || 'G\xc3\xa9n\xc3\xa9rer le code')}
+                  </Button>
                 ) : (
                   <div style={{ textAlign: 'center', padding: 16, background: SAND, borderRadius: 12, border: '1px solid ' + BORDER }}>
                     <p style={{ fontSize: 10, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.packages.delivery_code_label}</p>
@@ -552,24 +537,19 @@ const handleCancel = () => {
                       }}
                       style={{ display: 'none' }}
                     />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={alternativeProofMutation.isPending || !deliveryUnlocked}
-                      style={{ width: '100%', padding: 10, background: 'transparent', color: RED, border: '1px solid ' + RED + '40', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, fontWeight: 600, cursor: deliveryUnlocked ? 'pointer' : 'not-allowed', opacity: deliveryUnlocked ? 1 : 0.5 }}>
-                      <Camera size={16} /> {alternativeProofMutation.isPending ? '...' : t.packages.delivery_alternative_proof_btn}
-                    </button>
+                    <Button fullWidth variant="ghost" loading={alternativeProofMutation.isPending} disabled={alternativeProofMutation.isPending || !deliveryUnlocked} onClick={() => fileInputRef.current?.click()} style={{ color: RED, border: '1px solid ' + RED + '40' }}>
+                      <Camera size={16} /> {t.packages.delivery_alternative_proof_btn}
+                    </Button>
                   </div>
                 </div>
               ) : null}
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button onClick={() => setDeliveryFailedOpen(true)}
-                  style={{ flex: 1, padding: 12, background: 'transparent', color: RED, border: '1px solid ' + RED + '40', borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+                <Button variant="ghost" onClick={() => setDeliveryFailedOpen(true)} style={{ flex: 1, color: RED, border: '1px solid ' + RED + '40' }}>
                   {t.packages.delivery_failed_btn || 'Échec livraison'}
-                </button>
-                <button onClick={() => setSupportOpen(true)}
-                  style={{ flex: 1, padding: 12, background: 'transparent', color: AMBER, border: '1px solid ' + AMBER + '40', borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+                </Button>
+                <Button variant="ghost" onClick={() => setSupportOpen(true)} style={{ flex: 1, color: AMBER, border: '1px solid ' + AMBER + '40' }}>
                   {t.packages.support_btn || 'Signaler problème'}
-                </button>
+                </Button>
               </div>
             </Section>
           </>
@@ -590,11 +570,9 @@ const handleCancel = () => {
 
         {/* ── ANNULATION ────────────────────────────────────────────────────── */}
         {(isSender || isCarrier) && ['pending', 'accepted', 'paid'].includes(booking.status) && (
-          <button
-            onClick={() => setCancelOpen(true)}
-            style={{ width: '100%', padding: 12, background: 'transparent', color: RED, border: '1px solid ' + RED + '40', borderRadius: 12, fontWeight: 600, fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
+          <Button fullWidth variant="ghost" onClick={() => setCancelOpen(true)} style={{ marginTop: 8, color: RED, border: '1px solid ' + RED + '40' }}>
             {t.packages.cancel_booking}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -626,12 +604,9 @@ const handleCancel = () => {
             />
           </div>
         </div>
-        <button
-          onClick={() => proposePickupMutation.mutate()}
-          disabled={proposePickupMutation.isPending || !pickupDate}
-          style={{ width: '100%', padding: 12, background: CHARCOAL, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', opacity: !pickupDate ? 0.5 : 1 }}>
-          {proposePickupMutation.isPending ? '...' : 'Envoyer la proposition'}
-        </button>
+        <Button fullWidth loading={proposePickupMutation.isPending} disabled={proposePickupMutation.isPending || !pickupDate} onClick={() => proposePickupMutation.mutate()} style={{ background: CHARCOAL }}>
+          Envoyer la proposition
+        </Button>
       </Modal>
 
       {/* ── MODAL RDV LIVRAISON ─────────────────────────────────────────────── */}
@@ -650,64 +625,39 @@ const handleCancel = () => {
             />
           </div>
         </div>
-        <button
-          onClick={() => hasDeliveryMeeting ? rescheduleMutation.mutate() : proposeDeliveryMutation.mutate()}
-          disabled={proposeDeliveryMutation.isPending || rescheduleMutation.isPending || !deliveryDate}
-          style={{ width: '100%', padding: 12, background: CHARCOAL, color: WHITE, borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', opacity: !deliveryDate ? 0.5 : 1 }}>
-          {(proposeDeliveryMutation.isPending || rescheduleMutation.isPending) ? '...' : 'Envoyer la proposition'}
-        </button>
+        <Button fullWidth loading={proposeDeliveryMutation.isPending || rescheduleMutation.isPending} disabled={proposeDeliveryMutation.isPending || rescheduleMutation.isPending || !deliveryDate} onClick={() => hasDeliveryMeeting ? rescheduleMutation.mutate() : proposeDeliveryMutation.mutate()} style={{ background: CHARCOAL }}>
+          Envoyer la proposition
+        </Button>
       </Modal>
 
       {/* ── MODAL ANNULATION ────────────────────────────────────────────────── */}
       <Modal isOpen={pickupFailedOpen} onClose={() => { setPickupFailedOpen(false); setIncidentReason('') }} title={t.packages.pickup_failed_btn || 'Échec collecte'}>
-        <textarea
-          value={incidentReason}
-          onChange={e => setIncidentReason(e.target.value)}
-          placeholder={t.packages.incident_reason_placeholder || 'Expliquez la situation...'}
-          rows={3}
-          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
-        />
+        <Textarea value={incidentReason} onChange={e => setIncidentReason(e.target.value)} placeholder={t.packages.incident_reason_placeholder || 'Expliquez la situation...'} rows={3} style={{ marginBottom: 12 }} />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => pickupFailedMutation.mutate()} disabled={pickupFailedMutation.isPending || !incidentReason.trim()}
-            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: (pickupFailedMutation.isPending || !incidentReason.trim()) ? 'not-allowed' : 'pointer', opacity: (pickupFailedMutation.isPending || !incidentReason.trim()) ? 0.5 : 1 }}>
-            {pickupFailedMutation.isPending ? '...' : (t.packages.pickup_failed_btn || 'Échec collecte')}
-          </button>
+          <Button size="sm" loading={pickupFailedMutation.isPending} disabled={pickupFailedMutation.isPending || !incidentReason.trim()} onClick={() => pickupFailedMutation.mutate()}>
+            {t.packages.pickup_failed_btn || 'Échec collecte'}
+          </Button>
         </div>
       </Modal>
 
       <Modal isOpen={deliveryFailedOpen} onClose={() => { setDeliveryFailedOpen(false); setIncidentReason('') }} title={t.packages.delivery_failed_btn || 'Échec livraison'}>
-        <textarea
-          value={incidentReason}
-          onChange={e => setIncidentReason(e.target.value)}
-          placeholder={t.packages.incident_reason_placeholder || 'Expliquez la situation...'}
-          rows={3}
-          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
-        />
+        <Textarea value={incidentReason} onChange={e => setIncidentReason(e.target.value)} placeholder={t.packages.incident_reason_placeholder || 'Expliquez la situation...'} rows={3} style={{ marginBottom: 12 }} />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => deliveryFailedMutation.mutate()} disabled={deliveryFailedMutation.isPending || !incidentReason.trim()}
-            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: (deliveryFailedMutation.isPending || !incidentReason.trim()) ? 'not-allowed' : 'pointer', opacity: (deliveryFailedMutation.isPending || !incidentReason.trim()) ? 0.5 : 1 }}>
-            {deliveryFailedMutation.isPending ? '...' : (t.packages.delivery_failed_btn || 'Échec livraison')}
-          </button>
+          <Button size="sm" loading={deliveryFailedMutation.isPending} disabled={deliveryFailedMutation.isPending || !incidentReason.trim()} onClick={() => deliveryFailedMutation.mutate()}>
+            {t.packages.delivery_failed_btn || 'Échec livraison'}
+          </Button>
         </div>
       </Modal>
 
       <Modal isOpen={cancelOpen} onClose={() => { setCancelOpen(false); setCancelReason('') }} title={t.packages.confirm_cancel}>
-        <textarea
-          value={cancelReason}
-          onChange={e => setCancelReason(e.target.value)}
-          placeholder={t.packages.cancel_reason_placeholder}
-          rows={3}
-          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
-        />
+        <Textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder={t.packages.cancel_reason_placeholder} rows={3} style={{ marginBottom: 12 }} />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => { setCancelOpen(false); setCancelReason('') }}
-            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <Button variant="outline" size="sm" onClick={() => { setCancelOpen(false); setCancelReason('') }}>
             {t.profile_edit.cancel}
-          </button>
-          <button onClick={handleCancel} disabled={cancelMutation.isPending}
-            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelMutation.isPending ? 'not-allowed' : 'pointer', opacity: cancelMutation.isPending ? 0.5 : 1 }}>
-            {cancelMutation.isPending ? '...' : t.packages.cancel_booking}
-          </button>
+          </Button>
+          <Button variant="danger" size="sm" loading={cancelMutation.isPending} onClick={handleCancel}>
+            {t.packages.cancel_booking}
+          </Button>
         </div>
       </Modal>
     </div>

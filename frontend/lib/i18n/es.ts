@@ -87,6 +87,10 @@ export const es = {
     stat_rating_value: '4.9★',
 
     apple: 'Continuar con Apple',
+    confirm_password: 'Confirmar contrasena',
+    password_min_placeholder: 'Minimo 8 caracteres',
+    first_name_placeholder: 'Nombre',
+    last_name_placeholder: 'Apellido',
 
   },
 
@@ -305,6 +309,11 @@ export const es = {
     incident_reason_placeholder: 'Explica la situación...',
 
     cancel_reason_required: 'Por favor, indique un motivo antes de confirmar.',
+    section_pickup_security: 'Seguridad de la entrega',
+    section_transit: 'Estado del tránsito',
+    section_delivery_rdv: 'Cita de entrega',
+    section_handover: 'Entrega al destinatario',
+    section_participants: 'Participantes',
 
     cancel_reason_label: 'Motivo de cancelacion',
 
@@ -832,6 +841,9 @@ export const es = {
     weight_unit_lb: 'lb',
 
     weight_unit_g: 'g',
+    weight_unit_kg_long: 'kg — Kilogramo',
+    weight_unit_lb_long: 'lb — Libra',
+    weight_unit_g_long: 'g — Gramo',
 
 
 

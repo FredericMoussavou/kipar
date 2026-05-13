@@ -87,6 +87,10 @@ export const en = {
     google: 'Continue with Google',
 
     apple: 'Continue with Apple',
+    confirm_password: 'Confirm password',
+    password_min_placeholder: 'At least 8 characters',
+    first_name_placeholder: 'First name',
+    last_name_placeholder: 'Last name',
 
   },
 
@@ -305,6 +309,11 @@ export const en = {
     incident_reason_placeholder: 'Explain the situation...',
 
     cancel_reason_required: 'Please provide a reason before confirming.',
+    section_pickup_security: 'Pickup security',
+    section_transit: 'Transit status',
+    section_delivery_rdv: 'Delivery appointment',
+    section_handover: 'Handover to recipient',
+    section_participants: 'Participants',
 
     cancel_reason_label: 'Cancellation reason',
 
@@ -852,6 +861,9 @@ profile_public: {
     weight_unit_lb: 'lb',
 
     weight_unit_g: 'g',
+    weight_unit_kg_long: 'kg — Kilogram',
+    weight_unit_lb_long: 'lb — Pound',
+    weight_unit_g_long: 'g — Gram',
 
 
 

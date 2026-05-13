@@ -131,14 +131,14 @@ export default function RegisterPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input
                 label={t.auth.first_name}
-                placeholder="Aminata"
+                placeholder={t.auth.first_name_placeholder}
                 leftIcon={<User size={15} color={TAUPE} />}
                 error={errors.first_name?.message}
                 {...register('first_name')}
               />
               <Input
                 label={t.auth.last_name}
-                placeholder="Diallo"
+                placeholder={t.auth.last_name_placeholder}
                 error={errors.last_name?.message}
                 {...register('last_name')}
               />
@@ -156,7 +156,7 @@ export default function RegisterPage() {
             <Input
               label={t.auth.password_label}
               type={showPassword ? 'text' : 'password'}
-              placeholder="8 caractères minimum"
+              placeholder={t.auth.password_min_placeholder}
               leftIcon={<Lock size={15} color={TAUPE} />}
               rightIcon={
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
             />
 
             <Input
-              label="Confirmer le mot de passe"
+              label={t.auth.confirm_password}
               type={showConfirm ? 'text' : 'password'}
               placeholder="••••••••"
               leftIcon={<Lock size={15} color={TAUPE} />}

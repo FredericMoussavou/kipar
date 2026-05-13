@@ -152,7 +152,7 @@ export default function NewTripPage() {
                 <Search size={13} color={TAUPE} />
                 <input value={originInput}
                   onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); searchAirports(e.target.value, setOriginSuggestions) }}
-                  placeholder="Ex: CDG..."
+                  placeholder={t.search.origin_placeholder}
                   style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {originInput && (
                   <button type="button" onClick={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false); setValue('origin_city', ''); setValue('origin_airport_code', '') }}
@@ -175,7 +175,7 @@ export default function NewTripPage() {
                 <Search size={13} color={TAUPE} />
                 <input value={destInput}
                   onChange={e => { setDestInput(e.target.value); setDestSelected(false); searchAirports(e.target.value, setDestSuggestions) }}
-                  placeholder="Ex: DSS..."
+                  placeholder={t.search.dest_placeholder}
                   style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {destInput && (
                   <button type="button" onClick={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false); setValue('destination_city', ''); setValue('destination_airport_code', '') }}
@@ -217,9 +217,9 @@ export default function NewTripPage() {
             <div>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.weight_unit_label ?? 'Unité de poids'}</p>
               <Select value={weightUnit} onChange={e => setWeightUnit(e.target.value as WeightUnit)}>
-                <option value='kg'>kg — Kilogramme</option>
-                <option value='lb'>lb — Livre</option>
-                <option value='g'>g — Gramme</option>
+                {t.profile_edit.weight_unit_kg_long}
+                {t.profile_edit.weight_unit_lb_long}
+                {t.profile_edit.weight_unit_g_long}
               </Select>
             </div>
             <div>

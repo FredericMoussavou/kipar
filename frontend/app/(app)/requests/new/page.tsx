@@ -177,7 +177,7 @@ export default function NewRequestPage() {
               <input
                 value={originInput}
                 onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); searchAirports(e.target.value, setOriginSuggestions) }}
-                placeholder="CDG, Paris..."
+                placeholder={t.search.origin_placeholder}
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: CHARCOAL, background: 'transparent' }}
               />
               {originSelected && <span style={{ fontSize: 11, color: GREEN }}>{t.carrier.airport_selected}</span>}
@@ -209,7 +209,7 @@ export default function NewRequestPage() {
               <input
                 value={destInput}
                 onChange={e => { setDestInput(e.target.value); setDestSelected(false); searchAirports(e.target.value, setDestSuggestions) }}
-                placeholder="DSS, Dakar..."
+                placeholder={t.search.dest_placeholder}
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: CHARCOAL, background: 'transparent' }}
               />
               {destSelected && <span style={{ fontSize: 11, color: GREEN }}>{t.carrier.airport_selected}</span>}

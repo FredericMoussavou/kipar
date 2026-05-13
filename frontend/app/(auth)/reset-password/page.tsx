@@ -5,11 +5,13 @@ import { Lock, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button, Input } from '@/components/ui/kipar'
 import api from '@/lib/api'
+import { useTranslation } from '@/hooks/useTranslation'
 import { RED, CHARCOAL, TAUPE, WHITE, BORDER, BG } from '@/lib/theme'
 
 function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
   const token = searchParams.get('token')
 
   const [password, setPassword] = useState('')
@@ -76,7 +78,7 @@ function ResetPasswordForm() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Input
-                label="Nouveau mot de passe"
+                label={t.profile_edit.field_new_password}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 leftIcon={<Lock size={15} color={TAUPE} />}
@@ -90,7 +92,7 @@ function ResetPasswordForm() {
                 onChange={e => { setPassword(e.target.value); setError('') }}
               />
               <Input
-                label="Confirmer le mot de passe"
+                label={t.auth.confirm_password}
                 type="password"
                 placeholder="••••••••"
                 leftIcon={<Lock size={15} color={TAUPE} />}

@@ -232,7 +232,7 @@ export default function LandingPage() {
             <Counter target={10000} suffix="+" label={t.landing.stat_carriers} />
             <Counter target={50} suffix="+" label={t.landing.stat_destinations} />
             <Counter target={98} suffix="%" label={t.landing.stat_success} />
-            <Counter target={4} suffix=".9★" label="Note moyenne" />
+            <Counter target={4} suffix=".9★" label={t.landing.stat_rating} />
           </div>
         </div>
       </section>

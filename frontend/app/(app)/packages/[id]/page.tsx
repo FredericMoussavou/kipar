@@ -403,7 +403,7 @@ const handleCancel = () => {
             </Section>
 
             {/* Sécurité remise */}
-            <Section title="Sécurité de la remise">
+            <Section title={t.packages.section_pickup_security}>
               {!hasPickupMeeting ? (
                 <p style={{ fontSize: 12, color: TAUPE, textAlign: 'center' }}>{t.packages.pickup_rdv_required}</p>
               ) : isCarrier ? (
@@ -439,7 +439,7 @@ const handleCancel = () => {
           </>
         )}        {/* INFO TRANSIT SENDER */}
         {(booking.status === 'in_transit' || booking.status === 'delivery_reported') && isSender && (
-          <Section title="Statut du transit">
+          <Section title={t.packages.section_transit}>
             <div style={{ textAlign: 'center', padding: 16 }}>
               <p style={{ fontSize: 14, color: CHARCOAL, fontWeight: 600, marginBottom: 8 }}>{t.packages.in_transit_sender_title || 'Colis en cours de livraison'}</p>
               <p style={{ fontSize: 13, color: TAUPE }}>{t.packages.in_transit_sender_desc || 'Le transporteur est en route et gère la remise avec le destinataire.'}</p>
@@ -452,7 +452,7 @@ const handleCancel = () => {
         {(booking.status === 'in_transit' || booking.status === 'delivery_reported') && (isCarrier || isReceiver) && (
           <>
             {/* RDV Livraison */}
-            <Section title="RDV Livraison">
+            <Section title={t.packages.section_delivery_rdv}>
               {hasDeliveryMeeting && (
                 <MeetingBadge
                   label={t.packages.delivery_meeting_label}
@@ -494,7 +494,7 @@ const handleCancel = () => {
             </Section>
 
             {/* Remise destinataire */}
-            <Section title="Remise au destinataire">
+            <Section title={t.packages.section_handover}>
               {!hasDeliveryMeeting ? (
                 <p style={{ fontSize: 12, color: TAUPE, textAlign: 'center' }}>{t.packages.delivery_rdv_required}</p>
               ) : isReceiver ? (
@@ -556,7 +556,7 @@ const handleCancel = () => {
         )}
 
         {/* ── INTERVENANTS ──────────────────────────────────────────────────── */}
-        <Section title="Intervenants">
+        <Section title={t.packages.section_participants}>
           {!isCarrier && booking.carrier_first_name && (
             <PersonCard firstName={booking.carrier_first_name} lastName={booking.carrier_last_name} role={t.package_detail.role_carrier} trustScore={booking.carrier_trust_score} kycStatus={booking.carrier_kyc_status} onPress={() => router.push(`/profile/${booking?.carrier_id}`)} />
           )}

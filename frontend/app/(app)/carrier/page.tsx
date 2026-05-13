@@ -224,18 +224,9 @@ export default function CarrierPage() {
             }}
           />
           {deliverError && <p style={{ fontSize: 12, color: RED, marginBottom: 8 }}>{deliverError}</p>}
-          <button
-            onClick={handleDeliver}
-            disabled={delivering || deliverCode.length !== 6}
-            style={{
-              width: '100%', padding: '12px', background: RED, color: WHITE,
-              border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700,
-              cursor: delivering || deliverCode.length !== 6 ? 'not-allowed' : 'pointer',
-              opacity: delivering || deliverCode.length !== 6 ? 0.6 : 1,
-            }}
-          >
-            {delivering ? t.delivery.confirming : t.delivery.confirm_btn}
-          </button>
+          <Button fullWidth loading={delivering} disabled={delivering || deliverCode.length !== 6} onClick={handleDeliver}>
+            {t.delivery.confirm_btn}
+          </Button>
         </Modal>
 
         {/* Onglet : En attente */}
@@ -388,15 +379,10 @@ export default function CarrierPage() {
           {tripToDelete?.label}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button
-            onClick={() => setTripToDelete(null)}
-            disabled={deletingTrip}
-            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-          >
+          <Button variant="outline" size="sm" disabled={deletingTrip} onClick={() => setTripToDelete(null)}>
             {t.profile_edit.cancel}
-          </button>
-          <button
-            onClick={async () => {
+          </Button>
+          <Button variant="danger" size="sm" loading={deletingTrip} onClick={async () => {
               if (!tripToDelete) return
               setDeletingTrip(true)
               try {
@@ -409,12 +395,9 @@ export default function CarrierPage() {
               } finally {
                 setDeletingTrip(false)
               }
-            }}
-            disabled={deletingTrip}
-            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: deletingTrip ? 'not-allowed' : 'pointer', opacity: deletingTrip ? 0.5 : 1, minWidth: 100 }}
-          >
-            {deletingTrip ? '...' : t.profile_edit.delete_confirm}
-          </button>
+            }}>
+            {t.profile_edit.delete_confirm}
+          </Button>
         </div>
       </Modal>
     </div>

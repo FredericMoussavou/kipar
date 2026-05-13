@@ -122,6 +122,7 @@ async def create_booking(
         sender_id=current_user.id,
         amount=amount,
         insurance_subscribed=payload.insurance_subscribed,
+        reminder_hours=payload.reminder_hours,
         status="pending",
     )
     db.add(booking)
@@ -471,6 +472,7 @@ async def get_booking_full(
         proposed_delivery_by=str(b.proposed_delivery_by) if b.proposed_delivery_by else None,
         delivery_reschedule_count=b.delivery_reschedule_count or 0,
         delivery_alternative_proof_url=b.delivery_alternative_proof_url,
+        reminder_hours=b.reminder_hours,
     )
 
 

@@ -41,6 +41,7 @@ export default function BookPage() {
 
   const trip = tripData || selectedTrip
   const [withInsurance, setWithInsurance] = useState(false)
+  const [reminderHours, setReminderHours] = useState<number | null>(null)
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -110,6 +111,7 @@ export default function BookPage() {
         weight_kg: parseFloat(data.weight_kg),
         declared_value: parseFloat(data.declared_value || '0'),
         insurance_subscribed: withInsurance,
+        reminder_hours: reminderHours,
       })
       return res.data
     },
@@ -287,6 +289,20 @@ export default function BookPage() {
             <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${withInsurance ? RED : BORDER}`, background: withInsurance ? RED : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
               {withInsurance && <div style={{ width: 8, height: 8, borderRadius: '50%', background: WHITE }} />}
             </div>
+          </div>
+        </div>
+
+        {/* Rappel livraison */}
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 4 }}>{t.booking.reminder_label}</p>
+          <p style={{ fontSize: 12, color: TAUPE, marginBottom: 12 }}>{t.booking.reminder_desc}</p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {([null, 2, 6, 12, 24] as (number | null)[]).map(h => (
+              <button key={String(h)} type="button" onClick={() => setReminderHours(h)}
+                style={{ padding: '7px 14px', borderRadius: 99, border: '1px solid ' + (reminderHours === h ? RED : BORDER), background: reminderHours === h ? 'rgba(220,0,41,0.06)' : WHITE, color: reminderHours === h ? RED : CHARCOAL, fontSize: 12, fontWeight: reminderHours === h ? 700 : 400, cursor: 'pointer' }}>
+                {h === null ? t.booking.reminder_none : h === 2 ? t.booking.reminder_2h : h === 6 ? t.booking.reminder_6h : h === 12 ? t.booking.reminder_12h : t.booking.reminder_24h}
+              </button>
+            ))}
           </div>
         </div>
 

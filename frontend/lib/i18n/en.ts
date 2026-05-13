@@ -201,6 +201,13 @@ export const en = {
     insurance_desc: '3% of declared value',
 
     insurance_enter_value: 'Enter a value',
+    reminder_label: 'Delivery reminder',
+    reminder_desc: 'Notify the receiver X hours before the appointment',
+    reminder_none: 'No reminder',
+    reminder_2h: '2h before',
+    reminder_6h: '6h before',
+    reminder_12h: '12h before',
+    reminder_24h: '24h before',
 
     insurance_line: 'Insurance',
 

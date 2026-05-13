@@ -283,3 +283,52 @@ def delivery_timeout_check():
             logger.info(f"Delivery timeout : {len(bookings)} booking(s) en retard")
 
     asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.send_delivery_reminders")
+def send_delivery_reminders():
+    """
+    Envoie les rappels de RDV livraison aux recepteurs.
+    Lance toutes les heures via Celery Beat.
+    Pour chaque booking avec reminder_hours defini et delivery_meeting_date fixe,
+    envoie une notif si now >= delivery_meeting_date - reminder_hours.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.user import User
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "in_transit",
+                    Booking.reminder_hours.isnot(None),
+                    Booking.delivery_meeting_date.isnot(None),
+                    Booking.delivery_reminder_sent.is_(False),
+                )
+            )
+            bookings = result.scalars().all()
+
+            for booking in bookings:
+                reminder_dt = booking.delivery_meeting_date - timedelta(hours=booking.reminder_hours)
+                if now >= reminder_dt:
+                    if booking.receiver_id:
+                        await create_notification(
+                            db=db,
+                            user_id=booking.receiver_id,
+                            type="delivery_reminder",
+                            title="Rappel RDV livraison",
+                            body=f"Votre RDV de livraison est dans {booking.reminder_hours}h.",
+                            link=f"/packages/{booking.id}",
+                        )
+                    booking.delivery_reminder_sent = True
+                    logger.info(f"[REMINDER] Booking {booking.id} — rappel envoye")
+
+            await db.commit()
+
+    asyncio.run(_run())

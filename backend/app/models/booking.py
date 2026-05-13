@@ -50,6 +50,8 @@ class Booking(Base):
     proposed_delivery_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     proposed_delivery_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     delivery_reschedule_count: Mapped[int] = mapped_column(Integer, default=0)
+    reminder_hours: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Rappel X heures avant RDV livraison
+    delivery_reminder_sent: Mapped[bool] = mapped_column(default=False)
     delivery_alternative_proof_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Code de remise

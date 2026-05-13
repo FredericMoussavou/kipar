@@ -201,6 +201,13 @@ export const es = {
     insurance_desc: '3% del valor declarado',
 
     insurance_enter_value: 'Introduce un valor',
+    reminder_label: 'Recordatorio de entrega',
+    reminder_desc: 'Notificar al receptor X horas antes de la cita',
+    reminder_none: 'Sin recordatorio',
+    reminder_2h: '2h antes',
+    reminder_6h: '6h antes',
+    reminder_12h: '12h antes',
+    reminder_24h: '24h antes',
 
     insurance_line: 'Seguro',
 

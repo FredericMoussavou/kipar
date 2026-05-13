@@ -10,6 +10,7 @@ class BookingCreate(BaseModel):
     content_description: str
     declared_value: float = 0.0
     insurance_subscribed: bool = False
+    reminder_hours: int | None = None
     photos: list[str] = []
 
 
@@ -87,5 +88,6 @@ class BookingDetailResponse(BaseModel):
     proposed_delivery_by: str | None = None
     delivery_reschedule_count: int = 0
     delivery_alternative_proof_url: str | None = None
+    reminder_hours: int | None = None
 
     model_config = {"from_attributes": False}

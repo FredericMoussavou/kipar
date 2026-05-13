@@ -103,6 +103,8 @@ export default function BookingDetailPage() {
   const [deliveryFailedOpen, setDeliveryFailedOpen] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [incidentReason, setIncidentReason] = useState('')
+  const [contestReason, setContestReason] = useState('')
+  const [contestOpen, setContestOpen] = useState(false)
 
   // Date/heure picker state
   const [pickupDate, setPickupDate] = useState('')
@@ -328,7 +330,29 @@ export default function BookingDetailPage() {
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
   })
 
-    const pickupFailedMutation = useMutation({
+    const respondPickupFailedMutation = useMutation({
+    mutationFn: (reason: string) => api.patch(`/bookings/${id}/pickup-failed/respond`, { reason }),
+    onSuccess: () => {
+      toast.success(t.packages.pickup_failed_contested)
+      setContestOpen(false)
+      setContestReason('')
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
+  })
+
+  const acceptPickupFailedMutation = useMutation({
+    mutationFn: () => api.patch(`/bookings/${id}/pickup-failed/respond`, { reason: 'accept' }),
+    onSuccess: () => {
+      toast.success(t.packages.pickup_failed_accepted)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] })
+    },
+    onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
+  })
+
+  const pickupFailedMutation = useMutation({
     mutationFn: () => api.patch(`/bookings/${id}/pickup-failed`, { reason: incidentReason.trim() }),
     onSuccess: () => {
       toast.success(t.packages.pickup_failed_reported || 'Incident signalé')
@@ -400,6 +424,35 @@ const handleCancel = () => {
           <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
           <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
         </Section>
+
+        {/* ── BLOC PICKUP FAILED ──────────────────────────────────────────────── */}
+        {booking.status === 'pickup_failed' && (isSender || isCarrier) && (
+          <Section title={t.packages.pickup_failed_title}>
+            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: RED, marginBottom: 4 }}>
+                {booking.pickup_failed_by === (isCarrier ? 'carrier' : 'sender')
+                  ? t.packages.pickup_failed_declared_by_you
+                  : t.packages.pickup_failed_declared_by_other}
+              </p>
+              {booking.incident_response_deadline && (
+                <p style={{ fontSize: 11, color: TAUPE }}>
+                  {t.packages.pickup_failed_deadline} : {new Date(booking.incident_response_deadline).toLocaleString('fr-FR')}
+                </p>
+              )}
+            </div>
+            {/* Partie mise en cause — peut accepter ou contester */}
+            {booking.pickup_failed_by !== (isCarrier ? 'carrier' : 'sender') && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <Button fullWidth variant="danger" loading={acceptPickupFailedMutation.isPending} onClick={() => acceptPickupFailedMutation.mutate()}>
+                  {t.packages.pickup_failed_accept_btn}
+                </Button>
+                <Button fullWidth variant="outline" onClick={() => setContestOpen(true)}>
+                  {t.packages.pickup_failed_contest_btn}
+                </Button>
+              </div>
+            )}
+          </Section>
+        )}
 
         {/* ── BLOC COLLECTE (accepted) ──────────────────────────────────────── */}
         {booking.status === 'accepted' && (isSender || isCarrier) && (
@@ -676,6 +729,18 @@ const handleCancel = () => {
       </Modal>
 
       {/* ── MODAL ANNULATION ────────────────────────────────────────────────── */}
+      <Modal isOpen={contestOpen} onClose={() => { setContestOpen(false); setContestReason('') }} title={t.packages.pickup_failed_contest_btn}>
+        <Textarea value={contestReason} onChange={e => setContestReason(e.target.value)} placeholder={t.packages.pickup_failed_contest_placeholder} rows={3} style={{ marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="outline" size="sm" onClick={() => { setContestOpen(false); setContestReason('') }}>
+            {t.profile_edit.cancel}
+          </Button>
+          <Button size="sm" loading={respondPickupFailedMutation.isPending} disabled={respondPickupFailedMutation.isPending || !contestReason.trim()} onClick={() => respondPickupFailedMutation.mutate(contestReason)}>
+            {t.packages.pickup_failed_contest_btn}
+          </Button>
+        </div>
+      </Modal>
+
       <Modal isOpen={pickupFailedOpen} onClose={() => { setPickupFailedOpen(false); setIncidentReason('') }} title={t.packages.pickup_failed_btn || 'Échec collecte'}>
         <Textarea value={incidentReason} onChange={e => setIncidentReason(e.target.value)} placeholder={t.packages.incident_reason_placeholder || 'Expliquez la situation...'} rows={3} style={{ marginBottom: 12 }} />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

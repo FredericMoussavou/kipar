@@ -309,6 +309,13 @@ export const es = {
     incident_reason_placeholder: 'Explica la situación...',
 
     cancel_reason_required: 'Por favor, indique un motivo antes de confirmar.',
+    status_disputed_title: 'Disputa en curso',
+    status_disputed_desc: 'Se ha abierto una disputa. El equipo de Kipar está revisando el caso.',
+    status_cancelled_title: 'Reserva cancelada',
+    status_cancelled_desc: 'Esta reserva ha sido cancelada.',
+    status_delivered_title: 'Paquete entregado con éxito',
+    status_delivered_desc: 'La entrega ha sido confirmada. Los fondos han sido liberados.',
+    status_delivered_review_btn: 'Dejar una reseña',
     delivery_failed_response_title: 'Fallo de entrega reportado',
     delivery_failed_declared_by_you: 'Has reportado un fallo de entrega. Esperando respuesta de la otra parte.',
     delivery_failed_declared_by_other: 'La otra parte reportó un fallo de entrega. Debes responder en 48h.',

@@ -309,6 +309,13 @@ export const fr = {
     incident_reason_placeholder: 'Expliquez la situation...',
 
     cancel_reason_required: 'Veuillez indiquer une raison avant de confirmer.',
+    status_disputed_title: 'Litige en cours',
+    status_disputed_desc: "Un litige a été ouvert. L'équipe Kipar examine le dossier et vous contactera.",
+    status_cancelled_title: 'Réservation annulée',
+    status_cancelled_desc: 'Cette réservation a été annulée.',
+    status_delivered_title: 'Colis livré avec succès',
+    status_delivered_desc: 'La livraison a été confirmée. Les fonds ont été débloqués.',
+    status_delivered_review_btn: 'Laisser un avis',
     delivery_failed_response_title: 'Échec de livraison signalé',
     delivery_failed_declared_by_you: "Vous avez signalé un échec de livraison. En attente de réponse de l'autre partie.",
     delivery_failed_declared_by_other: "L'autre partie a signalé un échec de livraison. Vous devez répondre dans les 48h.",

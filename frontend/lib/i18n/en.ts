@@ -309,6 +309,13 @@ export const en = {
     incident_reason_placeholder: 'Explain the situation...',
 
     cancel_reason_required: 'Please provide a reason before confirming.',
+    status_disputed_title: 'Dispute in progress',
+    status_disputed_desc: 'A dispute has been opened. The Kipar team is reviewing the case and will contact you.',
+    status_cancelled_title: 'Booking cancelled',
+    status_cancelled_desc: 'This booking has been cancelled.',
+    status_delivered_title: 'Package delivered successfully',
+    status_delivered_desc: 'Delivery has been confirmed. Funds have been released.',
+    status_delivered_review_btn: 'Leave a review',
     delivery_failed_response_title: 'Delivery failure reported',
     delivery_failed_declared_by_you: 'You reported a delivery failure. Waiting for the other party to respond.',
     delivery_failed_declared_by_other: 'The other party reported a delivery failure. You must respond within 48h.',

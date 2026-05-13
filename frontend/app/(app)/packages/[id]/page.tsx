@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, MessageCircle, Clock, Check, X, Camera, AlertTriangle, ShieldAlert, XCircle } from 'lucide-react'
+import { ArrowLeft, Plane, User, MessageCircle, Clock, Check, X, Camera, AlertTriangle, ShieldAlert, XCircle, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import ChatModal from '@/components/ui/kipar/ChatModal'
 import Modal from '@/components/ui/kipar/Modal'
@@ -502,6 +502,43 @@ const handleCancel = () => {
                   {t.packages.delivery_failed_contest_btn}
                 </Button>
               </div>
+            )}
+          </Section>
+        )}
+
+        {/* ── BLOC DISPUTED ────────────────────────────────────────────────────── */}
+        {booking.status === 'disputed' && (
+          <Section title={t.packages.status_disputed_title}>
+            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <ShieldAlert size={18} color={AMBER} style={{ flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 13, color: CHARCOAL, lineHeight: 1.6, margin: 0 }}>{t.packages.status_disputed_desc}</p>
+            </div>
+          </Section>
+        )}
+
+        {/* ── BLOC CANCELLED ────────────────────────────────────────────────────── */}
+        {booking.status === 'cancelled' && (
+          <Section title={t.packages.status_cancelled_title}>
+            <div style={{ background: SAND, borderRadius: 12, padding: 14 }}>
+              <p style={{ fontSize: 13, color: TAUPE, margin: 0 }}>{t.packages.status_cancelled_desc}</p>
+              {booking.cancellation_reason && (
+                <p style={{ fontSize: 12, color: TAUPE, marginTop: 6, fontStyle: 'italic' }}>{booking.cancellation_reason}</p>
+              )}
+            </div>
+          </Section>
+        )}
+
+        {/* ── BLOC DELIVERED ────────────────────────────────────────────────────── */}
+        {booking.status === 'delivered' && (
+          <Section title={t.packages.status_delivered_title}>
+            <div style={{ background: '#ECFDF5', border: '1px solid #86EFAC', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+              <CheckCircle size={18} color={GREEN} style={{ flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 13, color: CHARCOAL, lineHeight: 1.6, margin: 0 }}>{t.packages.status_delivered_desc}</p>
+            </div>
+            {isSender && (
+              <Button fullWidth variant="outline" onClick={() => router.push(`/profile/${booking.carrier_id}`)}>
+                {t.packages.status_delivered_review_btn}
+              </Button>
             )}
           </Section>
         )}

@@ -12,6 +12,8 @@ import { useTheme } from 'next-themes'
 import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
 import Select from '@/components/ui/kipar/Select'
+import Input from '@/components/ui/kipar/Input'
+import { Button } from '@/components/ui/kipar'
 import PhoneInputField from '@/components/ui/kipar/PhoneInputField'
 import api from '@/lib/api'
 import { WeightUnit } from '@/lib/weight'
@@ -100,21 +102,12 @@ function PasswordModal({ isOpen, onClose, onSuccess, onError }: {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.modal_password_title} closeDisabled={loading}>
-      <div style={{ marginBottom: 12 }}>
-        <label style={labelStyle}>{t.profile_edit.field_old_password}</label>
-        <input type={showOld ? 'text' : 'password'} value={oldPwd} onChange={e => setOldPwd(e.target.value)} style={inputStyle} />
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label style={labelStyle}>{t.profile_edit.field_new_password}</label>
-        <input type={showNew ? 'text' : 'password'} value={newPwd} onChange={e => setNewPwd(e.target.value)} style={inputStyle} />
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>{t.profile_edit.field_confirm_password}</label>
-        <input type="password" value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} style={inputStyle} />
-      </div>
+      <Input type={showOld ? 'text' : 'password'} label={t.profile_edit.field_old_password} value={oldPwd} onChange={e => setOldPwd(e.target.value)} style={{ marginBottom: 12 }} />
+      <Input type={showNew ? 'text' : 'password'} label={t.profile_edit.field_new_password} value={newPwd} onChange={e => setNewPwd(e.target.value)} style={{ marginBottom: 12 }} />
+      <Input type="password" label={t.profile_edit.field_confirm_password} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} style={{ marginBottom: 16 }} />
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, fontSize: 13, cursor: 'pointer' }}>{t.profile_edit.cancel}</button>
-        <button type="button" onClick={handleSubmit} disabled={loading} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: RED, color: WHITE, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{loading ? '...' : t.profile_edit.save}</button>
+        <Button variant="outline" size="sm" onClick={onClose}>{t.profile_edit.cancel}</Button>
+        <Button size="sm" loading={loading} onClick={handleSubmit}>{t.profile_edit.save}</Button>
       </div>
     </Modal>
   )
@@ -144,13 +137,10 @@ function DeleteModal({ isOpen, onClose, onSuccess, onError }: {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.delete_account} closeDisabled={loading}>
       <p style={{ fontSize: 13, color: TAUPE, marginBottom: 16 }}>{t.profile_edit.danger_desc}</p>
-      <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>{t.profile_edit.field_old_password}</label>
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-      </div>
+      <Input type="password" label={t.profile_edit.field_old_password} value={password} onChange={e => setPassword(e.target.value)} style={{ marginBottom: 16 }} />
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, fontSize: 13, cursor: 'pointer' }}>{t.profile_edit.cancel}</button>
-        <button type="button" onClick={handleSubmit} disabled={loading} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: RED, color: WHITE, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{loading ? '...' : t.profile_edit.delete_account}</button>
+        <Button variant="outline" size="sm" onClick={onClose}>{t.profile_edit.cancel}</Button>
+        <Button variant="danger" size="sm" loading={loading} onClick={handleSubmit}>{t.profile_edit.delete_account}</Button>
       </div>
     </Modal>
   )
@@ -312,22 +302,20 @@ export default function PreferencesPage() {
         <div style={{ padding: '14px 16px' }}>
           {(user.payment_method ?? 'iban') === 'iban' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <input value={ibanInput} onChange={e => { setIbanInput(e.target.value); setIbanError('') }}
+              <Input value={ibanInput} onChange={e => { setIbanInput(e.target.value); setIbanError('') }}
                 placeholder="FR76 3000 6000 0112 3456 7890 189"
-                style={{ width: '100%', padding: '10px 12px', border: `1px solid ${ibanError ? RED : BORDER}`, borderRadius: 10, fontSize: 12, color: CHARCOAL, outline: 'none', fontFamily: 'monospace', boxSizing: 'border-box' }} />
-              {ibanError && <p style={{ fontSize: 11, color: RED, margin: 0 }}>{ibanError}</p>}
-              <button type="button" onClick={handleSaveIban}
-                style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                {t.profile_edit.save}
-              </button>
+                error={ibanError || undefined}
+                style={{ fontFamily: 'monospace' }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button size="sm" onClick={handleSaveIban}>{t.profile_edit.save}</Button>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <PhoneInputField value={mobileInput} onChange={val => setMobileInput(val)} defaultCountry="FR" />
-              <button type="button" onClick={handleSaveMobile}
-                style={{ alignSelf: 'flex-end', padding: '8px 16px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                {t.profile_edit.save}
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button size="sm" onClick={handleSaveMobile}>{t.profile_edit.save}</Button>
+              </div>
             </div>
           )}
         </div>

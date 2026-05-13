@@ -15,6 +15,7 @@ import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useInsuranceConfig } from '@/hooks/useInsuranceConfig'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/lib/api'
 import { CHARCOAL, TAUPE, SAND, BORDER, WHITE, RED, GREEN, AMBER } from '@/lib/theme'
@@ -86,6 +87,7 @@ export default function BookingDetailPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const insuranceConfig = useInsuranceConfig()
   const queryClient = useQueryClient()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -459,7 +461,9 @@ const handleCancel = () => {
           <InfoRow label={t.package_detail.field_weight} value={booking.weight_kg ? `${booking.weight_kg} kg` : null} />
           <InfoRow label={t.package_detail.field_declared_value} value={booking.declared_value ? `${booking.declared_value}€` : null} />
           <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
-          <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
+          {insuranceConfig.enabled && (
+            <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
+          )}
         </Section>
 
         {/* ── BLOC PICKUP FAILED ──────────────────────────────────────────────── */}

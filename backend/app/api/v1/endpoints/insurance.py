@@ -141,6 +141,73 @@ async def subscribe_insurance(
     return insurance
 
 
+
+# ── Configuration assurance ──────────────────────────────────────────────────
+
+@router.get("/config")
+async def get_insurance_config(
+    db: AsyncSession = Depends(get_db),
+):
+    """Retourne la configuration assurance publique."""
+    from app.models.insurance import InsuranceConfig
+    from app.core.config import settings
+
+    result = await db.execute(select(InsuranceConfig).where(InsuranceConfig.id == 1))
+    config = result.scalar_one_or_none()
+
+    # Creer la config par defaut si elle n'existe pas
+    if not config:
+        config = InsuranceConfig(id=1)
+        db.add(config)
+        await db.commit()
+        await db.refresh(config)
+
+    return {
+        "enabled": settings.INSURANCE_ENABLED,
+        "rate_type": config.rate_type,
+        "rate_value": config.rate_value,
+        "min_premium": config.min_premium,
+        "max_coverage": config.max_coverage,
+        "partner_name": config.partner_name,
+    }
+
+
+@router.patch("/config")
+async def update_insurance_config(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Met a jour la configuration assurance — admin uniquement."""
+    from app.models.insurance import InsuranceConfig
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    result = await db.execute(select(InsuranceConfig).where(InsuranceConfig.id == 1))
+    config = result.scalar_one_or_none()
+    if not config:
+        config = InsuranceConfig(id=1)
+        db.add(config)
+
+    allowed = ["rate_type", "rate_value", "min_premium", "max_coverage", "partner_name"]
+    for key in allowed:
+        if key in payload:
+            setattr(config, key, payload[key])
+
+    await db.commit()
+    await db.refresh(config)
+    return {
+        "enabled": False,  # Toujours depuis .env
+        "rate_type": config.rate_type,
+        "rate_value": config.rate_value,
+        "min_premium": config.min_premium,
+        "max_coverage": config.max_coverage,
+        "partner_name": config.partner_name,
+    }
+
+
 @router.get("/{booking_id}", response_model=InsuranceResponse)
 async def get_insurance(
     booking_id: str,
@@ -192,3 +259,4 @@ async def cancel_insurance(
         booking.insurance_amount = 0.0
 
     return {"message": t("success.insurance_cancelled", lang)}
+

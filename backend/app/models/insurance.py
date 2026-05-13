@@ -43,3 +43,24 @@ class Insurance(Base):
     payout_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+
+class InsuranceConfig(Base):
+    """
+    Configuration globale de l'assurance — un seul enregistrement.
+    Modifiable via l'admin panel sans redémarrage serveur.
+    L'activation (INSURANCE_ENABLED) reste dans .env pour securite.
+    """
+    __tablename__ = "insurance_config"
+
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    rate_type: Mapped[str] = mapped_column(String(10), default="percent")  # 'percent' ou 'fixed'
+    rate_value: Mapped[float] = mapped_column(Float, default=0.03)  # 3% ou montant fixe
+    min_premium: Mapped[float] = mapped_column(Float, default=2.0)  # prime minimum
+    max_coverage: Mapped[float] = mapped_column(Float, default=5000.0)  # couverture max
+    partner_name: Mapped[str | None] = mapped_column(String(100), nullable=True)  # nom assureur
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )

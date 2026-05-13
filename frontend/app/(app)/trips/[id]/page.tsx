@@ -11,6 +11,7 @@ import { useExchangeRates } from '@/hooks/useExchangeRates'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+import { useInsuranceConfig } from '@/hooks/useInsuranceConfig'
 
 function getTrustGradient(score: number) {
   if (score >= 75) return { gradient: 'linear-gradient(90deg,#F59E0B 0%,#4ADE80 60%,#16A34A 100%)', color: '#16A34A' }
@@ -26,6 +27,7 @@ export default function TripDetailPage() {
   const { setSelectedTrip } = useBookingStore()
   const { isAuthenticated, user } = useAuthStore()
   const rates = useExchangeRates()
+  const insuranceConfig = useInsuranceConfig()
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ['trip', id],
@@ -162,13 +164,15 @@ export default function TripDetailPage() {
         </div>
 
         {/* Assurance */}
-        <div style={{ background: SAND, borderRadius: 14, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Shield size={18} color={CHARCOAL2} />
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL }}>{t.trip.insurance_available}</p>
-            <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.trip.insurance_desc}</p>
+        {insuranceConfig.enabled && (
+          <div style={{ background: SAND, borderRadius: 14, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Shield size={18} color={CHARCOAL2} />
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL }}>{t.trip.insurance_available}</p>
+              <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.trip.insurance_desc}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <Button fullWidth size="lg" onClick={handleBook}>
           {t.trip.send_package}

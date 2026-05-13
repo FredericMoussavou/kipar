@@ -14,6 +14,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
+import { useInsuranceConfig, calculateInsurancePremium } from '@/hooks/useInsuranceConfig'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),
@@ -29,6 +30,7 @@ export default function BookPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
+  const insuranceConfig = useInsuranceConfig()
 
   const { data: tripData } = useQuery({
     queryKey: ['trip', id],
@@ -99,7 +101,7 @@ export default function BookPage() {
   const pricePerKg = trip?.price_per_kg || 0
   const transport = weight * pricePerKg
   const commission = transport * 0.13
-  const insurance = withInsurance ? value * 0.03 : 0
+  const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
 
   const mutation = useMutation({
@@ -277,6 +279,7 @@ export default function BookPage() {
         </div>
 
         {/* Assurance */}
+        {insuranceConfig.enabled && (
         <div
           style={{ background: WHITE, borderRadius: 16, padding: 16, border: `1px solid ${withInsurance ? RED : BORDER}`, cursor: 'pointer', transition: 'all 0.2s' }}
           onClick={() => setWithInsurance(!withInsurance)}
@@ -291,6 +294,7 @@ export default function BookPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Rappel livraison */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>

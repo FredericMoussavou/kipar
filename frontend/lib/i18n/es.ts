@@ -1235,6 +1235,10 @@ export const es = {
 
     error_generic: 'Se produjo un error. Inténtalo de nuevo.',
 
+    insurance_label: 'Seguro',
+
+    insurance_yes: 'Incluido',
+
   },
 
   verify: {

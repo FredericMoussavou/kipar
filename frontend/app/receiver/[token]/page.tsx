@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Package, MapPin, User, Scale, Euro, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useInsuranceConfig } from '@/hooks/useInsuranceConfig'
 import { CHARCOAL, TAUPE, BORDER, WHITE, RED, GREEN, SAND, BG } from '@/lib/theme'
 
 type InvitationData = {
@@ -27,6 +28,7 @@ export default function ReceiverPage() {
   const { token } = useParams<{ token: string }>()
   const router = useRouter()
   const { t } = useTranslation()
+  const insuranceConfig = useInsuranceConfig()
 
   const [state, setState] = useState<PageState>('loading')
   const [data, setData] = useState<InvitationData | null>(null)
@@ -206,6 +208,9 @@ export default function ReceiverPage() {
           <DetailRow icon={<Package size={15} />} label={t.receiver.content} value={data.content_description} />
           <DetailRow icon={<Scale size={15} />} label={t.receiver.weight} value={`${data.weight_kg} kg`} />
           <DetailRow icon={<Euro size={15} />} label={t.receiver.value} value={`${data.declared_value} €`} />
+          {insuranceConfig.enabled && data.insurance_subscribed && (
+            <DetailRow icon={<CheckCircle size={15} />} label={t.receiver.insurance_label ?? 'Assurance'} value={t.receiver.insurance_yes ?? 'Incluse'} />
+          )}
           <DetailRow icon={<Clock size={15} />} label={t.receiver.expires} value={expiresDate} />
         </div>
 

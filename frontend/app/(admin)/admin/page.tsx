@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,9 +12,9 @@ import {
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
-import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
+import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN, AMBER } from '@/lib/theme'
 
-type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance'
+type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance' | 'insurance'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -772,6 +773,7 @@ export default function AdminPage() {
     { id: 'kyc',       icon: <Shield size={18} />,    label: 'KYC' },
     { id: 'disputes',  icon: <AlertTriangle size={18} />,   label: 'Litiges' },
     { id: 'finance',   icon: <TrendingUp size={18} />, label: 'Finance' },
+    { id: 'insurance', icon: <Shield size={18} />, label: 'Assurance' },
   ]
 
   return (
@@ -818,7 +820,93 @@ export default function AdminPage() {
         {tab === 'kyc'       && <KycTab onToast={showToast} />}
         {tab === 'disputes'  && <DisputesTab onToast={showToast} />}
         {tab === 'finance'   && <FinanceTab />}
+        {tab === 'insurance' && <InsuranceConfigTab onToast={showToast} />}
       </main>
+    </div>
+  )
+}
+
+
+// ─── Tab: Configuration Assurance ──────────────────────────────────────────
+
+function InsuranceConfigTab({ onToast }: { onToast: (msg: string, type: 'success' | 'error') => void }) {
+  const [config, setConfig] = React.useState<any>(null)
+  const [loading, setLoading] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    api.get('/insurance/config').then(r => { setConfig(r.data); setLoading(false) }).catch(() => setLoading(false))
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await api.patch('/insurance/config', {
+        rate_type: config.rate_type,
+        rate_value: parseFloat(config.rate_value),
+        min_premium: parseFloat(config.min_premium),
+        max_coverage: parseFloat(config.max_coverage),
+        partner_name: config.partner_name || null,
+      })
+      setConfig(res.data)
+      onToast('Configuration sauvegardée', 'success')
+    } catch { onToast('Erreur', 'error') }
+    finally { setSaving(false) }
+  }
+
+  if (loading) return <p style={{ color: TAUPE, padding: 32 }}>Chargement...</p>
+  if (!config) return null
+
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
+  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 4, display: 'block' as const }
+
+  return (
+    <div style={{ maxWidth: 520 }}>
+      <div style={{ background: config.enabled ? '#ECFDF5' : '#FFF7ED', border: '1px solid ' + (config.enabled ? '#86EFAC' : '#FED7AA'), borderRadius: 12, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: config.enabled ? GREEN : AMBER, flexShrink: 0 }} />
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: 0 }}>
+            {config.enabled ? 'Assurance ACTIVE' : 'Assurance INACTIVE'}
+          </p>
+          <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>
+            {config.enabled ? 'Les clients peuvent souscrire une assurance' : 'Activer via INSURANCE_ENABLED=True dans .env'}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <label style={labelStyle}>Partenaire assureur</label>
+          <input style={inputStyle} value={config.partner_name || ''} onChange={e => setConfig({ ...config, partner_name: e.target.value })} placeholder="Ex: AXA, Allianz..." />
+        </div>
+        <div>
+          <label style={labelStyle}>Type de tarif</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['percent', 'fixed'].map(t => (
+              <button key={t} type="button" onClick={() => setConfig({ ...config, rate_type: t })}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid ' + (config.rate_type === t ? RED : BORDER), background: config.rate_type === t ? 'rgba(220,0,41,0.06)' : WHITE, color: config.rate_type === t ? RED : CHARCOAL, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {t === 'percent' ? '% valeur déclarée' : 'Montant fixe'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>{config.rate_type === 'percent' ? 'Taux (ex: 0.03 = 3%)' : 'Montant fixe (€)'}</label>
+          <input style={inputStyle} type="number" step="0.01" value={config.rate_value} onChange={e => setConfig({ ...config, rate_value: e.target.value })} />
+        </div>
+        <div>
+          <label style={labelStyle}>Prime minimum (€)</label>
+          <input style={inputStyle} type="number" step="0.5" value={config.min_premium} onChange={e => setConfig({ ...config, min_premium: e.target.value })} />
+        </div>
+        <div>
+          <label style={labelStyle}>Couverture maximum (€)</label>
+          <input style={inputStyle} type="number" step="100" value={config.max_coverage} onChange={e => setConfig({ ...config, max_coverage: e.target.value })} />
+        </div>
+        <button type="button" onClick={handleSave} disabled={saving}
+          style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, alignSelf: 'flex-end' }}>
+          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+        </button>
+      </div>
     </div>
   )
 }

@@ -1255,6 +1255,10 @@ profile_public: {
 
     error_generic: 'Une erreur est survenue. Réessayez.',
 
+    insurance_label: 'Assurance',
+
+    insurance_yes: 'Incluse',
+
   },
 
   verify: {

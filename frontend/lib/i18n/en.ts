@@ -1255,6 +1255,10 @@ profile_public: {
 
     error_generic: 'An error occurred. Please try again.',
 
+    insurance_label: 'Insurance',
+
+    insurance_yes: 'Included',
+
   },
 
   verify: {

@@ -112,7 +112,7 @@ async def notify_booking_received(
         await send_push(carrier_fcm_token, "KIPAR.", body)
     if carrier_phone:
         await send_sms(carrier_phone, f"KIPAR. — {body}")
-    await send_email(carrier_email, "KIPAR. — Nouvelle demande", f"<p>{body}</p>")
+    await send_email(carrier_email, t("notifications.booking_received_subject", lang), f"<p>{body}</p>")
 
 
 async def notify_booking_accepted(
@@ -127,7 +127,7 @@ async def notify_booking_accepted(
         await send_push(sender_fcm_token, "KIPAR.", body)
     if sender_phone:
         await send_sms(sender_phone, f"KIPAR. — {body}")
-    await send_email(sender_email, "KIPAR. — Demande acceptée", f"<p>{body}</p>")
+    await send_email(sender_email, t("notifications.booking_accepted_subject", lang), f"<p>{body}</p>")
 
 
 async def notify_delivery_code(
@@ -143,13 +143,13 @@ async def notify_delivery_code(
     Envoie le code de remise directement au récepteur.
     C'est la notification la plus importante de Kipar.
     """
-    body = f"Votre code de remise : {code}" if lang == "fr" else f"Your delivery code: {code}"
-    detail = f"Transporteur : {carrier_name}"
+    body = t("notifications.delivery_code_body", lang, code=code)
+    detail = t("notifications.delivery_code_detail", lang, carrier_name=carrier_name)
     if flight_number:
-        detail += f" · Vol {flight_number}"
+        detail += t("notifications.delivery_code_flight", lang, flight_number=flight_number)
 
     if receiver_fcm_token:
-        await send_push(receiver_fcm_token, "KIPAR. — Code de remise", body, {
+        await send_push(receiver_fcm_token, t("notifications.delivery_code_push_title", lang), body, {
             "code": code,
             "carrier_name": carrier_name,
             "flight_number": flight_number or "",
@@ -158,7 +158,7 @@ async def notify_delivery_code(
         await send_sms(receiver_phone, f"KIPAR. — {body} | {detail}")
     await send_email(
         receiver_email,
-        "KIPAR. — Votre code de remise",
+        t("notifications.delivery_code_email_subject", lang),
         f"<h2>{body}</h2><p>{detail}</p>"
     )
 
@@ -170,17 +170,13 @@ async def notify_delivery_confirmed(
     lang: str = "fr",
 ) -> None:
     """Notifie l'expéditeur que son colis a été livré."""
-    messages = {
-        "fr": ("Colis livré !", "Votre colis a été remis au récepteur. Les fonds sont débloqués."),
-        "en": ("Package delivered!", "Your package has been handed over. Funds are released."),
-        "es": ("¡Paquete entregado!", "Tu paquete fue entregado. Los fondos están liberados."),
-    }
-    title, body = messages.get(lang, messages["fr"])
+    title = t("notifications.delivery_confirmed_title", lang)
+    body = t("notifications.delivery_confirmed_body", lang)
     if user_fcm_token:
         await send_push(user_fcm_token, title, body, {})
     if user_phone:
         await send_sms(user_phone, f"KIPAR. — {body}")
-    await send_email(user_email, f"KIPAR. — {title}", f"<h2>{title}</h2><p>{body}</p>")
+    await send_email(user_email, t("notifications.delivery_confirmed_subject", lang), f"<h2>{title}</h2><p>{body}</p>")
 
 
 async def notify_flight_status(

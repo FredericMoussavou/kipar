@@ -1,5 +1,6 @@
 import resend
 from app.core.config import settings
+from app.i18n.loader import t
 
 resend.api_key = settings.RESEND_API_KEY
 
@@ -86,7 +87,7 @@ async def send_receiver_invitation(
         </a>
       </div>
       <p style="font-size: 12px; color: #aaa; text-align: center;">
-        Kipar · Ce lien est valable 24h
+        {t('notifications.email_footer', lang)}
       </p>
     </div>
     """

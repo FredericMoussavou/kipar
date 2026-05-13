@@ -409,9 +409,9 @@ export default function LandingPage() {
         <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 900, color: WHITE }}>KIPAR<span style={{ color: R }}>.</span></span>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>{`© ${new Date().getFullYear()} ${t.landing.footer_rights}`}</p>
         <div style={{ display: 'flex', gap: 20 }}>
-          {[[t.landing.footer_privacy, '#'], [t.landing.footer_terms, '#'], [t.landing.footer_contact, '#']].map(([l, href]) => (
-            <a key={l} href={href} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{l}</a>
-          ))}
+          <a href="/privacy" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_privacy}</a>
+          <a href="/cgu" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_terms}</a>
+          <a href="/mentions-legales" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_contact}</a>
         </div>
       </footer>
 

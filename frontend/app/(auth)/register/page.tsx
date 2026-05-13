@@ -84,6 +84,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [cguAccepted, setCguAccepted] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -98,6 +99,7 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
         language: currentLang,
+        cgu_accepted: cguAccepted,
       })
       toast.success('Compte créé avec succès !')
       router.push('/onboarding')
@@ -184,7 +186,23 @@ export default function RegisterPage() {
               {...register('confirm_password')}
             />
 
-            <Button type="submit" fullWidth loading={isSubmitting} size="lg">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '4px 0' }}>
+              <input
+                type="checkbox"
+                id="cgu"
+                checked={cguAccepted}
+                onChange={e => setCguAccepted(e.target.checked)}
+                style={{ marginTop: 2, accentColor: RED, width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }}
+              />
+              <label htmlFor="cgu" style={{ fontSize: 12, color: TAUPE, lineHeight: 1.6, cursor: 'pointer' }}>
+                J'accepte les{' '}
+                <a href="/cgu" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>CGU</a>
+                {' '}et la{' '}
+                <a href="/privacy" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>Politique de confidentialité</a>
+              </label>
+            </div>
+
+            <Button type="submit" fullWidth loading={isSubmitting} size="lg" disabled={!cguAccepted || isSubmitting}>
               {t.auth.register_btn}
             </Button>
           </form>

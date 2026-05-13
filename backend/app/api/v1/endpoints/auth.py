@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -26,6 +27,7 @@ class RegisterRequest(BaseModel):
     last_name: str
     phone: str | None = None
     language: str = "fr"
+    cgu_accepted: bool = False
 
     @field_validator("password")
     @classmethod
@@ -77,6 +79,7 @@ async def register(request: Request, payload: RegisterRequest, db: AsyncSession 
         first_name=payload.first_name,
         last_name=payload.last_name,
         language=payload.language,
+        cgu_accepted_at=datetime.now(timezone.utc) if payload.cgu_accepted else None,
     )
     db.add(user)
     await db.flush()

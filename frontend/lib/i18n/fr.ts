@@ -1465,7 +1465,21 @@ profile_public: {
 
     nav_login_mobile: 'Connexion',
 
-    footer_rights: '© 2026 KIPAR. Tous droits réservés.',
+    mockup_verified: 'Vérifiés',
+    footer_rights: 'KIPAR. Tous droits réservés.',
+    footer_privacy: 'Confidentialité',
+    footer_terms: 'CGU',
+    footer_contact: 'Contact',
+    video_play: 'Voir la vidéo de présentation',
+    testimonial1_name: 'Aminata D.',
+    testimonial1_role: 'Expéditrice, Paris',
+    testimonial1_text: "J'envoie des colis à ma famille à Dakar régulièrement. Avec KIPAR, je choisis un transporteur de confiance et je suis rassurée à chaque envoi.",
+    testimonial2_name: 'Kofi A.',
+    testimonial2_role: 'Transporteur, Lyon',
+    testimonial2_text: 'Je voyage souvent pour le travail. KIPAR me permet de rentabiliser mes valises vides. Le processus est simple et les paiements sont sécurisés.',
+    testimonial3_name: 'Marie-Claire N.',
+    testimonial3_role: 'Expéditrice, Bordeaux',
+    testimonial3_text: 'Le score KiparTrust est une vraie révolution. Je sais exactement à qui je confie mon colis avant même de le lui remettre.',
 
   },
 

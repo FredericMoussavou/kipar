@@ -1441,7 +1441,21 @@ export const es = {
 
     nav_login_mobile: "Entrar",
 
-    footer_rights: "© 2026 KIPAR. Todos los derechos reservados.",
+    mockup_verified: "Verificados",
+    footer_rights: "KIPAR. Todos los derechos reservados.",
+    footer_privacy: "Privacidad",
+    footer_terms: "CGU",
+    footer_contact: "Contacto",
+    video_play: "Ver el vídeo de presentación",
+    testimonial1_name: "Aminata D.",
+    testimonial1_role: "Remitente, París",
+    testimonial1_text: "Envío paquetes a mi familia en Dakar con regularidad. Con KIPAR, elijo un transportista de confianza y me siento tranquila en cada envío.",
+    testimonial2_name: "Kofi A.",
+    testimonial2_role: "Transportista, Lyon",
+    testimonial2_text: "Viajo mucho por trabajo. KIPAR me permite aprovechar mis maletas vacías. El proceso es sencillo y los pagos son seguros.",
+    testimonial3_name: "Marie-Claire N.",
+    testimonial3_role: "Remitente, Burdeos",
+    testimonial3_text: "La puntuación KiparTrust es una verdadera revolución. Sé exactamente a quién le confío mi paquete antes de entregárselo.",
 
   },
 

@@ -46,7 +46,7 @@ function Counter({ target, suffix, label }: { target: number; suffix: string; la
   )
 }
 
-function PhoneMockup() {
+function PhoneMockup({ t }: { t: any }) {
   return (
     <div style={{ position: 'relative', width: 180, height: 360, flexShrink: 0 }}>
       <div style={{ width: '100%', height: '100%', borderRadius: 32, background: 'linear-gradient(145deg,#2a2a2a,#1a1a1a)', boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', transform: 'rotate(-4deg)' }}>
@@ -59,7 +59,7 @@ function PhoneMockup() {
             </div>
           </div>
           <div style={{ padding: '10px 10px 0' }}>
-            <div style={{ fontSize: 8, fontWeight: 700, color: TAUPE, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Trajets disponibles</div>
+            <div style={{ fontSize: 8, fontWeight: 700, color: TAUPE, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t.dashboard.available_trips}</div>
             {[{ from: 'CDG', to: 'ABJ', price: '8€/kg', carrier: 'Marie T.' }, { from: 'ORY', to: 'DSS', price: '7€/kg', carrier: 'Kofi A.' }, { from: 'CDG', to: 'LBV', price: '9€/kg', carrier: 'Serge M.' }].map((t, i) => (
               <div key={i} style={{ background: WHITE, borderRadius: 8, padding: '6px 8px', marginBottom: 5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
                 <div><div style={{ fontSize: 9, fontWeight: 700, color: CHARCOAL }}>{t.from} → {t.to}</div><div style={{ fontSize: 7, color: TAUPE }}>{t.carrier}</div></div>
@@ -68,7 +68,7 @@ function PhoneMockup() {
             ))}
             <div style={{ background: 'linear-gradient(135deg,#DC0029,#8B0018)', borderRadius: 8, padding: '7px 9px', marginTop: 3, display: 'flex', alignItems: 'center', gap: 7 }}>
               <Shield size={10} color={WHITE} />
-              <div><div style={{ fontSize: 8, fontWeight: 700, color: WHITE }}>KiparTrust</div><div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)' }}>Vérifiés</div></div>
+              <div><div style={{ fontSize: 8, fontWeight: 700, color: WHITE }}>KiparTrust</div><div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)' }}>{t.landing.mockup_verified}</div></div>
               <div style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 800, color: WHITE }}>98%</div>
             </div>
           </div>
@@ -77,7 +77,7 @@ function PhoneMockup() {
       </div>
       <div style={{ position: 'absolute', top: -10, right: -20, background: WHITE, borderRadius: 12, padding: '6px 10px', boxShadow: '0 6px 24px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 5, transform: 'rotate(3deg)', zIndex: 10 }}>
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#16A34A' }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: CHARCOAL }}>Livré ✓</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: CHARCOAL }}>{t.statuses.delivered} ✓</span>
       </div>
       <div style={{ position: 'absolute', bottom: 32, left: -22, background: R, borderRadius: 12, padding: '6px 12px', boxShadow: '0 6px 24px rgba(220,0,41,0.3)', transform: 'rotate(-2deg)', zIndex: 10 }}>
         <span style={{ fontSize: 11, fontWeight: 800, color: WHITE }}>8€/kg</span>
@@ -86,7 +86,7 @@ function PhoneMockup() {
   )
 }
 
-function LaptopMockup() {
+function LaptopMockup({ t }: { t: any }) {
   return (
     <div style={{ position: 'relative', width: 320, flexShrink: 0 }}>
       <div style={{ width: '100%', paddingBottom: '62%', position: 'relative', background: 'linear-gradient(145deg,#2d2d2d,#1a1a1a)', borderRadius: '10px 10px 0 0', boxShadow: '0 -4px 20px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)', transform: 'rotate(2deg)' }}>
@@ -99,7 +99,7 @@ function LaptopMockup() {
           </div>
           <div style={{ padding: '8px 10px' }}>
             <div style={{ background: 'linear-gradient(90deg,#DC0029,#8B0018)', borderRadius: 7, padding: '10px', marginBottom: 7 }}>
-              <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>Bonjour 👋</div>
+              <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>{t.dashboard.greeting} 👋</div>
               <div style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 10, fontWeight: 900, color: WHITE }}>Frédéric M.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
@@ -193,20 +193,20 @@ export default function LandingPage() {
           <div style={{ flex: 1 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(220,0,41,0.15)', border: '1px solid rgba(220,0,41,0.3)', borderRadius: 99, padding: '5px 12px', marginBottom: 24 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: R, animation: 'pulse 2s infinite' }} />
-              <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>Transporteurs vérifiés KiparTrust</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{t.landing.hero_badge}</span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 42 : 64, fontWeight: 900, color: WHITE, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 12 }}>
-              Chaque colis<br /><span style={{ color: R }}>mérite</span> un<br />transporteur<br />de confiance.
+              {t.landing.hero_title_1}<br /><span style={{ color: R }}>{t.landing.hero_title_2}</span> {t.landing.hero_title_3}<br />{t.landing.hero_title_4}
             </h1>
             <p style={{ fontSize: isMobile ? 16 : 18, color: 'rgba(255,255,255,0.6)', marginBottom: 8, fontWeight: 400, lineHeight: 1.6, maxWidth: 480 }}>{t.landing.hero_tagline}</p>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 36, lineHeight: 1.7, maxWidth: 480 }}>La première marketplace de transport de colis entre particuliers avec vérification d'identité et score de confiance KiparTrust.</p>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 36, lineHeight: 1.7, maxWidth: 480 }}>{t.landing.hero_desc}</p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '13px 22px' : '14px 28px', borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>
-                Commencer gratuitement <ArrowRight size={16} />
+                {t.landing.hero_cta_primary} <ArrowRight size={16} />
               </Link>
               {!isMobile && (
                 <a href="#how" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)', fontSize: 15, fontWeight: 500, textDecoration: 'none', background: 'rgba(255,255,255,0.05)' }}>
-                  Comment ça marche <ChevronDown size={16} />
+                  {t.landing.hero_cta_secondary} <ChevronDown size={16} />
                 </a>
               )}
             </div>
@@ -215,13 +215,13 @@ export default function LandingPage() {
           {/* Mockups — masqués sur mobile très petit, empilés sur tablette */}
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
-              <PhoneMockup />
-              <LaptopMockup />
+              <PhoneMockup t={t} />
+              <LaptopMockup t={t} />
             </div>
           )}
           {isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <PhoneMockup />
+              <PhoneMockup t={t} />
             </div>
           )}
         </div>
@@ -229,9 +229,9 @@ export default function LandingPage() {
         {/* Stats */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)' }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '20px 16px' : '24px 48px', display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: isMobile ? 20 : 0 }}>
-            <Counter target={10000} suffix="+" label="Transporteurs actifs" />
-            <Counter target={50} suffix="+" label="Destinations" />
-            <Counter target={98} suffix="%" label="Livraisons réussies" />
+            <Counter target={10000} suffix="+" label={t.landing.stat_carriers} />
+            <Counter target={50} suffix="+" label={t.landing.stat_destinations} />
+            <Counter target={98} suffix="%" label={t.landing.stat_success} />
             <Counter target={4} suffix=".9★" label="Note moyenne" />
           </div>
         </div>
@@ -246,9 +246,9 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
             {[
-              { icon: <Package size={26} color={R} />, num: '01', title: 'Déposez votre annonce', desc: "Décrivez votre colis, son poids et sa destination. Notre IA KiparScan analyse vos photos pour valider le contenu." },
-              { icon: <Plane size={26} color={R} />, num: '02', title: 'Choisissez un transporteur', desc: "Parcourez les voyageurs vérifiés KiparTrust sur votre corridor. Consultez leur score de confiance, leurs avis et leurs tarifs." },
-              { icon: <CheckCircle size={26} color={R} />, num: '03', title: 'Livraison sécurisée', desc: "Le transporteur remet le colis avec un code QR unique. Le paiement est débloqué uniquement après confirmation de réception." },
+              { icon: <Package size={26} color={R} />, num: '01', title: t.landing.how_step1_title, desc: t.landing.how_step1_desc },
+              { icon: <Plane size={26} color={R} />, num: '02', title: t.landing.how_step2_title, desc: t.landing.how_step2_desc },
+              { icon: <CheckCircle size={26} color={R} />, num: '03', title: t.landing.how_step3_title, desc: t.landing.how_step3_desc },
             ].map((step, i) => (
               <div key={i} style={{ background: WHITE, borderRadius: 18, padding: 28, opacity: howInView ? 1 : 0, transform: howInView ? 'translateY(0)' : 'translateY(32px)', transition: `opacity 0.6s ease ${i * 0.15}s, transform 0.6s ease ${i * 0.15}s`, boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -261,7 +261,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 12, marginTop: 20 }}>
-            {[{ role: 'Expéditeur', color: R, bg: 'rgba(220,0,41,0.06)', desc: 'Envoyez vos colis en toute sérénité' }, { role: 'Transporteur', color: '#2563EB', bg: '#EFF6FF', desc: 'Rentabilisez vos voyages' }, { role: 'Récepteur', color: '#16A34A', bg: '#ECFDF5', desc: 'Recevez vos colis en sécurité' }].map((r, i) => (
+            {[{ role: t.landing.role_sender, color: R, bg: 'rgba(220,0,41,0.06)', desc: t.landing.role_sender_desc }, { role: t.landing.role_carrier, color: '#2563EB', bg: '#EFF6FF', desc: t.landing.role_carrier_desc }, { role: t.landing.role_receiver, color: '#16A34A', bg: '#ECFDF5', desc: t.landing.role_receiver_desc }].map((r, i) => (
               <div key={i} style={{ background: r.bg, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 9, height: 9, borderRadius: '50%', background: r.color, flexShrink: 0 }} />
                 <div><div style={{ fontWeight: 700, color: CHARCOAL, fontSize: 14 }}>{r.role}</div><div style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{r.desc}</div></div>
@@ -305,7 +305,7 @@ export default function LandingPage() {
                 >
                   <div style={{ width: 0, height: 0, borderTop: '11px solid transparent', borderBottom: '11px solid transparent', borderLeft: '18px solid white', marginLeft: 4 }} />
                 </div>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Voir la vidéo de présentation</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{t.landing.video_play}</span>
               </div>
             )}
 
@@ -322,10 +322,10 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: 20 }}>
             {[
-              { icon: <Shield size={22} color={R} />, title: 'KiparTrust', desc: "Notre système de score de confiance unique vérifie chaque transporteur : identité, historique, avis clients." },
-              { icon: <Zap size={22} color={R} />, title: 'KiparScan IA', desc: "Notre intelligence artificielle analyse vos photos de colis pour valider le contenu et accélérer la mise en relation." },
-              { icon: <Globe size={22} color={R} />, title: '50+ destinations', desc: "CDG, ORY, LYS vers Abidjan, Dakar, Libreville, Lagos, Casablanca et bien plus. Le réseau KIPAR couvre les corridors les plus demandés." },
-              { icon: <Users size={22} color={R} />, title: 'Communauté vérifiée', desc: "Chaque membre est vérifié via notre processus KYC. Email, téléphone, pièce d'identité. Une communauté de confiance." },
+              { icon: <Shield size={22} color={R} />, title: t.landing.why_trust_title, desc: t.landing.why_trust_desc },
+              { icon: <Zap size={22} color={R} />, title: t.landing.why_scan_title, desc: t.landing.why_scan_desc },
+              { icon: <Globe size={22} color={R} />, title: t.landing.why_globe_title, desc: t.landing.why_globe_desc },
+              { icon: <Users size={22} color={R} />, title: t.landing.why_community_title, desc: t.landing.why_community_desc },
             ].map((feat, i) => (
               <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: isMobile ? 24 : 32, opacity: whyInView ? 1 : 0, transform: whyInView ? 'translateY(0)' : 'translateY(24px)', transition: `opacity 0.5s ease ${i * 0.1}s, transform 0.5s ease ${i * 0.1}s` }}>
                 <div style={{ width: 44, height: 44, borderRadius: 11, background: 'rgba(220,0,41,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>{feat.icon}</div>
@@ -363,9 +363,9 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
             {[
-              { name: 'Aminata D.', role: 'Expéditrice, Paris', text: "J'envoie des colis à ma famille à Dakar régulièrement. Avec KIPAR, je choisis un transporteur de confiance et je suis rassurée à chaque envoi.", stars: 5, avatar: 'A' },
-              { name: 'Kofi A.', role: 'Transporteur, Lyon', text: "Je voyage souvent pour le travail. KIPAR me permet de rentabiliser mes valises vides. Le processus est simple et les paiements sont sécurisés.", stars: 5, avatar: 'K' },
-              { name: 'Marie-Claire N.', role: 'Expéditrice, Bordeaux', text: "Le score KiparTrust est une vraie révolution. Je sais exactement à qui je confie mon colis avant même de le lui remettre.", stars: 5, avatar: 'M' },
+              { name: t.landing.testimonial1_name, role: t.landing.testimonial1_role, text: t.landing.testimonial1_text, stars: 5, avatar: 'A' },
+              { name: t.landing.testimonial2_name, role: t.landing.testimonial2_role, text: t.landing.testimonial2_text, stars: 5, avatar: 'K' },
+              { name: t.landing.testimonial3_name, role: t.landing.testimonial3_role, text: t.landing.testimonial3_text, stars: 5, avatar: 'M' },
             ].map((t, i) => (
               <div key={i} style={{ background: SAND, borderRadius: 18, padding: isMobile ? 24 : 28, opacity: testimonialInView ? 1 : 0, transform: testimonialInView ? 'translateY(0)' : 'translateY(24px)', transition: `opacity 0.5s ease ${i * 0.15}s, transform 0.5s ease ${i * 0.15}s` }}>
                 <div style={{ display: 'flex', gap: 3, marginBottom: 14 }}>
@@ -387,17 +387,17 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', top: -100, right: -100, width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle,rgba(220,0,41,0.12) 0%,transparent 70%)' }} />
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 36 : 52, fontWeight: 900, color: WHITE, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>
-            Prêt à rejoindre<br />la communauté <span style={{ color: R }}>KIPAR</span> ?
+            {t.landing.cta_title_1}<br />{t.landing.cta_title_2} <span style={{ color: R }}>KIPAR</span> ?
           </h2>
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 36, lineHeight: 1.7 }}>
-            Rejoignez des milliers de membres qui font confiance à KIPAR pour leurs envois internationaux.
+            {t.landing.cta_desc}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '14px 24px' : '16px 36px', borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>
-              Créer un compte gratuit <ArrowRight size={17} />
+              {t.landing.cta_primary} <ArrowRight size={17} />
             </Link>
             <Link href="/splash" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '14px 24px' : '16px 36px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', color: WHITE, fontSize: 15, fontWeight: 500, textDecoration: 'none', background: 'rgba(255,255,255,0.05)' }}>
-              Se connecter
+              {t.landing.cta_secondary}
             </Link>
           </div>
         </div>
@@ -406,10 +406,10 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer style={{ background: '#111', padding: isMobile ? '28px 20px' : '36px 48px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: isMobile ? 16 : 0 }}>
         <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 900, color: WHITE }}>KIPAR<span style={{ color: R }}>.</span></span>
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>{t.landing.footer_rights}</p>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>{`© ${new Date().getFullYear()} ${t.landing.footer_rights}`}</p>
         <div style={{ display: 'flex', gap: 20 }}>
-          {['Confidentialité', 'CGU', 'Contact'].map(l => (
-            <a key={l} href="#" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{l}</a>
+          {[[t.landing.footer_privacy, '#'], [t.landing.footer_terms, '#'], [t.landing.footer_contact, '#']].map(([l, href]) => (
+            <a key={l} href={href} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{l}</a>
           ))}
         </div>
       </footer>

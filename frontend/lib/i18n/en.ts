@@ -1461,7 +1461,21 @@ profile_public: {
 
     nav_login_mobile: "Login",
 
-    footer_rights: "© 2026 KIPAR. All rights reserved.",
+    mockup_verified: "Verified",
+    footer_rights: "KIPAR. All rights reserved.",
+    footer_privacy: "Privacy",
+    footer_terms: "Terms",
+    footer_contact: "Contact",
+    video_play: "Watch the presentation video",
+    testimonial1_name: "Aminata D.",
+    testimonial1_role: "Sender, Paris",
+    testimonial1_text: "I send parcels to my family in Dakar regularly. With KIPAR, I choose a trusted carrier and feel safe every time.",
+    testimonial2_name: "Kofi A.",
+    testimonial2_role: "Carrier, Lyon",
+    testimonial2_text: "I travel often for work. KIPAR lets me make the most of my empty luggage. The process is simple and payments are secure.",
+    testimonial3_name: "Marie-Claire N.",
+    testimonial3_role: "Sender, Bordeaux",
+    testimonial3_text: "The KiparTrust score is a real game changer. I know exactly who I'm entrusting my parcel to before handing it over.",
 
   },
 

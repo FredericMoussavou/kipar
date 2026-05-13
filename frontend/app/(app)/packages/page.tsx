@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Package, ChevronRight, Plus, X, Inbox, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal from '@/components/ui/kipar/Modal'
+import { Button } from '@/components/ui/kipar'
+import Textarea from '@/components/ui/kipar/Textarea'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useState } from 'react'
 import { useAuthStore } from '@/stores/auth.store'
@@ -148,10 +150,9 @@ export default function PackagesPage() {
               </div>
               <p style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 6 }}>{t.requests.empty}</p>
               <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{t.requests.empty_sub}</p>
-              <button onClick={() => router.push('/requests/new')}
-                style={{ padding: '12px 24px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              <Button size="lg" onClick={() => router.push('/requests/new')}>
                 {t.requests.create_alert_btn}
-              </button>
+              </Button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -246,14 +247,12 @@ export default function PackagesPage() {
       <Modal isOpen={!!toDelete} onClose={() => setToDelete(null)} title={t.requests.delete_confirm}>
         <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{toDelete?.label}</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => setToDelete(null)} disabled={deleting}
-            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: `1px solid ${BORDER}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <Button variant="outline" size="sm" disabled={deleting} onClick={() => setToDelete(null)}>
             {t.profile_edit.cancel}
-          </button>
-          <button onClick={handleDeleteListing} disabled={deleting}
-            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.5 : 1, minWidth: 100 }}>
-            {deleting ? '...' : t.profile_edit.delete_confirm}
-          </button>
+          </Button>
+          <Button variant="danger" size="sm" loading={deleting} onClick={handleDeleteListing}>
+            {t.profile_edit.delete_confirm}
+          </Button>
         </div>
       </Modal>
 
@@ -265,22 +264,14 @@ export default function PackagesPage() {
               <p style={{ fontSize: 12, color: '#92400E', fontWeight: 600, marginBottom: 4 }}>{t.payment.cancel_policy_title}</p>
               <p style={{ fontSize: 12, color: '#92400E' }}>{t.packages.refund_full}</p>
             </div>
-            <textarea
-              value={cancelReason}
-              onChange={e => setCancelReason(e.target.value)}
-              placeholder={t.packages.cancel_reason_placeholder}
-              rows={3}
-              style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
-            />
+            <Textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder={t.packages.cancel_reason_placeholder} rows={3} style={{ marginBottom: 12 }} />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => { setToCancel(null); setCancelReason('') }} disabled={cancelling}
-                style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <Button variant="outline" size="sm" disabled={cancelling} onClick={() => { setToCancel(null); setCancelReason('') }}>
                 {t.profile_edit.cancel}
-              </button>
-              <button onClick={handleCancelBooking} disabled={cancelling}
-                style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
-                {cancelling ? '...' : t.packages.cancel_booking}
-              </button>
+              </Button>
+              <Button variant="danger" size="sm" loading={cancelling} onClick={handleCancelBooking}>
+                {t.packages.cancel_booking}
+              </Button>
             </div>
           </div>
         )}

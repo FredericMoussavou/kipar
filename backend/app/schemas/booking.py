@@ -52,6 +52,9 @@ class BookingDetailResponse(BaseModel):
     origin_airport_code: str | None = None
     destination_airport_code: str | None = None
     departure_date: str | None = None
+    departure_time: str | None = None
+    arrival_date: str | None = None
+    arrival_time: str | None = None
     flight_number: str | None = None
     # Carrier
     carrier_id: uuid.UUID | None = None

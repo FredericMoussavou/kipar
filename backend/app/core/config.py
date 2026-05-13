@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     ONFIDO_API_TOKEN: str = ""
 
     # AviationStack
-    AVIATIONSTACK_API_KEY: str = ""
+    RAPIDAPI_KEY: str = ""  # Cle RapidAPI pour AeroDataBox
 
     ANTHROPIC_API_KEY: str = ""
 

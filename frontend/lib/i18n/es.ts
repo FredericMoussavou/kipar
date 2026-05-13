@@ -309,6 +309,9 @@ export const es = {
     incident_reason_placeholder: 'Explica la situación...',
 
     cancel_reason_required: 'Por favor, indique un motivo antes de confirmar.',
+    rdv_error_past: 'La fecha y hora propuestas están en el pasado',
+    rdv_error_too_late: 'La cita debe ser al menos 3h antes de la salida',
+    rdv_error_before_arrival: 'La cita debe ser posterior a la llegada del vuelo',
     section_pickup_security: 'Seguridad de la entrega',
     section_transit: 'Estado del tránsito',
     section_delivery_rdv: 'Cita de entrega',

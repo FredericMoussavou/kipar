@@ -150,6 +150,7 @@ export default function BookingDetailPage() {
   // Boutons livraison déverrouillés seulement à l'heure du RDV
   const deliveryUnlocked = hasDeliveryMeeting && !hasPendingDelivery &&
     new Date() >= new Date(booking?.delivery_meeting_date)
+  const deliveryMeetingReached = hasDeliveryMeeting && new Date() >= new Date(booking?.delivery_meeting_date || '')
 
   // ── Mutations ───────────────────────────────────────────────────────────────
 
@@ -160,6 +161,47 @@ export default function BookingDetailPage() {
     d.setHours(h, m, 0, 0)
     return d.toISOString()
   }
+
+  const isMeetingInPast = (date: string, time: string) => {
+    if (!date) return false
+    const iso = buildMeetingISO(date, time)
+    if (!iso) return false
+    return new Date(iso) <= new Date()
+  }
+
+  const isPickupTooLate = (date: string, time: string) => {
+    if (!date || !booking?.departure_date || !booking?.departure_time) return false
+    const iso = buildMeetingISO(date, time)
+    if (!iso) return false
+    const [dh, dm] = booking.departure_time.split(':').map(Number)
+    const dep = new Date(booking.departure_date)
+    dep.setHours(dh, dm, 0, 0)
+    return new Date(iso) >= new Date(dep.getTime() - 3 * 60 * 60 * 1000)
+  }
+
+  const isDeliveryBeforeArrival = (date: string, time: string) => {
+    if (!date || !booking?.arrival_date) return false
+    const iso = buildMeetingISO(date, time)
+    if (!iso) return false
+    if (booking?.arrival_time) {
+      const [ah, am] = booking.arrival_time.split(':').map(Number)
+      const arr = new Date(booking.arrival_date)
+      arr.setHours(ah, am, 0, 0)
+      return new Date(iso) <= arr
+    }
+    return new Date(iso).toDateString() === new Date(booking.arrival_date).toDateString() ||
+           new Date(iso) < new Date(booking.arrival_date)
+  }
+
+  const pickupDateError = pickupDate ? (
+    isMeetingInPast(pickupDate, pickupTime) ? (t.packages.rdv_error_past || 'RDV dans le passé') :
+    isPickupTooLate(pickupDate, pickupTime) ? (t.packages.rdv_error_too_late || 'Moins de 3h avant le départ') : ''
+  ) : ''
+
+  const deliveryDateError = deliveryDate ? (
+    isMeetingInPast(deliveryDate, deliveryTime) ? (t.packages.rdv_error_past || 'RDV dans le passé') :
+    isDeliveryBeforeArrival(deliveryDate, deliveryTime) ? (t.packages.rdv_error_before_arrival || 'Avant l\'arrivée du vol') : ''
+  ) : ''
 
   const proposePickupMutation = useMutation({
     mutationFn: async () => {
@@ -196,6 +238,7 @@ export default function BookingDetailPage() {
     onSuccess: () => {
       toast.success(t.packages.pickup_validated)
       queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] })
     },
     onError: () => toast.error(t.packages.pickup_code_invalid),
   })
@@ -544,10 +587,10 @@ const handleCancel = () => {
                 </div>
               ) : null}
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <Button variant="ghost" onClick={() => setDeliveryFailedOpen(true)} style={{ flex: 1, color: RED, border: '1px solid ' + RED + '40' }}>
+                <Button variant="ghost" disabled={!deliveryMeetingReached} onClick={() => setDeliveryFailedOpen(true)} style={{ flex: 1, color: RED, border: '1px solid ' + RED + '40', opacity: deliveryMeetingReached ? 1 : 0.5 }}>
                   {t.packages.delivery_failed_btn || 'Échec livraison'}
                 </Button>
-                <Button variant="ghost" onClick={() => setSupportOpen(true)} style={{ flex: 1, color: AMBER, border: '1px solid ' + AMBER + '40' }}>
+                <Button variant="ghost" disabled={!deliveryMeetingReached} onClick={() => setSupportOpen(true)} style={{ flex: 1, color: AMBER, border: '1px solid ' + AMBER + '40', opacity: deliveryMeetingReached ? 1 : 0.5 }}>
                   {t.packages.support_btn || 'Signaler problème'}
                 </Button>
               </div>
@@ -569,7 +612,7 @@ const handleCancel = () => {
         </Section>
 
         {/* ── ANNULATION ────────────────────────────────────────────────────── */}
-        {(isSender || isCarrier) && ['pending', 'accepted', 'paid'].includes(booking.status) && (
+        {(isSender || isCarrier) && ['pending', 'accepted', 'paid'].includes(booking.status) && !hasPickupMeeting && (
           <Button fullWidth variant="ghost" onClick={() => setCancelOpen(true)} style={{ marginTop: 8, color: RED, border: '1px solid ' + RED + '40' }}>
             {t.packages.cancel_booking}
           </Button>
@@ -604,7 +647,8 @@ const handleCancel = () => {
             />
           </div>
         </div>
-        <Button fullWidth loading={proposePickupMutation.isPending} disabled={proposePickupMutation.isPending || !pickupDate} onClick={() => proposePickupMutation.mutate()} style={{ background: CHARCOAL }}>
+        {pickupDateError && <p style={{ fontSize: 12, color: RED, marginBottom: 8 }}>{pickupDateError}</p>}
+        <Button fullWidth loading={proposePickupMutation.isPending} disabled={proposePickupMutation.isPending || !pickupDate || !!pickupDateError} onClick={() => proposePickupMutation.mutate()} style={{ background: CHARCOAL }}>
           Envoyer la proposition
         </Button>
       </Modal>
@@ -625,7 +669,8 @@ const handleCancel = () => {
             />
           </div>
         </div>
-        <Button fullWidth loading={proposeDeliveryMutation.isPending || rescheduleMutation.isPending} disabled={proposeDeliveryMutation.isPending || rescheduleMutation.isPending || !deliveryDate} onClick={() => hasDeliveryMeeting ? rescheduleMutation.mutate() : proposeDeliveryMutation.mutate()} style={{ background: CHARCOAL }}>
+        {deliveryDateError && <p style={{ fontSize: 12, color: RED, marginBottom: 8 }}>{deliveryDateError}</p>}
+        <Button fullWidth loading={proposeDeliveryMutation.isPending || rescheduleMutation.isPending} disabled={proposeDeliveryMutation.isPending || rescheduleMutation.isPending || !deliveryDate || !!deliveryDateError} onClick={() => hasDeliveryMeeting ? rescheduleMutation.mutate() : proposeDeliveryMutation.mutate()} style={{ background: CHARCOAL }}>
           Envoyer la proposition
         </Button>
       </Modal>

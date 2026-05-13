@@ -82,13 +82,6 @@ export default function CarrierPage() {
   })
 
 
-  const inTransitMutation = useMutation({
-    mutationFn: (id: string) => api.patch(`/bookings/${id}/in-transit`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
-    },
-    onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
-  })
   // — Confirm delivery —
   const handleDeliver = async () => {
     if (!deliverModal) return
@@ -276,7 +269,8 @@ export default function CarrierPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {treatedBookings.map((booking: any) => {
-                const canPickup = ['accepted', 'paid'].includes(booking.status)
+                const pickupMeetingReached = !!booking.pickup_meeting_date && new Date() >= new Date(booking.pickup_meeting_date)
+                const canPickup = ['accepted', 'paid'].includes(booking.status) && pickupMeetingReached
                 const canDeliver = booking.status === 'in_transit'
                 return (
                   <div key={booking.id}
@@ -291,14 +285,12 @@ export default function CarrierPage() {
                     </div>
                     {canPickup && (
                       <button
-                        onClick={e => { e.stopPropagation(); inTransitMutation.mutate(booking.id) }}
-                        disabled={inTransitMutation.isPending}
+                        onClick={e => { e.stopPropagation(); router.push(`/packages/${booking.id}`) }}
                         style={{
                           padding: '8px 14px', background: '#EFF6FF',
                           border: '1px solid #93C5FD', borderRadius: 10, fontSize: 13,
                           fontWeight: 600, color: '#2563EB', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                          opacity: inTransitMutation.isPending ? 0.6 : 1,
                         }}
                       >
                         <Plane size={14} /> {t.carrier.pickup_btn}

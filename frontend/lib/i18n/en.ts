@@ -309,6 +309,9 @@ export const en = {
     incident_reason_placeholder: 'Explain the situation...',
 
     cancel_reason_required: 'Please provide a reason before confirming.',
+    rdv_error_past: 'The proposed date and time are in the past',
+    rdv_error_too_late: 'Appointment must be at least 3h before departure',
+    rdv_error_before_arrival: 'Appointment must be after the flight arrival',
     section_pickup_security: 'Pickup security',
     section_transit: 'Transit status',
     section_delivery_rdv: 'Delivery appointment',

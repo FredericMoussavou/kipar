@@ -397,6 +397,10 @@ async def propose_delivery_meeting(
     if b.status not in ("in_transit", "delivery_reported"):
         raise HTTPException(status_code=400, detail="Statut incompatible")
 
+    # Contrainte : pas dans le passe
+    if payload.meeting_date <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="La date de RDV ne peut pas etre dans le passe")
+
     # Contrainte : date posterieure a l'arrivee du vol
     if trip.arrival_date and trip.arrival_time:
         h, m = map(int, trip.arrival_time.split(":"))
@@ -568,6 +572,10 @@ async def propose_pickup_meeting(
         raise HTTPException(status_code=403, detail="Forbidden")
     if b.status != "accepted":
         raise HTTPException(status_code=400, detail="Statut incompatible")
+
+    # Contrainte : pas dans le passe
+    if payload.meeting_date <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="La date de RDV ne peut pas etre dans le passe")
 
     # Contrainte : au moins 3h avant le depart du vol
     if trip.departure_date and trip.departure_time:

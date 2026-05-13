@@ -6,7 +6,8 @@ import { ArrowLeft, Calendar, Plane, Shield } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBookingStore } from '@/stores/booking.store'
 import { useAuthStore } from '@/stores/auth.store'
-import { Button } from '@/components/ui/kipar'
+import { Button, WeightDisplay, CurrencyDisplay } from '@/components/ui/kipar'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
@@ -23,7 +24,8 @@ export default function TripDetailPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { setSelectedTrip } = useBookingStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
+  const rates = useExchangeRates()
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ['trip', id],
@@ -121,7 +123,7 @@ export default function TripDetailPage() {
               </div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>{trip.price_per_kg}€</p>
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}><CurrencyDisplay amount={trip.price_per_kg} currency={trip.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} perUnit={trip.weight_unit ?? 'kg'} /></p>
               <p style={{ fontSize: 11, color: TAUPE }}>{t.trip.price_per_kg}</p>
             </div>
           </div>
@@ -148,8 +150,8 @@ export default function TripDetailPage() {
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
           {[
-            { label: t.trip.available_kg, value: `${trip.remaining_kg} kg` },
-            { label: t.trip.max_per_package, value: `${trip.max_kg_per_package} kg` },
+            { label: t.trip.available_kg, value: <WeightDisplay value={trip.remaining_kg} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> },
+            { label: t.trip.max_per_package, value: <WeightDisplay value={trip.max_kg_per_package} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> },
             { label: t.trip.departure, value: trip.departure_date?.slice(5) || '—' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>

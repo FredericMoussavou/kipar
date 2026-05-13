@@ -251,50 +251,36 @@ export default function OnboardingPage() {
             {/* Prénom + Nom */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>{t.onboarding.field_first_name}</label>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)}
-                  placeholder="Marie" style={inputStyle} />
+                <Input label={t.onboarding.field_first_name} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Marie" />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>{t.onboarding.field_last_name}</label>
-                <input value={lastName} onChange={e => setLastName(e.target.value)}
-                  placeholder="Dupont" style={inputStyle} />
+                <Input label={t.onboarding.field_last_name} value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Dupont" />
               </div>
             </div>
 
             {/* Username */}
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>{t.onboarding.field_username}</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  value={username}
-                  onChange={e => handleUsernameChange(e.target.value)}
-                  placeholder="marie_dupont"
-                  maxLength={15}
-                  style={{ ...inputStyle, paddingRight: 36 }}
-                />
-                <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
-                  <UsernameIcon />
-                </div>
-              </div>
+              <Input
+                label={t.onboarding.field_username}
+                value={username}
+                onChange={e => handleUsernameChange(e.target.value)}
+                placeholder="marie_dupont"
+                maxLength={15}
+                rightIcon={<UsernameIcon />}
+              />
               <p style={{ fontSize: 11, color: usernameHintColor, marginTop: 4 }}>{usernameHint}</p>
             </div>
 
             {/* Adresse */}
             <div style={{ marginBottom: 16 }} ref={addressRef}>
-              <label style={labelStyle}>{t.onboarding.field_address}</label>
               <div style={{ position: 'relative' }}>
-                <input
+                <Input
+                  label={t.onboarding.field_address}
                   value={address}
                   onChange={e => handleAddressChange(e.target.value)}
                   placeholder={t.onboarding.field_address_hint}
-                  style={{ ...inputStyle, paddingRight: addressLoading ? 36 : 12 }}
+                  rightIcon={addressLoading ? <Loader size={14} color={TAUPE} style={{ animation: 'spin 1s linear infinite' }} /> : undefined}
                 />
-                {addressLoading && (
-                  <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
-                    <Loader size={14} color={TAUPE} style={{ animation: 'spin 1s linear infinite' }} />
-                  </div>
-                )}
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden', marginTop: 4 }}>
                     {addressSuggestions.map(s => (
@@ -365,18 +351,15 @@ export default function OnboardingPage() {
             </div>
             {paymentMethod === 'iban' ? (
               <div>
-                <label style={labelStyle}>IBAN</label>
-                <input value={iban} onChange={e => { setIban(e.target.value); setIbanError('') }}
+                <Input label="IBAN" value={iban} onChange={e => { setIban(e.target.value); setIbanError('') }}
                   placeholder="FR76 3000 6000 0112 3456 7890 189"
-                  style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '0.05em' }} />
-                {ibanError && <p style={{ fontSize: 11, color: RED, marginTop: 4 }}>{ibanError}</p>}
+                  error={ibanError || undefined}
+                  style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }} />
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
-                  <label style={labelStyle}>{t.profile_edit.pref_payment_country}</label>
-                  <input value={paymentCountry} onChange={e => setPaymentCountry(e.target.value)}
-                    placeholder="SN, CI, CM..." style={inputStyle} />
+                  <Input label={t.profile_edit.pref_payment_country} value={paymentCountry} onChange={e => setPaymentCountry(e.target.value)} placeholder="SN, CI, CM..." />
                 </div>
                 <div>
                   <label style={labelStyle}>{t.profile_edit.pref_mobile_money}</label>
@@ -440,16 +423,13 @@ export default function OnboardingPage() {
         {step < STEPS.length - 1 && (
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
             {step > 0 && (
-              <button type="button" onClick={() => setStep(s => s - 1)}
-                style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid ' + BORDER, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <Button variant="outline" size="md" onClick={() => setStep(s => s - 1)} style={{ flex: 1 }}>
                 <ChevronLeft size={16} /> {t.onboarding.back_btn}
-              </button>
+              </Button>
             )}
-            <button type="button" onClick={saveStep}
-              disabled={saving || (step === 0 && !step0Valid)}
-              style={{ flex: 2, padding: '12px', borderRadius: 12, border: 'none', background: (saving || (step === 0 && !step0Valid)) ? SAND : RED, color: (saving || (step === 0 && !step0Valid)) ? TAUPE : WHITE, fontSize: 14, fontWeight: 600, cursor: (saving || (step === 0 && !step0Valid)) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: (saving || (step === 0 && !step0Valid)) ? 0.7 : 1 }}>
-              {saving ? '...' : step === STEPS.length - 2 ? t.onboarding.finish_btn : t.onboarding.next_btn} {!saving && <ChevronRight size={16} />}
-            </button>
+            <Button size="md" loading={saving} disabled={saving || (step === 0 && !step0Valid)} onClick={saveStep} style={{ flex: 2 }}>
+              {step === STEPS.length - 2 ? t.onboarding.finish_btn : t.onboarding.next_btn} {!saving && <ChevronRight size={16} />}
+            </Button>
           </div>
         )}
 

@@ -7,6 +7,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotifications } from '@/contexts/notifications.context'
+import { useLanguage } from '@/hooks/useLanguage'
+import type { SupportedLang } from '@/lib/langCookie'
 
 export default function TopNav() {
   const pathname = usePathname()
@@ -18,6 +20,9 @@ export default function TopNav() {
   const notifRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const { notifications, unreadCount, markAllRead, markOneRead } = useNotifications()
+  const { currentLang, setLanguage } = useLanguage()
+  const [langOpen, setLangOpen] = useState(false)
+  const langRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -26,6 +31,9 @@ export default function TopNav() {
       }
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false)
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
@@ -91,6 +99,25 @@ export default function TopNav() {
 
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Sélecteur langue */}
+          <div ref={langRef} style={{ position: 'relative' }}>
+            <button onClick={() => setLangOpen(!langOpen)}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 99, border: '1px solid ' + BORDER, background: WHITE, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: CHARCOAL, fontFamily: 'Segoe UI Emoji, Apple Color Emoji, sans-serif' }}>
+              {currentLang === 'fr' ? '🇫🇷' : currentLang === 'en' ? '🇬🇧' : '🇪🇸'} {currentLang.toUpperCase()}
+            </button>
+            {langOpen && (
+              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: WHITE, border: '1px solid ' + BORDER, borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.10)', overflow: 'hidden', zIndex: 200, minWidth: 140 }}>
+                {([['fr', '🇫🇷', 'Français'], ['en', '🇬🇧', 'English'], ['es', '🇪🇸', 'Español']] as const).map(([code, flag, label]) => (
+                  <button key={code} type="button"
+                    onClick={() => { setLanguage(code as SupportedLang); setLangOpen(false) }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: currentLang === code ? 'rgba(220,0,41,0.06)' : WHITE, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: currentLang === code ? 700 : 400, color: currentLang === code ? RED : CHARCOAL, textAlign: 'left', fontFamily: 'Segoe UI Emoji, Apple Color Emoji, sans-serif' }}>
+                    {flag} {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div ref={notifRef} style={{ position: 'relative' }}>
             <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', background: SAND, border: '1px solid ' + BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: TAUPE }}>
               <Bell size={16} />

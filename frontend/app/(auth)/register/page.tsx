@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { Button, Input } from '@/components/ui/kipar'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
+import { setLangCookie, getLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
 
 const schema = z.object({
@@ -90,11 +91,13 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
+      const currentLang = getLangCookie()
       await api.post('/auth/register', {
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
         password: data.password,
+        language: currentLang,
       })
       toast.success('Compte créé avec succès !')
       router.push('/onboarding')

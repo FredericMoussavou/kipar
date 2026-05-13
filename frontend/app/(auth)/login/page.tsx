@@ -12,6 +12,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
+import { setLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
 
 const schema = z.object({
@@ -94,6 +95,7 @@ export default function LoginPage() {
       setToken(res.data.access_token)
       const me = await api.get('/users/me')
       setUser(me.data)
+      if (me.data.language) setLangCookie(me.data.language as SupportedLang)
       if (!me.data.onboarding_completed) {
         router.push('/onboarding')
       } else {
@@ -110,6 +112,7 @@ export default function LoginPage() {
       setToken(res.data.access_token)
       const me = await api.get('/users/me')
       setUser(me.data)
+      if (me.data.language) setLangCookie(me.data.language as SupportedLang)
       if (!me.data.onboarding_completed) {
         router.push('/onboarding')
       } else {

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Shield, Zap, Globe, Star, ChevronDown, Package, Plane, Users, CheckCircle } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useLanguage } from '@/hooks/useLanguage'
 import { getT } from '@/lib/i18n'
 
 const R = '#DC0029'
@@ -129,7 +130,7 @@ function LaptopMockup({ t }: { t: any }) {
 export default function LandingPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const isMobile = useIsMobile()
-  const [lang, setLang] = useState<'fr' | 'en' | 'es'>('fr')
+  const { currentLang: lang, setLanguage: setLang } = useLanguage()
   const t = getT(lang)
   const [scrolled, setScrolled] = useState(false)
   const [langOpen, setLangOpen] = useState(false)

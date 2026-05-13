@@ -123,6 +123,19 @@ export default function BookingDetailPage() {
     queryFn: async () => (await api.get(`/bookings/${id}/full`)).data,
   })
 
+  const { data: flightTracking } = useQuery({
+    queryKey: ['flight-tracking', booking?.trip_id],
+    queryFn: async () => {
+      if (!booking?.trip_id || !booking?.flight_number) return null
+      try {
+        const res = await api.get(`/tracking/${booking.trip_id}/flight`)
+        return res.data
+      } catch { return null }
+    },
+    enabled: !!booking?.trip_id && !!booking?.flight_number && ['in_transit', 'delivery_reported'].includes(booking?.status || ''),
+    refetchInterval: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
     if (!deliveryCodeData?.qr_token || !canvasRef.current) return
     QRCode.toCanvas(canvasRef.current, deliveryCodeData.qr_token, {
@@ -632,6 +645,59 @@ const handleCancel = () => {
           </Section>
         )}
 
+
+        {/* ── BLOC SUIVI VOL ───────────────────────────────────────────────────── */}
+        {['in_transit', 'delivery_reported'].includes(booking.status) && booking.flight_number && (
+          <Section title={t.packages.flight_tracking_title}>
+            {flightTracking ? (() => {
+              const statusColors: Record<string, string> = {
+                landed: GREEN, active: '#2563EB', delayed: AMBER,
+                cancelled: RED, scheduled: TAUPE, unknown: TAUPE,
+              }
+              const statusLabels: Record<string, string> = {
+                landed: t.packages.flight_status_landed,
+                active: t.packages.flight_status_active,
+                delayed: t.packages.flight_status_delayed,
+                cancelled: t.packages.flight_status_cancelled,
+                scheduled: t.packages.flight_status_scheduled,
+                unknown: t.packages.flight_status_unknown,
+              }
+              const color = statusColors[flightTracking.status] || TAUPE
+              const label = statusLabels[flightTracking.status] || flightTracking.status
+              const fmt = (d: string | null) => d ? new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
+              return (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <Plane size={18} color={color} />
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL, margin: 0 }}>{booking.flight_number}</p>
+                      <p style={{ fontSize: 12, color, fontWeight: 600, margin: 0 }}>{label}</p>
+                    </div>
+                  </div>
+                  {flightTracking.arrival_estimated && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
+                      <span>{t.packages.flight_arrival_estimated}</span>
+                      <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmt(flightTracking.arrival_estimated)}</span>
+                    </div>
+                  )}
+                  {flightTracking.arrival_actual && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
+                      <span>{t.packages.flight_arrival_actual}</span>
+                      <span style={{ fontWeight: 600, color: GREEN }}>{fmt(flightTracking.arrival_actual)}</span>
+                    </div>
+                  )}
+                  {flightTracking.last_checked_at && (
+                    <p style={{ fontSize: 10, color: TAUPE, marginTop: 8, textAlign: 'right' }}>
+                      {t.packages.flight_last_updated} : {fmt(flightTracking.last_checked_at)}
+                    </p>
+                  )}
+                </div>
+              )
+            })() : (
+              <p style={{ fontSize: 12, color: TAUPE }}>{t.packages.flight_no_tracking}</p>
+            )}
+          </Section>
+        )}
 
         {/* ── BLOC LIVRAISON (in_transit / delivery_reported) ───────────────── */}
         {(booking.status === 'in_transit' || booking.status === 'delivery_reported') && (isCarrier || isReceiver) && (

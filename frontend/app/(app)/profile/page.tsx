@@ -35,6 +35,8 @@ import { useTheme } from 'next-themes'
 import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
 import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
+import Input from '@/components/ui/kipar/Input'
+import { Button } from '@/components/ui/kipar'
 import {
   uploadAvatar,
   removeAvatar,
@@ -103,14 +105,8 @@ function NameModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.field_first_name + ' / ' + t.profile_edit.field_last_name} closeDisabled={loading}>
-      <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>{t.profile_edit.field_first_name}</label>
-        <input value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle} />
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <label style={labelStyle}>{t.profile_edit.field_last_name}</label>
-        <input value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle} />
-      </div>
+      <Input label={t.profile_edit.field_first_name} value={firstName} onChange={e => setFirstName(e.target.value)} style={{ marginBottom: 14 }} />
+      <Input label={t.profile_edit.field_last_name} value={lastName} onChange={e => setLastName(e.target.value)} style={{ marginBottom: 16 }} />
       <ModalActions onCancel={onClose} onConfirm={handleSubmit} loading={loading}
         confirmLabel={t.profile_edit.save} />
     </Modal>
@@ -194,8 +190,7 @@ function UsernameModal({
         </div>
       ) : (
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>{t.profile_edit.field_username}</label>
-          <input value={username} onChange={e => handleChange(e.target.value)} maxLength={15} style={inputStyle} />
+          <Input label={t.profile_edit.field_username} value={username} onChange={e => handleChange(e.target.value)} maxLength={15} />
           <p style={{ fontSize: 11, color: hintColor, marginTop: 4 }}>{hint}</p>
         </div>
       )}
@@ -274,10 +269,7 @@ function AddressModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.field_address} closeDisabled={loading}>
       <div style={{ marginBottom: 16, position: 'relative' }} ref={containerRef}>
-        <label style={labelStyle}>{t.profile_edit.field_address}</label>
-        <input value={address} onChange={e => { setAddress(e.target.value); searchAddress(e.target.value) }}
-          placeholder={t.profile_edit.field_address}
-          style={inputStyle} />
+        <Input label={t.profile_edit.field_address} value={address} onChange={e => { setAddress(e.target.value); searchAddress(e.target.value) }} placeholder={t.profile_edit.field_address} />
         {addrLoading && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
         {showSuggestions && suggestions.length > 0 && (
           <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.10)', zIndex: 100, overflow: 'hidden', marginTop: 4 }}>
@@ -580,26 +572,10 @@ export default function ProfilePage() {
             <KiparTrustGauge score={user.trust_score} size="md" />
           </div>
 
-          <button
-            type="button"
-            onClick={() => router.push(`/profile/${user.id}`)}
-            style={{
-              background: SAND,
-              border: `1px solid ${BORDER}`,
-              borderRadius: 12,
-              padding: '8px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              color: CHARCOAL,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={() => router.push(`/profile/${user.id}`)}>
             <ExternalLink size={12} />
             {t.profile_edit.view_public_profile}
-          </button>
+          </Button>
         </div>
 
         {/* Section Informations */}
@@ -683,21 +659,19 @@ export default function ProfilePage() {
       </Card>
 
       {/* Déconnexion */}
-      <button type="button" onClick={handleLogout}
-        style={{ width: '100%', background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: CHARCOAL, cursor: 'pointer', marginTop: 16, marginBottom: 16 }}>
+      <Button variant="outline" fullWidth onClick={handleLogout} style={{ marginTop: 16, marginBottom: 16 }}>
         <LogOut size={16} />
         {t.profile_edit.logout}
-      </button>
+      </Button>
 
       {/* Zone dangereuse */}
       <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
       <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 32 }}>
         <p style={{ fontSize: 12, color: TAUPE, margin: 0, marginBottom: 12, lineHeight: 1.5 }}>{t.profile_edit.danger_desc}</p>
-        <button type="button" onClick={() => setDeleteModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'transparent', border: `1px solid ${RED}`, borderRadius: 10, fontSize: 12, fontWeight: 600, color: RED, cursor: 'pointer' }}>
+        <Button variant="danger" size="sm" onClick={() => setDeleteModalOpen(true)}>
           <Trash2 size={13} />
           {t.profile_edit.delete_account}
-        </button>
+        </Button>
       </div>
 
       {/* ─── Modales nom / username / adresse ─── */}
@@ -1283,35 +1257,16 @@ function PasswordField({
       >
         {label}
       </label>
-      <div style={{ position: 'relative' }}>
-        <input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{ ...inputStyle(), paddingRight: hideToggle ? 12 : 40 }}
-        />
-        {!hideToggle && (
-          <button
-            type="button"
-            onClick={toggleShow}
-            style={{
-              position: 'absolute',
-              right: 8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              padding: 4,
-              color: TAUPE,
-            }}
-          >
+      <Input
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rightIcon={!hideToggle ? (
+          <button type="button" onClick={toggleShow} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, color: TAUPE }}>
             {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
     </div>
   )
 }
@@ -1398,57 +1353,16 @@ function AvatarModal({
         style={{ display: 'none' }}
         disabled={loading}
       />
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={loading}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          background: RED,
-          color: WHITE,
-          border: 'none',
-          borderRadius: 12,
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          opacity: loading ? 0.7 : 1,
-          marginBottom: 8,
-        }}
-      >
+      <Button fullWidth loading={loading} onClick={() => fileInputRef.current?.click()} style={{ marginBottom: 8 }}>
         <Upload size={14} />
-        {loading ? t.profile_edit.upload_uploading : t.profile_edit.upload_choose}
-      </button>
+        {t.profile_edit.upload_choose}
+      </Button>
 
       {hasAvatar && (
-        <button
-          type="button"
-          onClick={handleRemove}
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '10px 16px',
-            background: 'transparent',
-            color: TAUPE,
-            border: `1px solid ${BORDER}`,
-            borderRadius: 12,
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            opacity: loading ? 0.5 : 1,
-          }}
-        >
+        <Button fullWidth variant="outline" disabled={loading} onClick={handleRemove}>
           <Trash2 size={12} />
           {t.profile_edit.avatar_remove}
-        </button>
+        </Button>
       )}
     </Modal>
   )
@@ -1526,34 +1440,19 @@ function DeleteAccountModal({
       >
         {t.profile_edit.modal_delete_password_label}
       </label>
-      <div style={{ position: 'relative', marginBottom: 16 }}>
-        <input
+      <div style={{ marginBottom: 16 }}>
+        <Input
           type={showPwd ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t.profile_edit.modal_delete_password_placeholder}
           autoFocus
-          style={{ ...inputStyle(), paddingRight: 40 }}
+          rightIcon={
+            <button type="button" onClick={() => setShowPwd(!showPwd)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, color: TAUPE }}>
+              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          }
         />
-        <button
-          type="button"
-          onClick={() => setShowPwd(!showPwd)}
-          style={{
-            position: 'absolute',
-            right: 8,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            padding: 4,
-            color: TAUPE,
-          }}
-        >
-          {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
       </div>
 
       <ModalActions
@@ -1624,25 +1523,9 @@ function VerifyCodeModal({
     <Modal isOpen={isOpen} onClose={onClose} title={title} description={desc} closeDisabled={loading}>
       {step === 'send' ? (
         <>
-          <button
-            type="button"
-            onClick={onSend}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: RED,
-              color: WHITE,
-              border: 'none',
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? t.verify.sending : (channel === 'email' ? t.verify.verify_btn + ' par email' : t.verify.verify_btn + ' par SMS')}
-          </button>
+          <Button fullWidth loading={loading} onClick={onSend}>
+            {channel === 'email' ? t.verify.verify_btn + ' par email' : t.verify.verify_btn + ' par SMS'}
+          </Button>
         </>
       ) : (
         <>
@@ -1680,43 +1563,12 @@ function VerifyCodeModal({
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={loading}
-              style={{
-                padding: '10px 16px',
-                background: 'transparent',
-                color: TAUPE,
-                border: `1px solid ${BORDER}`,
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.5 : 1,
-              }}
-            >
+            <Button variant="outline" size="sm" disabled={loading} onClick={onSend}>
               {t.verify.resend}
-            </button>
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={loading || code.replace(/\D/g, '').length !== 6}
-              style={{
-                padding: '10px 20px',
-                background: RED,
-                color: WHITE,
-                border: 'none',
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: (loading || code.replace(/\D/g, '').length !== 6) ? 'not-allowed' : 'pointer',
-                opacity: (loading || code.replace(/\D/g, '').length !== 6) ? 0.5 : 1,
-                minWidth: 100,
-              }}
-            >
-              {loading ? t.verify.confirming : t.verify.confirm_btn}
-            </button>
+            </Button>
+            <Button size="sm" loading={loading} disabled={loading || code.replace(/\D/g, '').length !== 6} onClick={onConfirm}>
+              {t.verify.confirm_btn}
+            </Button>
           </div>
         </>
       )}
@@ -1756,43 +1608,12 @@ function ModalActions({
 
   return (
     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={loading}
-        style={{
-          padding: '10px 20px',
-          background: 'transparent',
-          color: TAUPE,
-          border: `1px solid ${BORDER}`,
-          borderRadius: 10,
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.5 : 1,
-        }}
-      >
+      <Button variant="outline" size="sm" onClick={onCancel} disabled={loading}>
         {t.profile_edit.cancel}
-      </button>
-      <button
-        type="button"
-        onClick={onConfirm}
-        disabled={loading || confirmDisabled}
-        style={{
-          padding: '10px 20px',
-          background: isDanger ? RED : RED,
-          color: WHITE,
-          border: 'none',
-          borderRadius: 10,
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: loading || confirmDisabled ? 'not-allowed' : 'pointer',
-          opacity: loading || confirmDisabled ? 0.5 : 1,
-          minWidth: 100,
-        }}
-      >
-        {loading ? t.profile_edit.saving : confirmLabel}
-      </button>
+      </Button>
+      <Button variant={isDanger ? 'danger' : 'primary'} size="sm" loading={loading} disabled={loading || confirmDisabled} onClick={onConfirm}>
+        {confirmLabel}
+      </Button>
     </div>
   )
 }

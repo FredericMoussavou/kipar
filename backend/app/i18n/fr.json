@@ -128,7 +128,16 @@
     "pir_opened": "Bagage signalé perdu — procédure Convention de Montréal déclenchée",
     "pir_resolved_found": "Bonne nouvelle — votre bagage a été retrouvé",
     "pir_resolved_lost": "Bagage définitivement perdu — remboursement en cours de traitement",
-    "pir_reminder_carrier": "Rappel : signalez le statut de votre bagage dans l'app Kipar"
+    "pir_reminder_carrier": "Rappel : signalez le statut de votre bagage dans l'app Kipar",
+    "unknown_arrival": "inconnue",
+    "flight_title": "KIPAR. — Vol",
+    "delivery_code_body": "Votre code de remise : {code}",
+    "delivery_code_detail": "Transporteur : {carrier_name}",
+    "delivery_code_flight": " · Vol {flight_number}",
+    "delivery_code_push_title": "KIPAR. — Code de remise",
+    "delivery_code_email_title": "KIPAR. — Votre code de remise",
+    "delivery_confirmed_title": "Colis livré !",
+    "delivery_confirmed_body": "Votre colis a été remis au récepteur. Les fonds sont débloqués."
   },
   "statuses": {
     "pending": "En attente",
@@ -169,5 +178,21 @@
     "readonly_notice": "Cette conversation est archivée — lecture seule",
     "send": "Envoyer",
     "you": "Vous"
+  },
+  "email": {
+    "reset_subject": "KIPAR. — Réinitialisation de votre mot de passe",
+    "reset_html": "<h2>Réinitialisation de mot de passe</h2><p>Vous avez demandé à réinitialiser votre mot de passe.</p><p><a href=\"{reset_url}\">Cliquez ici pour réinitialiser</a></p><p>Ce lien expire dans <strong>15 minutes</strong>.</p><p>Si vous n'avez pas fait cette demande, ignorez cet email.</p>",
+    "receiver_invite_subject": "{sender_full_name} vous envoie un colis via Kipar",
+    "receiver_invite_intro": "Bonjour {receiver_first_name},",
+    "receiver_invite_line1": "{sender_full_name} vous envoie un colis via Kipar.",
+    "receiver_invite_line2": "<b>Trajet :</b> {origin} → {destination}",
+    "receiver_invite_line3": "<b>Contenu :</b> {content_description}",
+    "receiver_invite_line4": "Cliquez sur le bouton ci-dessous pour voir les détails et confirmer la réception.",
+    "receiver_invite_btn": "Voir mon colis",
+    "receiver_invite_pwd_label": "Votre mot de passe temporaire",
+    "receiver_invite_pwd_note": "Vous pourrez le modifier après votre première connexion.",
+    "receiver_invite_footer": "Kipar · Ce lien est valable 24h",
+    "booking_received_subject": "KIPAR. — Nouvelle demande",
+    "booking_accepted_subject": "KIPAR. — Demande acceptée"
   }
 }

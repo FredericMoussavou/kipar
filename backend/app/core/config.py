@@ -74,7 +74,6 @@ class Settings(BaseSettings):
     INSURANCE_SELF_COVER_MAX: float = 200.0  # Auto-assurance Kipar sous ce seuil
     INSURANCE_RATE_MIN: float = 0.02   # 2% valeur déclarée
     INSURANCE_RATE_MAX: float = 0.04   # 4% valeur déclarée
-    INSURANCE_RATE_DEFAULT: float = 0.03  # 3% par défaut
 
     DEEPL_API_KEY: str = ""
 

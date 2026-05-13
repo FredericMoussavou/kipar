@@ -128,7 +128,16 @@
     "pir_opened": "Equipaje reportado como perdido — procedimiento del Convenio de Montreal activado",
     "pir_resolved_found": "Buenas noticias — tu equipaje ha sido encontrado",
     "pir_resolved_lost": "Equipaje definitivamente perdido — reembolso en proceso de trámite",
-    "pir_reminder_carrier": "Recordatorio: informa sobre el estado de tu equipaje en la app Kipar"
+    "pir_reminder_carrier": "Recordatorio: informa sobre el estado de tu equipaje en la app Kipar",
+    "unknown_arrival": "desconocida",
+    "flight_title": "KIPAR. — Vuelo",
+    "delivery_code_body": "Tu código de entrega: {code}",
+    "delivery_code_detail": "Transportista: {carrier_name}",
+    "delivery_code_flight": " · Vuelo {flight_number}",
+    "delivery_code_push_title": "KIPAR. — Código de entrega",
+    "delivery_code_email_title": "KIPAR. — Tu código de entrega",
+    "delivery_confirmed_title": "¡Paquete entregado!",
+    "delivery_confirmed_body": "Tu paquete fue entregado. Los fondos están liberados."
   },
   "statuses": {
     "pending": "Pendiente",
@@ -169,5 +178,21 @@
     "readonly_notice": "Esta conversación está archivada — solo lectura",
     "send": "Enviar",
     "you": "Tú"
+  },
+  "email": {
+    "reset_subject": "KIPAR. — Restablecimiento de contraseña",
+    "reset_html": "<h2>Restablecimiento de contraseña</h2><p>Has solicitado restablecer tu contraseña.</p><p><a href=\"{reset_url}\">Haz clic aquí para restablecerla</a></p><p>Este enlace caduca en <strong>15 minutos</strong>.</p><p>Si no has realizado esta solicitud, ignora este correo.</p>",
+    "receiver_invite_subject": "{sender_full_name} te envía un paquete a través de Kipar",
+    "receiver_invite_intro": "Hola {receiver_first_name},",
+    "receiver_invite_line1": "{sender_full_name} te está enviando un paquete a través de Kipar.",
+    "receiver_invite_line2": "<b>Ruta:</b> {origin} → {destination}",
+    "receiver_invite_line3": "<b>Contenido:</b> {content_description}",
+    "receiver_invite_line4": "Haz clic en el botón de abajo para ver los detalles y confirmar la recepción.",
+    "receiver_invite_btn": "Ver mi paquete",
+    "receiver_invite_pwd_label": "Tu contraseña temporal",
+    "receiver_invite_pwd_note": "Puedes cambiarla tras tu primer inicio de sesión.",
+    "receiver_invite_footer": "Kipar · Este enlace es válido por 24h",
+    "booking_received_subject": "KIPAR. — Nueva solicitud",
+    "booking_accepted_subject": "KIPAR. — Solicitud aceptada"
   }
 }

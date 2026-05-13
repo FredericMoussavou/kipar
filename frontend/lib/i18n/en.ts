@@ -533,6 +533,7 @@ export const en = {
   departure_time_label: 'Departure time',
 
   arrival_time_label: 'Arrival time',
+  arrival_date_label: 'Arrival date',
 
   flight_label: 'Flight number',
 

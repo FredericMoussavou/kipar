@@ -25,6 +25,7 @@ const schema = z.object({
   destination_airport_code: z.string().length(3, '3 lettres'),
   departure_date: z.string().min(1, 'Requis'),
   departure_time: z.string().optional(),
+  arrival_date: z.string().optional(),
   arrival_time: z.string().optional(),
   flight_number: z.string().optional(),
   total_kg: z.string(),
@@ -44,6 +45,7 @@ export default function NewTripPage() {
   const [originInput, setOriginInput] = useState('')
   const [departureDate, setDepartureDate] = useState('')
   const [departureTime, setDepartureTime] = useState('')
+  const [arrivalDate, setArrivalDate] = useState('')
   const [arrivalTime, setArrivalTime] = useState('')
   const [destInput, setDestInput] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<any[]>([])
@@ -90,6 +92,7 @@ export default function NewTripPage() {
         price_per_kg: parseFloat(data.price_per_kg),
         weight_unit: weightUnit,
         currency: tripCurrency,
+        arrival_date: arrivalDate || undefined,
       })
       toast.success(t.carrier.trip_published)
       router.push('/carrier')
@@ -199,6 +202,9 @@ export default function NewTripPage() {
               onChange={v => { setDepartureDate(v); setValue('departure_date', v) }}
               error={errors.departure_date?.message}
               min={new Date().toISOString().slice(0,10)} />
+            <DatePicker label={t.carrier.arrival_date_label || 'Date d\'arrivée'} value={arrivalDate}
+              onChange={v => { setArrivalDate(v); setValue('arrival_date', v) }}
+              min={departureDate || new Date().toISOString().slice(0,10)} />
             <Input label={t.carrier.flight_label} placeholder="AF502" {...register('flight_number')} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

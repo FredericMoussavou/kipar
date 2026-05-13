@@ -534,6 +534,8 @@ export const es = {
 
     arrival_time_label: 'Hora de llegada',
   arrival_date_label: 'Fecha de llegada',
+  flight_valid: 'Vuelo encontrado',
+  flight_invalid: 'Vuelo no encontrado',
 
     flight_label: 'Número de vuelo',
 

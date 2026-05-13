@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,6 +43,9 @@ export default function NewTripPage() {
   const [tripCurrency, setTripCurrency] = useState(user?.currency ?? 'EUR')
 
   const [originInput, setOriginInput] = useState('')
+  const [flightValid, setFlightValid] = useState<boolean | null>(null)
+  const [flightChecking, setFlightChecking] = useState(false)
+  const flightDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [departureDate, setDepartureDate] = useState('')
   const [departureTime, setDepartureTime] = useState('')
   const [arrivalDate, setArrivalDate] = useState('')
@@ -56,6 +59,19 @@ export default function NewTripPage() {
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+
+  const validateFlight = (value: string) => {
+    if (flightDebounce.current) clearTimeout(flightDebounce.current)
+    if (!value || value.length < 3) { setFlightValid(null); return }
+    setFlightChecking(true)
+    flightDebounce.current = setTimeout(async () => {
+      try {
+        const res = await api.get('/trips/verify-flight', { params: { flight_number: value } })
+        setFlightValid(res.data.valid)
+      } catch { setFlightValid(false) }
+      finally { setFlightChecking(false) }
+    }, 600)
+  }
 
   const searchAirports = async (q: string, setSuggestions: (s: any[]) => void) => {
     if (q.length < 1) { setSuggestions([]); return }
@@ -205,7 +221,15 @@ export default function NewTripPage() {
             <DatePicker label={t.carrier.arrival_date_label || 'Date d\'arrivée'} value={arrivalDate}
               onChange={v => { setArrivalDate(v); setValue('arrival_date', v) }}
               min={departureDate || new Date().toISOString().slice(0,10)} />
-            <Input label={t.carrier.flight_label} placeholder="AF502" {...register('flight_number')} />
+            <div>
+              <Input label={t.carrier.flight_label} placeholder="AF502"
+                {...register('flight_number')}
+                onChange={e => { register('flight_number').onChange(e); validateFlight(e.target.value) }}
+              />
+              {flightChecking && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
+              {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>✓ {t.carrier.flight_valid || 'Vol trouvé'}</p>}
+              {flightValid === false && <p style={{ fontSize: 11, color: RED, marginTop: 4 }}>✗ {t.carrier.flight_invalid || 'Vol introuvable'}</p>}
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <TimePicker label={t.carrier.departure_time_label} value={departureTime}

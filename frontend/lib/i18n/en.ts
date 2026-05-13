@@ -534,6 +534,8 @@ export const en = {
 
   arrival_time_label: 'Arrival time',
   arrival_date_label: 'Arrival date',
+  flight_valid: 'Flight found',
+  flight_invalid: 'Flight not found',
 
   flight_label: 'Flight number',
 

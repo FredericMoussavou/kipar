@@ -84,7 +84,8 @@
         "pickup_failed": "El transportista informó que el paquete no pudo ser entregado",
         "dispute_already_exists": "Ya existe una disputa para esta reserva",
         "dispute_opened": "Disputa abierta — nuestro equipo revisará la situación",
-        "username_taken": "Este nombre de usuario ya está en uso"
+        "username_taken": "Este nombre de usuario ya está en uso",
+        "flight_number_invalid": "Número de vuelo inválido"
     },
     "success": {
         "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

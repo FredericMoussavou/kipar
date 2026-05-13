@@ -85,7 +85,8 @@
         "pickup_failed": "The carrier reported that the package could not be delivered",
         "dispute_already_exists": "A dispute already exists for this booking",
         "dispute_opened": "Dispute opened — our team will review the situation",
-        "username_taken": "This username is already taken"
+        "username_taken": "This username is already taken",
+        "flight_number_invalid": "Invalid flight number"
     },
     "success": {
         "delivery_confirmed": "Delivery confirmed — payment release in progress",

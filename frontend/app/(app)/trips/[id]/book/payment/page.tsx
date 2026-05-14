@@ -13,7 +13,8 @@ import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/l
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '')
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 // ── Formulaire carte Stripe ──────────────────────────────────────────────────
 function StripeForm({ bookingId, onSuccess, onError }: {
@@ -27,7 +28,14 @@ function StripeForm({ bookingId, onSuccess, onError }: {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!stripe || !elements) return
+    if (!stripe || !elements) {
+      try {
+        await api.post(`/payments/${bookingId}/stripe`, {})
+        await api.post(`/payments/${bookingId}/confirm`, {})
+        onSuccess()
+      } catch { onError('Erreur simulation') }
+      return
+    }
     setLoading(true)
     try {
       const { data } = await api.post(`/payments/${bookingId}/stripe`, {})
@@ -44,7 +52,7 @@ function StripeForm({ bookingId, onSuccess, onError }: {
         payment_method: { card },
       })
       if (error) { onError(error.message ?? t.errors.generic); return }
-      if (paymentIntent?.status === 'succeeded') {
+      if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'requires_capture') {
         await api.post(`/payments/${bookingId}/confirm`, {})
         onSuccess()
       }
@@ -70,7 +78,7 @@ function StripeForm({ bookingId, onSuccess, onError }: {
           }
         }} />
       </div>
-      <Button fullWidth size="lg" loading={loading} onClick={handleSubmit} disabled={!stripe}>
+      <Button fullWidth size="lg" loading={loading} onClick={handleSubmit}>
         <Lock size={15} />
         {t.payment.pay_btn}
       </Button>
@@ -138,7 +146,7 @@ export default function PaymentPage() {
             {t.payment.title}
           </h1>
           <p style={{ textAlign: 'center', fontSize: 28, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)', color: '#fff' }}>
-            {totalAmount}\u20ac
+            {totalAmount}€
           </p>
         </div>
       </HeroHeader>
@@ -166,15 +174,15 @@ export default function PaymentPage() {
         {/* Résumé montant */}
         <div style={{ background: SAND, borderRadius: 14, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: CHARCOAL2 }}>{t.payment.total}</span>
-          <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}\u20ac</span>
+          <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
         </div>
 
         {/* Politique annulation */}
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: '12px 14px' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', marginBottom: 6 }}>{t.payment.cancel_policy_title}</p>
-          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>\u2713 {t.payment.cancel_policy_full}</p>
-          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>\u26a0 {t.payment.cancel_policy_partial}</p>
-          <p style={{ fontSize: 11, color: '#92400E' }}>\u2717 {t.payment.cancel_policy_none}</p>
+          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>✓ {t.payment.cancel_policy_full}</p>
+          <p style={{ fontSize: 11, color: '#92400E', marginBottom: 3 }}>⚠ {t.payment.cancel_policy_partial}</p>
+          <p style={{ fontSize: 11, color: '#92400E' }}>✗ {t.payment.cancel_policy_none}</p>
         </div>
 
         {/* Formulaire selon moyen de paiement */}
@@ -194,7 +202,7 @@ export default function PaymentPage() {
         )}
 
         <p style={{ textAlign: 'center', fontSize: 11, color: TAUPE }}>
-          \ud83d\udd12 {t.payment.secure}
+          🔒 {t.payment.secure}
         </p>
       </div>
     </div>

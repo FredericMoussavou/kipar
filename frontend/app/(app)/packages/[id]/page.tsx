@@ -466,6 +466,16 @@ const handleCancel = () => {
           )}
         </Section>
 
+        {/* ── INFOS VOL ─────────────────────────────────────────────────── */}
+        {['paid', 'accepted', 'in_transit', 'delivery_reported', 'delivered'].includes(booking.status) && booking.flight_number && (
+          <Section title={t.package_detail.section_flight ?? 'Vol'}>
+            <InfoRow label={t.package_detail.field_route ?? 'Trajet'} value={`${booking.origin_airport_code} → ${booking.destination_airport_code}`} />
+            <InfoRow label={t.package_detail.field_flight ?? 'N° de vol'} value={booking.flight_number} />
+            {booking.departure_date && <InfoRow label={t.package_detail.field_departure ?? 'Départ'} value={`${booking.departure_date}${booking.departure_time ? ' · ' + booking.departure_time : ''}`} />}
+            {booking.arrival_date && <InfoRow label={t.package_detail.field_arrival ?? 'Arrivée estimée'} value={`${booking.arrival_date}${booking.arrival_time ? ' · ' + booking.arrival_time : ''}`} />}
+          </Section>
+        )}
+
         {/* ── BLOC PICKUP FAILED ──────────────────────────────────────────────── */}
         {booking.status === 'pickup_failed' && (isSender || isCarrier) && (
           <Section title={t.packages.pickup_failed_title}>

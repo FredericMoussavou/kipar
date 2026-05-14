@@ -244,6 +244,12 @@ export const en = {
     cancel_policy_partial: 'Cancellation 1 to 3 days before departure: 50% refund.',
 
     cancel_policy_none: 'Cancellation on departure day: no refund.',
+    
+    flutterwave_redirect:"Redirecting to Mobile Money...", 
+    
+    success: 'Payment confirmed!',
+   
+    pay_mobile_money: 'Pay by Mobile Money',
 
 },
 

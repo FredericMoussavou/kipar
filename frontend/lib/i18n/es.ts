@@ -245,6 +245,12 @@ export const es = {
 
     cancel_policy_none: 'Cancelacion el dia de la salida: sin reembolso.',
 
+    success: "Pago confirmado!",
+
+    flutterwave_redirect: "Redirigiendo a Mobile Money...",
+    
+    pay_mobile_money: "Pagar con Mobile Money",
+
 },
 
   tracking: {

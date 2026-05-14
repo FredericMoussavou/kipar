@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
 from app.schemas.payment import PaymentIntentResponse, FlutterwavePaymentResponse
-from app.services.stripe_service import create_payment_intent, capture_payment_intent
+from app.services.stripe_service import create_payment_intent, capture_payment_intent, release_payment_to_carrier
 from app.services.flutterwave_service import create_payment_link, verify_transaction
 from app.i18n.loader import t
 
@@ -299,6 +299,75 @@ async def refund_booking(
         )
         await db.commit()
     return {"status": "refunded" if success else "failed", "amount": refund_amount}
+
+
+@router.post("/{booking_id}/release")
+async def release_payment(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Libere le paiement vers le transporteur apres livraison confirmee."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.status != "delivered":
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_delivered", lang))
+    if not booking.escrow_ref:
+        raise HTTPException(status_code=400, detail=t("errors.payment_not_initiated", lang))
+
+    trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_r.scalar_one_or_none()
+    carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = carrier_r.scalar_one_or_none()
+
+    success = False
+    if booking.payment_rail == "stripe":
+        success = await release_payment_to_carrier(
+            payment_intent_id=booking.escrow_ref,
+            carrier_stripe_account=carrier.stripe_account_id if carrier else None,
+            amount_eur=booking.amount,
+        )
+    elif booking.payment_rail == "flutterwave":
+        # Flutterwave Payouts vers le transporteur
+        if carrier and carrier.mobile_money_number and settings.FLUTTERWAVE_SECRET_KEY:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                from app.core.config import settings as s
+                total_fee = booking.amount * (s.SERVICE_FEE_SENDER_PERCENT + s.SERVICE_FEE_CARRIER_PERCENT)
+                carrier_amount = max(booking.amount - max(total_fee, s.MIN_COMMISSION), 0)
+                res = await client.post(
+                    "https://api.flutterwave.com/v3/transfers",
+                    headers={"Authorization": f"Bearer {s.FLUTTERWAVE_SECRET_KEY}"},
+                    json={
+                        "account_bank": "MPS",
+                        "account_number": carrier.mobile_money_number,
+                        "amount": carrier_amount,
+                        "currency": "XOF",
+                        "narration": f"KIPAR paiement trajet {booking_id[:8]}",
+                        "reference": f"kipar_release_{booking_id[:8]}",
+                    }
+                )
+                success = res.json().get("status") == "success"
+        else:
+            success = True  # simulation si pas de config
+    else:
+        success = True
+
+    if success:
+        from app.services.notif_db_service import create_notification
+        await create_notification(
+            db=db, user_id=booking.carrier_id,
+            type="payment_released",
+            title="Paiement recu",
+            body=f"Le paiement de {booking.amount:.2f} EUR a ete libere.",
+            link=f"/packages/{booking.id}",
+        )
+        await db.commit()
+
+    return {"status": "released" if success else "failed", "amount": booking.amount}
 
 
 @router.post("/{booking_id}/carrier-penalty")

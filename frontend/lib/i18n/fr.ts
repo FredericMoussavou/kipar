@@ -244,6 +244,12 @@ export const fr = {
     cancel_policy_partial: 'Annulation entre 1 et 3 jours avant le départ : remboursement de 50%.',
 
     cancel_policy_none: 'Annulation le jour du départ : aucun remboursement.',
+    
+    success: 'Paiement confirmé !',
+
+    flutterwave_redirect: 'Redirection vers Mobile Money...',
+    
+    pay_mobile_money: 'Payer par Mobile Money',
 
 },
 

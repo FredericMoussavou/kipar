@@ -141,6 +141,7 @@ async def validate_delivery_qr(
     booking.delivery_confirmed_at = datetime.now(timezone.utc)
     booking.delivery_confirmed_by = current_user.id
 
+    _schedule_payment_release(str(booking.id))
     return {"message": t("success.delivery_confirmed_qr", lang)}
 
 

@@ -56,39 +56,28 @@ export default function DashboardPage() {
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
       <>
-      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <HeroHeader
         imageUrl="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80"
         minHeight={200}
       >
 
-        <div style={{ padding: '20px 20px 24px' }} className="md:p-8">
+        <div style={{ padding: '20px 20px 24px', paddingLeft: isMobile ? 64 : 20 }} className="md:p-8">
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
 
             {/* Colonne gauche — hamburger + texte */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
-              {/* Hamburger — mobile uniquement */}
-              {isMobile && (
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(true)}
-                style={{ flexShrink: 0, marginTop: 2, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              >
-                <Menu size={18} color="#fff" />
-              </button>
-              )}
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>{t.dashboard.greeting} 👋</p>
-                <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>{t.dashboard.greeting} 👋</p>
+                <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 40, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}
                   className="md:text-3xl">
-                  {user?.first_name} {user?.last_name}
+                  {user?.first_name} 
                 </h1>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
               </div>
             </div>
 
             {/* Colonne droite — cloche + recherche */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 0 }}>
               {isMobile && <Link href="/notifications" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', display: 'flex' }}>
                 <Bell size={18} color="#fff" />
                 {unreadCount > 0 && (
@@ -98,9 +87,9 @@ export default function DashboardPage() {
                 )}
               </Link>}
               <Link href="/search">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 12, padding: '8px 12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>
                   <Search size={14} color="rgba(255,255,255,0.9)" />
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 500, whiteSpace: 'nowrap' }}>'Recherche...'</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 500, whiteSpace: 'nowrap' }}>{t.dashboard.search_placeholder}</span>
                 </div>
               </Link>
             </div>

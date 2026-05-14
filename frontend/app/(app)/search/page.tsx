@@ -11,7 +11,9 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import DatePicker from '@/components/ui/kipar/DatePicker'
 import Select from '@/components/ui/kipar/Select'
 import api from '@/lib/api'
-import { RED, CHARCOAL, TAUPE, SAND, BORDER } from '@/lib/theme'
+import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+
+const LIGHT_OVERRIDE: React.CSSProperties = { '--k-bg': '#ffffff', '--k-white': '#ffffff', '--k-charcoal': '#1A1A1A', '--k-border': 'rgba(255,255,255,0.4)' } as React.CSSProperties
 
 function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeholder, label }: {
   value: string
@@ -33,7 +35,7 @@ function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeho
         top: rect.bottom + 4,
         left: rect.left,
         width: rect.width,
-        background: '#fff',
+        background: WHITE,
         borderRadius: 10,
         overflow: 'hidden',
         zIndex: 9999,
@@ -67,7 +69,7 @@ function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeho
             <div key={a.code} onClick={() => onSelect(a)}
               style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid ' + SAND, display: 'flex', alignItems: 'center', gap: 8 }}
               onMouseEnter={e => (e.currentTarget.style.background = SAND)}
-              onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+              onMouseLeave={e => (e.currentTarget.style.background = WHITE)}>
               <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL, fontSize: 13 }}>{a.code}</span>
               <span style={{ fontSize: 11, color: TAUPE }}>{a.city}</span>
             </div>
@@ -178,15 +180,15 @@ export default function SearchPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
-                    <DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} />
+                    <div style={LIGHT_OVERRIDE}><DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} /></div>
                   </div>
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
-                    <Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
+                    <div style={LIGHT_OVERRIDE}><Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
                       <option value="">{t.search.sort_date}</option>
                       <option value="price_asc">{t.search.sort_price_asc}</option>
                       <option value="price_desc">{t.search.sort_price_desc}</option>
-                    </Select>
+                    </Select></div>
                   </div>
                 </div>
               </div>
@@ -211,15 +213,15 @@ export default function SearchPage() {
               <AirportInput {...airportInputProps.dest} />
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_date}</p>
-                <DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} />
+                <div style={LIGHT_OVERRIDE}><DatePicker value={date} onChange={v => setDate(v)} min={new Date().toISOString().slice(0,10)} /></div>
               </div>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.search.filter_sort}</p>
-                <Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
+                <div style={LIGHT_OVERRIDE}><Select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%' }}>
                   <option value="">{t.search.sort_date}</option>
                   <option value="price_asc">{t.search.sort_price_asc}</option>
                   <option value="price_desc">{t.search.sort_price_desc}</option>
-                </Select>
+                </Select></div>
               </div>
               <button onClick={handleSearch}
                 style={{background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(8px)',WebkitBackdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 24px', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap'}}>
@@ -236,7 +238,7 @@ export default function SearchPage() {
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[1, 2, 3].map(i => (
-              <div key={i} style={{ height: 140, background: '#fff', borderRadius: 16, border: '1px solid ' + BORDER }} />
+              <div key={i} style={{ height: 140, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }} />
             ))}
           </div>
         ) : searched && trips.length === 0 ? (

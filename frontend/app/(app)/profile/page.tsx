@@ -634,8 +634,6 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-      </div>
-
       {/* Support */}
       <SectionTitle title={t.support.section_title} />
       <Card>
@@ -659,10 +657,12 @@ export default function ProfilePage() {
       </Card>
 
       {/* Déconnexion */}
-      <Button variant="outline" fullWidth onClick={handleLogout} style={{ marginTop: 16, marginBottom: 16 }}>
-        <LogOut size={16} />
-        {t.profile_edit.logout}
-      </Button>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
+        <button onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <LogOut size={15} />
+          {t.profile_edit.logout}
+        </button>
+      </div>
 
       {/* Zone dangereuse */}
       <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
@@ -672,6 +672,7 @@ export default function ProfilePage() {
           <Trash2 size={13} />
           {t.profile_edit.delete_account}
         </Button>
+      </div>
       </div>
 
       {/* ─── Modales nom / username / adresse ─── */}

@@ -169,7 +169,7 @@ export default function CarrierPage() {
               {t.requests.carrier_requests}
             </button>
             <button onClick={() => router.push('/carrier/new-trip')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: WHITE, border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: RED, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: RED, border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, color: '#ffffff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
               <Plus size={14} />
               {t.carrier.new_trip}
             </button>

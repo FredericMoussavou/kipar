@@ -47,7 +47,7 @@ export default function Select({ label, value, onChange, options, children, erro
     <div ref={ref} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
       {label && <label style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL }}>{label}</label>}
       <div onClick={() => setOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, border: `1px solid ${error ? '#F87171' : open ? RED : BORDER}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', transition: 'border-color 0.2s', userSelect: 'none' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: WHITE, border: `1px solid ${error ? '#F87171' : open ? RED : BORDER}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', transition: 'border-color 0.2s', userSelect: 'none' }}>
         <span style={{ flex: 1, fontSize: 13, color: selected ? CHARCOAL : TAUPE, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected?.label ?? '—'}
         </span>

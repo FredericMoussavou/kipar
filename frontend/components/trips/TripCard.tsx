@@ -49,7 +49,7 @@ export default function TripCard({ trip, onClick, className }: {
 
   return (
     <div onClick={onClick} className={className}
-      style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', transition: 'all 0.2s' }}
+      style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', transition: 'all 0.2s' }}
       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(220,0,41,0.2)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; (e.currentTarget as HTMLDivElement).style.borderColor = BORDER }}
     >

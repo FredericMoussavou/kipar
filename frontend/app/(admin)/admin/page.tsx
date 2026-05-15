@@ -413,57 +413,172 @@ interface ChartPoint {
 
 function FinanceTab() {
   const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'year'>('month')
-  const [summary, setSummary] = useState<FinanceSummary | null>(null)
-  const [chart, setChart] = useState<ChartPoint[]>([])
+  const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [txPage, setTxPage] = useState(0)
+  const TX_PER_PAGE = 20
 
   const load = async (p: string) => {
     setLoading(true)
     try {
       const res = await api.get(`/admin/finance?period=${p}`)
-      setSummary(res.data.summary)
-      setChart(res.data.chart)
+      setData(res.data)
     } finally { setLoading(false) }
   }
 
   useEffect(() => { load(period) }, [period])
 
   const fmt = (n: number) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmtDate = (s: string) => new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+  const exportExcel = async () => {
+    const XLSX = await import('xlsx')
+    const wb = XLSX.utils.book_new()
+
+    // Feuille 1 -- Resume
+    const resume = [
+      ['— REVENUS KIPAR —'],
+      ['Ligne', 'Montant (€)', 'Catégorie'],
+      ['Commissions expéditeur (15%)', data.revenue_breakdown.commissions_sender, 'Ordinaire'],
+      ['Commissions transporteur (2%)', data.revenue_breakdown.commissions_carrier, 'Ordinaire'],
+      ['Frais de dossier (1.50€/booking)', data.revenue_breakdown.flat_fees, 'Ordinaire'],
+      ['Frais de litige', data.revenue_breakdown.dispute_fees, 'Occasionnel'],
+      ['Frais annulation transporteur', data.revenue_breakdown.cancel_fees, 'Occasionnel'],
+      ['TOTAL REVENUS KIPAR', data.revenue_breakdown.total, ''],
+      [],
+      ['— ESCROW —'],
+      ['Montant détenu (actif)', data.escrow.held, ''],
+      ['Transactions actives', data.escrow.count_active, ''],
+      ['Remboursements intégraux', data.escrow.refunded_full_amount, `${data.escrow.refunded_full_count} transactions`],
+      ['Remboursements partiels (50%)', data.escrow.refunded_partial_amount, `${data.escrow.refunded_partial_count} transactions`],
+      ['Annulations sans remboursement', data.escrow.no_refund_amount, `${data.escrow.no_refund_count} transactions`],
+      [],
+      ['— ASSURANCE (TRANSIT) —'],
+      ['Primes collectées (à reverser assureur)', data.insurance_transit.collected, `${data.insurance_transit.count} dossiers`],
+    ]
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), 'Résumé')
+
+    // Feuille 2 -- Evolution
+    const chartRows = [['Période', 'CA (€)', 'Frais (€)', 'Nb transactions'], ...data.chart.map((r: any) => [r.label, r.revenue, r.fees, r.count])]
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(chartRows), 'Évolution')
+
+    // Feuille 3 -- Transactions
+    const txRows = [
+      ['ID', 'Date', 'Statut', 'Montant (€)', 'Commission (€)', 'Frais dossier (€)', 'Assurance (€)', 'Rail', 'Devise', 'Origine', 'Destination', 'Départ', 'Vol', 'Expéditeur', 'Email exp.', 'Transporteur', 'Email transp.', 'Contenu', 'Poids (kg)', 'Valeur déclarée (€)'],
+      ...(data.transactions || []).map((t: any) => [t.id, fmtDate(t.date), t.status, t.amount, t.commission, t.flat_fee, t.insurance_amount, t.payment_rail || '', t.currency, t.origin || '', t.destination || '', t.departure_date ? fmtDate(t.departure_date) : '', t.flight_number || '', t.sender || '', t.sender_email || '', t.carrier || '', t.carrier_email || '', t.content_description || '', t.weight_kg || '', t.declared_value || ''])
+    ]
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), 'Transactions')
+
+    // Feuille 4 -- Assurance
+    const insRows = [
+      ['ID booking', 'Date', 'Expéditeur', 'Origine', 'Destination', 'Prime (€)', 'Devise'],
+      ...(data.transactions || []).filter((t: any) => t.insurance_amount > 0).map((t: any) => [t.id, fmtDate(t.date), t.sender || '', t.origin || '', t.destination || '', t.insurance_amount, t.currency])
+    ]
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(insRows), 'Assurance')
+
+    XLSX.writeFile(wb, `kipar_finance_${period}_${new Date().toISOString().slice(0,10)}.xlsx`)
+  }
+
+  const summary = data?.summary
+  const breakdown = data?.revenue_breakdown
+  const escrow = data?.escrow
+  const insurance = data?.insurance_transit
+  const transactions: any[] = data?.transactions || []
+  const chart: ChartPoint[] = data?.chart || []
+  const txSlice = transactions.slice(txPage * TX_PER_PAGE, (txPage + 1) * TX_PER_PAGE)
+
+  const STATUS_COLOR: Record<string, string> = {
+    delivered: '#16A34A', paid: '#2563EB', in_transit: '#EA580C',
+    disputed: RED, refunded: '#6B7280', cancelled: '#6B7280',
+    cancelled_by_sender: '#6B7280', cancelled_by_carrier: '#6B7280',
+    pending: TAUPE, accepted: '#2563EB',
+  }
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, margin: 0 }}>Finance</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {(['day', 'week', 'month', 'year'] as const).map(p => (
             <button key={p} type="button" onClick={() => setPeriod(p)}
               style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${period === p ? RED : BORDER}`, background: period === p ? 'rgba(220,0,41,0.06)' : WHITE, color: period === p ? RED : CHARCOAL2, fontSize: 12, fontWeight: period === p ? 600 : 400, cursor: 'pointer' }}>
               {p === 'day' ? 'Jour' : p === 'week' ? 'Semaine' : p === 'month' ? 'Mois' : 'Année'}
             </button>
           ))}
+          {data && (
+            <button type="button" onClick={exportExcel}
+              style={{ padding: '7px 16px', borderRadius: 10, border: `1px solid #16A34A`, background: '#ECFDF5', color: '#16A34A', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              ⬇ Exporter Excel
+            </button>
+          )}
         </div>
       </div>
 
-      {loading ? <p style={{ color: TAUPE }}>Chargement...</p> : summary && (
+      {loading ? <p style={{ color: TAUPE }}>Chargement...</p> : data && (
         <>
-          {/* Stat cards */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>
-            <StatCard label="CA livré" value={`${fmt(summary.total_revenue)} €`} color="#16A34A" />
-            <StatCard label={`Frais de service (${summary.service_fee_percent}%)`} value={`${fmt(summary.total_fees)} €`} color="#2563EB" />
-            <StatCard label="En cours" value={`${fmt(summary.total_in_progress)} €`} color="#EA580C" />
-            <StatCard label="Bloquées" value={`${fmt(summary.total_blocked)} €`} color={summary.total_blocked > 0 ? RED : CHARCOAL} />
+          {/* ── Section 1 : Revenus Kipar ── */}
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Revenus Kipar</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { label: 'Commissions expéditeur (15%)', value: breakdown?.commissions_sender ?? 0, tag: 'Ordinaire', color: '#16A34A' },
+                { label: 'Commissions transporteur (2%)', value: breakdown?.commissions_carrier ?? 0, tag: 'Ordinaire', color: '#16A34A' },
+                { label: `Frais de dossier (${summary?.booking_flat_fee ?? 1.5}€ × ${summary?.flat_fee_count ?? 0})`, value: breakdown?.flat_fees ?? 0, tag: 'Ordinaire', color: '#16A34A' },
+                { label: 'Frais de litige', value: breakdown?.dispute_fees ?? 0, tag: 'Occasionnel', color: '#EA580C' },
+                { label: 'Frais annulation transporteur', value: breakdown?.cancel_fees ?? 0, tag: 'Occasionnel', color: '#EA580C' },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: i % 2 === 0 ? SAND : WHITE, borderRadius: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 13, color: CHARCOAL, fontWeight: 500 }}>{row.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: row.color, background: row.color + '18', borderRadius: 99, padding: '2px 8px' }}>{row.tag}</span>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: row.value > 0 ? row.color : TAUPE }}>{fmt(row.value)} €</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 14px', background: CHARCOAL, borderRadius: 8, marginTop: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: WHITE }}>TOTAL REVENUS KIPAR</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#4ADE80' }}>{fmt(breakdown?.total ?? 0)} €</span>
+              </div>
+            </div>
           </div>
 
-          {/* Transaction counts */}
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>
-            <StatCard label="Livraisons terminées" value={summary.delivered_count} color="#16A34A" />
-            <StatCard label="En cours" value={summary.in_progress_count} />
-            <StatCard label="Bloquées" value={summary.blocked_count} color={summary.blocked_count > 0 ? RED : CHARCOAL} />
+          {/* ── Section 2 : Escrow ── */}
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Escrow & Remboursements</p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+              <StatCard label="Détenu (actif)" value={`${fmt(escrow?.held ?? 0)} €`} color="#2563EB" />
+              <StatCard label="Transactions actives" value={escrow?.count_active ?? 0} color="#2563EB" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { label: 'Remboursements intégraux (> 72h avant départ)', amount: escrow?.refunded_full_amount ?? 0, count: escrow?.refunded_full_count ?? 0, color: '#16A34A' },
+                { label: 'Remboursements partiels 50% (0-72h avant départ)', amount: escrow?.refunded_partial_amount ?? 0, count: escrow?.refunded_partial_count ?? 0, color: '#EA580C' },
+                { label: 'Annulations sans remboursement (jour J)', amount: escrow?.no_refund_amount ?? 0, count: escrow?.no_refund_count ?? 0, color: RED },
+              ].map((row, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: SAND, borderRadius: 8 }}>
+                  <span style={{ fontSize: 12, color: CHARCOAL }}>{row.label} <span style={{ color: TAUPE }}>({row.count} tx)</span></span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>{fmt(row.amount)} €</span>
+                </div>
+              ))}
+            </div>
           </div>
 
+          {/* ── Section 3 : Assurance transit ── */}
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assurance (Flux transit)</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#FFF7ED', borderRadius: 8, border: '1px solid #FED7AA' }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#92400E', margin: 0 }}>Primes collectées — à reverser à l’assureur</p>
+                <p style={{ fontSize: 11, color: '#B45309', margin: '2px 0 0' }}>{insurance?.count ?? 0} dossier(s) sur la période</p>
+              </div>
+              <span style={{ fontSize: 16, fontWeight: 800, color: '#92400E' }}>{fmt(insurance?.collected ?? 0)} €</span>
+            </div>
+          </div>
+
+          {/* ── Section 4 : Graphiques ── */}
           {chart.length > 0 && (
             <>
-              {/* Courbe CA + frais */}
               <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: '0 0 16px' }}>Évolution CA & frais de service</p>
                 <ResponsiveContainer width="100%" height={240}>
@@ -478,9 +593,7 @@ function FinanceTab() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-
-              {/* Barres nb transactions */}
-              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px' }}>
+              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: '0 0 16px' }}>Nombre de transactions livrées</p>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chart}>
@@ -495,11 +608,61 @@ function FinanceTab() {
             </>
           )}
 
-          {chart.length === 0 && (
-            <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 40, textAlign: 'center' }}>
-              <p style={{ fontSize: 15, color: TAUPE, margin: 0 }}>Aucune transaction livrée sur cette période</p>
+          {/* ── Section 5 : Historique transactions ── */}
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Historique transactions ({transactions.length})</p>
             </div>
-          )}
+            {transactions.length === 0 ? (
+              <p style={{ color: TAUPE, fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Aucune transaction sur cette période</p>
+            ) : (
+              <>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ background: SAND }}>
+                        {['Date', 'Statut', 'Expéditeur', 'Transporteur', 'Trajet', 'Contenu', 'Poids', 'Montant', 'Commission', 'Assurance', 'Rail'].map(h => (
+                          <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, whiteSpace: 'nowrap', borderBottom: `1px solid ${BORDER}` }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {txSlice.map((tx: any, i: number) => (
+                        <tr key={tx.id} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? WHITE : SAND }}>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: TAUPE }}>{fmtDate(tx.date)}</td>
+                          <td style={{ padding: '8px 12px' }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[tx.status] ?? TAUPE, background: (STATUS_COLOR[tx.status] ?? TAUPE) + '18', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap' }}>{tx.status}</span>
+                          </td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>{tx.sender ?? '—'}</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>{tx.carrier ?? '—'}</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 600 }}>{tx.origin ?? '?'} → {tx.destination ?? '?'}</td>
+                          <td style={{ padding: '8px 12px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.content_description ?? '—'}</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>{tx.weight_kg ? `${tx.weight_kg} kg` : '—'}</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 700, color: CHARCOAL }}>{fmt(tx.amount)} €</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: tx.commission > 0 ? '#16A34A' : TAUPE }}>{fmt(tx.commission)} €</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: tx.insurance_amount > 0 ? '#EA580C' : TAUPE }}>{fmt(tx.insurance_amount)} €</td>
+                          <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: TAUPE }}>{tx.payment_rail ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {transactions.length > TX_PER_PAGE && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: `1px solid ${BORDER}` }}>
+                    <button type="button" onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0}
+                      style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, color: txPage === 0 ? TAUPE : CHARCOAL, fontSize: 12, cursor: txPage === 0 ? 'not-allowed' : 'pointer' }}>
+                      ← Précédent
+                    </button>
+                    <span style={{ fontSize: 12, color: TAUPE }}>Page {txPage + 1} / {Math.ceil(transactions.length / TX_PER_PAGE)}</span>
+                    <button type="button" onClick={() => setTxPage(p => Math.min(Math.ceil(transactions.length / TX_PER_PAGE) - 1, p + 1))} disabled={(txPage + 1) * TX_PER_PAGE >= transactions.length}
+                      style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, color: (txPage + 1) * TX_PER_PAGE >= transactions.length ? TAUPE : CHARCOAL, fontSize: 12, cursor: (txPage + 1) * TX_PER_PAGE >= transactions.length ? 'not-allowed' : 'pointer' }}>
+                      Suivant →
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </>
       )}
     </div>

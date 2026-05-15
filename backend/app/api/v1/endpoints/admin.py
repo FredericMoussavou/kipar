@@ -14,6 +14,9 @@ from app.models.dispute import Dispute
 from app.models.trip import Trip
 from app.models.review import Review
 from app.models.package_request import PackageRequest
+from app.models.package import Package
+from app.models.package import Package
+from app.models.package import Package
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -500,6 +503,91 @@ async def get_finance(
         for k, v in sorted(series.items())
     ]
 
+    # ── Revenue breakdown ──────────────────────────────────────────────────
+    commissions_sender = sum(b.amount * settings.SERVICE_FEE_SENDER_PERCENT for b in delivered)
+    commissions_carrier = sum(b.amount * settings.SERVICE_FEE_CARRIER_PERCENT for b in delivered)
+    flat_fees = sum(settings.BOOKING_FLAT_FEE for b in bookings if b.booking_fee_collected)
+
+    # Frais annulation transporteur non justifiee
+    carrier_cancels = [b for b in bookings if b.status == "cancelled_by_carrier" and not b.cancellation_justified]
+    cancel_fees = sum(max(b.amount * settings.CARRIER_CANCEL_FEE_PERCENT, settings.CARRIER_CANCEL_FEE_MIN) for b in carrier_cancels)
+
+    # Disputes resolues dans la periode — frais a charge du fautif
+    disputes_result = await db.execute(
+        select(Dispute).where(
+            Dispute.created_at >= since,
+            Dispute.status.in_(["resolved_sender", "resolved_carrier", "resolved_split"])
+        )
+    )
+    disputes_resolved = disputes_result.scalars().all()
+    dispute_fees = len(disputes_resolved) * settings.DISPUTE_FEE
+
+    total_kipar_revenue = round(commissions_sender + commissions_carrier + flat_fees + cancel_fees + dispute_fees, 2)
+
+    # ── Escrow ──────────────────────────────────────────────────────────────
+    escrow_active = [b for b in bookings if b.status in ("paid", "in_transit", "accepted")]
+    escrow_held = sum(b.amount for b in escrow_active)
+
+    cancelled_all = [b for b in bookings if b.status in ("cancelled", "cancelled_by_sender", "cancelled_by_carrier", "refunded")]
+    refunded_full = []
+    refunded_partial = []
+    no_refund = []
+    for b in cancelled_all:
+        if b.paid_at is None:
+            continue
+        trip_result = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+        trip = trip_result.scalar_one_or_none()
+        if trip is None:
+            continue
+        hours_before = (trip.departure_date - b.paid_at).total_seconds() / 3600 if trip.departure_date > b.paid_at else 0
+        if hours_before > settings.LATE_CANCEL_HOURS:
+            refunded_full.append(b)
+        elif hours_before > 0:
+            refunded_partial.append(b)
+        else:
+            no_refund.append(b)
+
+    # ── Assurance transit ───────────────────────────────────────────────────
+    insured = [b for b in bookings if b.insurance_subscribed and b.insurance_amount > 0]
+    insurance_collected = round(sum(b.insurance_amount for b in insured), 2)
+
+    # ── Historique transactions ─────────────────────────────────────────────
+    transactions = []
+    for b in sorted(bookings, key=lambda x: x.created_at, reverse=True):
+        trip_r = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+        trip = trip_r.scalar_one_or_none()
+        sender_r = await db.execute(select(User).where(User.id == b.sender_id))
+        sender = sender_r.scalar_one_or_none()
+        carrier = None
+        if trip:
+            carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+            carrier = carrier_r.scalar_one_or_none()
+        pkg_r = await db.execute(select(Package).where(Package.id == b.package_id))
+        pkg = pkg_r.scalar_one_or_none()
+        commission = round(b.amount * (settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT), 2) if b.status == "delivered" else 0.0
+        transactions.append({
+            "id": str(b.id),
+            "date": b.created_at.isoformat(),
+            "status": b.status,
+            "amount": round(b.amount, 2),
+            "commission": commission,
+            "flat_fee": settings.BOOKING_FLAT_FEE if b.booking_fee_collected else 0.0,
+            "insurance_amount": round(b.insurance_amount, 2),
+            "payment_rail": b.payment_rail,
+            "currency": b.currency,
+            "origin": trip.origin_airport_code if trip else None,
+            "destination": trip.destination_airport_code if trip else None,
+            "departure_date": trip.departure_date.isoformat() if trip else None,
+            "flight_number": trip.flight_number if trip else None,
+            "sender": f"{sender.first_name} {sender.last_name}" if sender else None,
+            "sender_email": sender.email if sender else None,
+            "carrier": f"{carrier.first_name} {carrier.last_name}" if carrier else None,
+            "carrier_email": carrier.email if carrier else None,
+            "content_description": pkg.content_description if pkg else None,
+            "weight_kg": pkg.weight_kg if pkg else None,
+            "declared_value": pkg.declared_value if pkg else None,
+        })
+
     return {
         "period": period,
         "since": since.isoformat(),
@@ -514,10 +602,8 @@ async def get_finance(
             "service_fee_sender_percent": settings.SERVICE_FEE_SENDER_PERCENT * 100,
             "service_fee_carrier_percent": settings.SERVICE_FEE_CARRIER_PERCENT * 100,
             "booking_flat_fee": settings.BOOKING_FLAT_FEE,
-            # Revenus forfaits dossier (1.50EUR x bookings confirmes)
-            "flat_fee_revenue": round(len([b for b in bookings if b.booking_fee_collected]) * settings.BOOKING_FLAT_FEE, 2),
+            "flat_fee_revenue": round(flat_fees, 2),
             "flat_fee_count": len([b for b in bookings if b.booking_fee_collected]),
-            # Incidents et litiges
             "cancelled_by_sender": len([b for b in bookings if b.status == "cancelled_by_sender"]),
             "cancelled_by_carrier": len([b for b in bookings if b.status == "cancelled_by_carrier"]),
             "disputed_count": len([b for b in bookings if b.status == "disputed"]),
@@ -525,6 +611,29 @@ async def get_finance(
             "delivery_failed_count": len([b for b in bookings if b.status == "delivery_failed"]),
             "justified_cancellations": len([b for b in bookings if b.cancellation_justified]),
         },
+        "revenue_breakdown": {
+            "commissions_sender": round(commissions_sender, 2),
+            "commissions_carrier": round(commissions_carrier, 2),
+            "flat_fees": round(flat_fees, 2),
+            "dispute_fees": round(dispute_fees, 2),
+            "cancel_fees": round(cancel_fees, 2),
+            "total": total_kipar_revenue,
+        },
+        "escrow": {
+            "held": round(escrow_held, 2),
+            "count_active": len(escrow_active),
+            "refunded_full_amount": round(sum(b.amount for b in refunded_full), 2),
+            "refunded_full_count": len(refunded_full),
+            "refunded_partial_amount": round(sum(b.amount * 0.5 for b in refunded_partial), 2),
+            "refunded_partial_count": len(refunded_partial),
+            "no_refund_amount": round(sum(b.amount for b in no_refund), 2),
+            "no_refund_count": len(no_refund),
+        },
+        "insurance_transit": {
+            "collected": insurance_collected,
+            "count": len(insured),
+        },
+        "transactions": transactions,
         "chart": chart_data,
     }
 

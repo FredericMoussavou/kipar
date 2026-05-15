@@ -504,6 +504,8 @@ export const es = {
     no_results_sub: 'Prueba con otros criterios de búsqueda',
 
     results_count_plural: 'viajes encontrados',
+    show_own_trips: 'Incluir mis viajes',
+    hide_own_trips: 'Ocultar mis viajes',
 
   },
 
@@ -584,9 +586,7 @@ export const es = {
 
     refused_bookings: 'Rechazadas',
 
-    accepted_booking: '¡Reserva aceptada!',
 
-    refused_booking: '¡Reserva rechazada!',
 
     section_departure: 'Salida',
 
@@ -606,7 +606,6 @@ export const es = {
   currency_label: 'Divisa',
   trip_deleted: 'Anuncio eliminado',
 
-    success_carrier_mode: '¡Modo transportista activado!',
 
   },
 
@@ -939,21 +938,13 @@ export const es = {
 
     kyc_action_verify: 'Verificar mi identidad',
 
-    kyc_modal_title: 'Verificación de identidad',
 
-    kyc_modal_desc: 'Confirma tu identidad para acceder a todas las funciones de Kipar y mejorar tu KiparTrust.',
 
-    kyc_simulate_btn: 'Simular verificación (dev)',
 
-    kyc_simulating: 'Verificación en curso...',
 
-    kyc_success: 'Identidad verificada con éxito',
 
-    kyc_prod_placeholder: 'El módulo de verificación Onfido aparecerá aquí.',
 
-    kyc_status_inreview: 'En revisión',
 
-    kyc_status_rejected: 'Verificación rechazada — reintentar',
 
     logout: 'Cerrar sesión',
 
@@ -1030,6 +1021,11 @@ export const es = {
     see_profile: 'Perfil',
 
     kyc_verified: 'KYC Verificado',
+    section_flight: 'Vuelo',
+    field_route: 'Trayecto',
+    field_flight: 'N° de vuelo',
+    field_departure: 'Salida',
+    field_arrival: 'Llegada estimada',
 
   },
 

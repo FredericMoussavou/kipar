@@ -28,6 +28,7 @@ const CORRIDORS = [
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [showOwnTrips, setShowOwnTrips] = useState(false)
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
   const { unreadCount } = useNotifications()
@@ -61,15 +62,14 @@ export default function DashboardPage() {
         minHeight={200}
       >
 
-        <div style={{ padding: '20px 20px 24px', paddingLeft: isMobile ? 64 : 20 }} className="md:p-8">
+        <div style={{ padding: isMobile ? '20px 16px 24px 64px' : '20px 20px 24px' }} className="md:p-8">
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
 
             {/* Colonne gauche — hamburger + texte */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>{t.dashboard.greeting} 👋</p>
-                <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 40, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}
-                  className="md:text-3xl">
+                <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 26 : 40, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}>
                   {user?.first_name} 
                 </h1>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
@@ -121,9 +121,14 @@ export default function DashboardPage() {
 
       {/* Trajets */}
       <div style={{ padding: '20px 20px 0' }} className="md:px-0">
-        <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-          {t.dashboard.available_trips}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            {t.dashboard.available_trips}
+          </p>
+          <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+            {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+          </button>
+        </div>
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[1,2,3,4].map(i => (
@@ -140,7 +145,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
-            {trips.map((trip: any) => (
+            {trips.filter((trip: any) => showOwnTrips || String(trip.carrier_id) !== String(user?.id)).map((trip: any) => (
               <TripCard key={trip.id} trip={trip} onClick={() => handleTripClick(trip)} />
             ))}
           </div>

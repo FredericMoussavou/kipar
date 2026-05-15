@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import BottomNav from '@/components/layout/BottomNav'
@@ -11,10 +11,20 @@ import TawkButton from '@/components/ui/kipar/TawkButton'
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    if (!isAuthenticated()) router.replace('/login')
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setHydrated(true)
+      if (!useAuthStore.getState().isAuthenticated()) router.replace('/login')
+    })
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true)
+      if (!isAuthenticated()) router.replace('/login')
+    }
+    return () => unsub()
   }, [])
+  if (!hydrated) return null
 
   return (
     <NotificationsProvider>

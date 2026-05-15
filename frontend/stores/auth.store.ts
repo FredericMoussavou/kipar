@@ -65,6 +65,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ token })
         if (typeof window !== 'undefined') {
           localStorage.setItem('kipar_token', token)
+          document.cookie = 'kipar_token=' + token + '; path=/; max-age=86400; SameSite=Lax'
         }
       },
       setUser: (user) => set({ user }),
@@ -87,6 +88,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ token: null, user: null })
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')
+          document.cookie = 'kipar_token=; path=/; max-age=0'
         }
       },
       isAuthenticated: () => !!get().token,

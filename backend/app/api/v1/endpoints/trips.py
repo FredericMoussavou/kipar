@@ -177,15 +177,18 @@ async def delete_trip(
     if trip.deleted_at is not None:
         raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
 
-    # Annuler les bookings actifs
-    await db.execute(
-        update(Booking)
-        .where(
-            Booking.trip_id == trip.id,
-            Booking.status.in_(["pending", "accepted", "paid", "in_transit"])
-        )
-        .values(status="cancelled")
+    # Verifier que toutes les reservations sont en statut terminal
+    bookings_result = await db.execute(
+        select(Booking).where(Booking.trip_id == trip.id)
     )
+    bookings = bookings_result.scalars().all()
+    TERMINAL = {"cancelled", "cancelled_by_sender", "cancelled_by_carrier", "refused", "refunded", "delivered"}
+    active = [b for b in bookings if b.status not in TERMINAL]
+    if active:
+        raise HTTPException(
+            status_code=400,
+            detail=t("errors.trip_has_active_bookings", lang)
+        )
 
     # Soft delete du trip
     trip.deleted_at = datetime.now(timezone.utc)

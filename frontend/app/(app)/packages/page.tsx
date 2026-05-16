@@ -33,6 +33,8 @@ export default function PackagesPage() {
 
   // Modal suppression annonce
   const [toDelete, setToDelete] = useState<{ id: string; label: string } | null>(null)
+  const [toDeleteBooking, setToDeleteBooking] = useState<{ id: string; label: string } | null>(null)
+  const [deletingBooking, setDeletingBooking] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   const { data: listings = [], isLoading: loadingListings } = useQuery({
@@ -59,6 +61,34 @@ export default function PackagesPage() {
       setCancelReason('')
     } catch { toast.error(t.errors.generic) }
     finally { setCancelling(false) }
+  }
+
+  const TERMINAL_STATUSES = ['cancelled', 'cancelled_by_sender', 'cancelled_by_carrier', 'refused', 'refunded', 'delivered']
+  const isOlderThanOneYear = (dateStr: string) => {
+    const d = new Date(dateStr)
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+    return d < oneYearAgo
+  }
+
+  const handleDeleteBooking = async () => {
+    if (!toDeleteBooking) return
+    setDeletingBooking(true)
+    try {
+      await api.delete(`/bookings/${toDeleteBooking.id}`)
+      toast.success('Réservation supprimée')
+      queryClient.invalidateQueries({ queryKey: ['my-bookings'] })
+      setToDeleteBooking(null)
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      if (detail?.includes('retention')) {
+        toast.error('Ce colis doit être conservé encore 1 an avant suppression.')
+      } else {
+        toast.error(t.errors.generic)
+      }
+    } finally {
+      setDeletingBooking(false)
+    }
   }
 
   const handleDeleteListing = async () => {
@@ -234,6 +264,12 @@ export default function PackagesPage() {
                         <X size={13} color={RED} />
                       </button>
                     )}
+                    {TERMINAL_STATUSES.includes(booking.status) && isOlderThanOneYear(booking.created_at) && (
+                      <button onClick={e => { e.stopPropagation(); setToDeleteBooking({ id: booking.id, label: booking.content_description || 'Colis' }) }}
+                        style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(220,0,41,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                        <Trash2 size={13} color={RED} />
+                      </button>
+                    )}
                     <ChevronRight size={16} color={TAUPE} />
                   </div>
                 </div>
@@ -276,6 +312,21 @@ export default function PackagesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Modal suppression booking */}
+      <Modal isOpen={!!toDeleteBooking} onClose={() => setToDeleteBooking(null)} title="Supprimer ce colis">
+        <p style={{ fontSize: 13, color: TAUPE, marginBottom: 8 }}>{toDeleteBooking?.label}</p>
+        <p style={{ fontSize: 12, color: TAUPE, marginBottom: 20 }}>Cette action est irréversible. L’historique de ce colis sera masqué.</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="outline" size="sm" disabled={deletingBooking} onClick={() => setToDeleteBooking(null)}>
+            {t.profile_edit.cancel}
+          </Button>
+          <Button variant="danger" size="sm" loading={deletingBooking} onClick={handleDeleteBooking}>
+            {t.profile_edit.delete_confirm}
+          </Button>
+        </div>
+      </Modal>
+
     </div>
   )
 }

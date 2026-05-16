@@ -1131,3 +1131,35 @@ async def delivery_alternative_proof(
         "message": "Preuve envoyée. En attente de l'administrateur.",
         "url": secure_url
     }
+
+
+@router.delete("/{booking_id}", status_code=204)
+async def delete_booking(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Soft delete d'un booking par l'expediteur.
+    Conditions : statut terminal + anciennete > 1 an."""
+    from datetime import datetime, timezone, timedelta
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if booking.deleted_at is not None:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+
+    TERMINAL = {"cancelled", "cancelled_by_sender", "cancelled_by_carrier", "refused", "refunded", "delivered"}
+    if booking.status not in TERMINAL:
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_deletable", lang))
+
+    retention = timedelta(days=365)
+    if datetime.now(timezone.utc) - booking.created_at < retention:
+        raise HTTPException(status_code=400, detail=t("errors.booking_retention_period", lang))
+
+    booking.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return None

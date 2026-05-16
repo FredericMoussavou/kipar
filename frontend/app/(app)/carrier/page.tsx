@@ -164,6 +164,10 @@ export default function CarrierPage() {
             {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => router.push('/carrier/finance')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 600, color: WHITE, cursor: 'pointer' }}>
+              Mes finances
+            </button>
             <button onClick={() => router.push('/carrier/requests')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 600, color: WHITE, cursor: 'pointer' }}>
               {t.requests.carrier_requests}
@@ -382,8 +386,13 @@ export default function CarrierPage() {
                 toast.success(t.carrier.trip_deleted)
                 queryClient.invalidateQueries({ queryKey: ['my-trips'] })
                 setTripToDelete(null)
-              } catch {
-                toast.error(t.errors.generic)
+              } catch (err: any) {
+                const detail = err?.response?.data?.detail
+                if (detail && detail.includes('active_bookings')) {
+                  toast.error('Ce trajet a des réservations actives et ne peut pas être supprimé.')
+                } else {
+                  toast.error(t.errors.generic)
+                }
               } finally {
                 setDeletingTrip(false)
               }

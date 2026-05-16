@@ -94,6 +94,9 @@ class Booking(Base):
     # Annulation
     cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Soft delete
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # Statut : pending / awaiting_receiver / accepted / refused /
     #          paid / in_transit / delivered / disputed / refunded
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)

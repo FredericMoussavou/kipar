@@ -804,3 +804,114 @@ async def export_dispute_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
+
+@router.get("/pending-validations")
+async def list_pending_validations(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Liste les bookings en attente de validation admin (preuve alternative livraison)."""
+    result = await db.execute(
+        select(Booking).where(Booking.status == "pending_admin_validation")
+    )
+    bookings = result.scalars().all()
+    out = []
+    for b in bookings:
+        trip_r = await db.execute(select(Trip).where(Trip.id == b.trip_id))
+        trip = trip_r.scalar_one_or_none()
+        sender_r = await db.execute(select(User).where(User.id == b.sender_id))
+        sender = sender_r.scalar_one_or_none()
+        out.append({
+            "id": str(b.id),
+            "created_at": b.created_at.isoformat(),
+            "amount": b.amount,
+            "currency": b.currency,
+            "origin": trip.origin_airport_code if trip else None,
+            "destination": trip.destination_airport_code if trip else None,
+            "sender": f"{sender.first_name} {sender.last_name}" if sender else None,
+            "sender_email": sender.email if sender else None,
+            "proof_url": b.delivery_alternative_proof_url,
+        })
+    return out
+
+
+@router.patch("/pending-validations/{booking_id}/approve")
+async def approve_pending_validation(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Valide la preuve alternative -> delivered + liberation paiement."""
+    from datetime import datetime, timezone
+    from app.services.notif_db_service import create_notification
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.status != "pending_admin_validation":
+        raise HTTPException(status_code=400, detail="Statut invalide")
+
+    booking.status = "delivered"
+    booking.delivery_confirmed_at = datetime.now(timezone.utc)
+    booking.delivery_confirmed_by = admin.id
+    await db.commit()
+
+    try:
+        from app.workers.booking_tasks import release_payment_after_delivery
+        release_payment_after_delivery.apply_async(args=[booking_id], countdown=0)
+    except Exception:
+        pass
+
+    await create_notification(
+        db=db, user_id=booking.sender_id,
+        type="delivery_validated",
+        title="Livraison validee par l'admin",
+        body="La preuve de livraison a ete validee. Le paiement va etre libere.",
+        link=f"/packages/{booking.id}",
+    )
+    await db.commit()
+    return {"status": "delivered", "booking_id": booking_id}
+
+
+@router.patch("/pending-validations/{booking_id}/reject")
+async def reject_pending_validation(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Rejette la preuve alternative -> litige ouvert automatiquement."""
+    from datetime import datetime, timezone
+    from app.models.dispute import Dispute
+    from app.services.notif_db_service import create_notification
+
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.status != "pending_admin_validation":
+        raise HTTPException(status_code=400, detail="Statut invalide")
+
+    reason = (payload.get("reason") or "Preuve insuffisante").strip()
+    booking.status = "disputed"
+    dispute = Dispute(
+        booking_id=booking.id,
+        initiated_by=admin.id,
+        initiated_by_role="admin",
+        reason=f"Preuve alternative rejetee par admin : {reason}",
+        status="in_review",
+    )
+    db.add(dispute)
+    await db.commit()
+
+    await create_notification(
+        db=db, user_id=booking.sender_id,
+        type="dispute_opened",
+        title="Litige ouvert",
+        body=f"La preuve alternative a ete rejetee : {reason}. Un litige a ete ouvert.",
+        link=f"/packages/{booking.id}",
+    )
+    await db.commit()
+    return {"status": "disputed", "reason": reason}

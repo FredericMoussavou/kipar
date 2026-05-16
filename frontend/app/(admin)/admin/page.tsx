@@ -7,14 +7,14 @@ import Link from 'next/link'
 import {
   LayoutDashboard, Users, ShieldCheck, AlertTriangle,
   CheckCircle, XCircle, Ban, Shield, ChevronRight, ChevronLeft,
-  LogOut, RefreshCw, TrendingUp,
+  LogOut, RefreshCw, TrendingUp, Umbrella, ClipboardCheck,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN, AMBER } from '@/lib/theme'
 
-type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance' | 'insurance'
+type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance' | 'insurance' | 'validations'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -918,6 +918,125 @@ function DisputesTab({ onToast }: { onToast: (msg: string, type: 'success' | 'er
   )
 }
 
+function ValidationsTab({ onToast }: { onToast: (msg: string, type: 'success' | 'error') => void }) {
+  const [items, setItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [processing, setProcessing] = useState<string | null>(null)
+  const [rejectId, setRejectId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await api.get('/admin/pending-validations')
+      setItems(res.data)
+    } finally { setLoading(false) }
+  }
+
+  useEffect(() => { load() }, [])
+
+  const approve = async (id: string) => {
+    setProcessing(id)
+    try {
+      await api.patch(`/admin/pending-validations/${id}/approve`)
+      onToast('Livraison validée', 'success')
+      load()
+    } catch { onToast('Erreur', 'error') }
+    finally { setProcessing(null) }
+  }
+
+  const reject = async () => {
+    if (!rejectId) return
+    setProcessing(rejectId)
+    try {
+      await api.patch(`/admin/pending-validations/${rejectId}/reject`, { reason: rejectReason || 'Preuve insuffisante' })
+      onToast('Litige ouvert', 'success')
+      setRejectId(null)
+      setRejectReason('')
+      load()
+    } catch { onToast('Erreur', 'error') }
+    finally { setProcessing(null) }
+  }
+
+  const fmtDate = (s: string) => new Date(s).toLocaleDateString('fr-FR')
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, margin: 0 }}>Validations en attente</h2>
+        <button type="button" onClick={load} style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL2, fontSize: 12, cursor: 'pointer' }}>
+          Rafraîchir
+        </button>
+      </div>
+      {loading ? <p style={{ color: TAUPE }}>Chargement...</p> : items.length === 0 ? (
+        <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 40, textAlign: 'center' }}>
+          <CheckCircle size={32} color="#16A34A" style={{ marginBottom: 12 }} />
+          <p style={{ fontSize: 15, color: TAUPE, margin: 0 }}>Aucune validation en attente</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {items.map((item: any) => (
+            <div key={item.id} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '16px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px' }}>
+                    {item.origin} → {item.destination} · {item.amount?.toFixed(2)} {item.currency}
+                  </p>
+                  <p style={{ fontSize: 12, color: TAUPE, margin: '0 0 2px' }}>
+                    Expéditeur : {item.sender} ({item.sender_email})
+                  </p>
+                  <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{fmtDate(item.created_at)}</p>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  {item.proof_url && (
+                    <a href={item.proof_url} target="_blank" rel="noreferrer"
+                      style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL2, fontSize: 12, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                      Voir preuve
+                    </a>
+                  )}
+                  <button type="button" onClick={() => approve(item.id)} disabled={processing === item.id}
+                    style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: '#16A34A', color: WHITE, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: processing === item.id ? 0.5 : 1 }}>
+                    Valider
+                  </button>
+                  <button type="button" onClick={() => { setRejectId(item.id); setRejectReason('') }} disabled={processing === item.id}
+                    style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${RED}`, background: WHITE, color: RED, fontSize: 12, fontWeight: 600, cursor: 'pointer', opacity: processing === item.id ? 0.5 : 1 }}>
+                    Rejeter
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal rejet */}
+      {rejectId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: WHITE, borderRadius: 16, padding: 28, width: 400, maxWidth: '90vw' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px' }}>Motif de rejet</h3>
+            <textarea
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              placeholder="Preuve insuffisante, image floue..."
+              style={{ width: '100%', minHeight: 80, padding: 10, borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, resize: 'vertical', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <button type="button" onClick={() => setRejectId(null)}
+                style={{ padding: '8px 16px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL2, fontSize: 13, cursor: 'pointer' }}>
+                Annuler
+              </button>
+              <button type="button" onClick={reject} disabled={!!processing}
+                style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: RED, color: WHITE, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: processing ? 0.5 : 1 }}>
+                Confirmer le rejet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [stats, setStats] = useState<Stats | null>(null)
@@ -933,10 +1052,11 @@ export default function AdminPage() {
   const navItems: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { id: 'users',     icon: <Users size={18} />,     label: 'Utilisateurs' },
-    { id: 'kyc',       icon: <Shield size={18} />,    label: 'KYC' },
+    { id: 'kyc',       icon: <ShieldCheck size={18} />,    label: 'KYC' },
     { id: 'disputes',  icon: <AlertTriangle size={18} />,   label: 'Litiges' },
     { id: 'finance',   icon: <TrendingUp size={18} />, label: 'Finance' },
-    { id: 'insurance', icon: <Shield size={18} />, label: 'Assurance' },
+    { id: 'insurance', icon: <Umbrella size={18} />, label: 'Assurance' },
+    { id: 'validations', icon: <ClipboardCheck size={18} />, label: 'Validations' },
   ]
 
   return (
@@ -983,6 +1103,7 @@ export default function AdminPage() {
         {tab === 'kyc'       && <KycTab onToast={showToast} />}
         {tab === 'disputes'  && <DisputesTab onToast={showToast} />}
         {tab === 'finance'   && <FinanceTab />}
+        {tab === 'validations' && <ValidationsTab onToast={showToast} />}
         {tab === 'insurance' && <InsuranceConfigTab onToast={showToast} />}
       </main>
     </div>

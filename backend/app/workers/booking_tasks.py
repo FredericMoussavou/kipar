@@ -37,6 +37,47 @@ def expire_pending_bookings():
     asyncio.run(_run())
 
 
+@celery_app.task(name="app.workers.booking_tasks.expire_old_trips")
+def expire_old_trips():
+    """
+    Passe les trips dont departure_date+departure_time est depasse en statut 'expired'.
+    Planifie toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.trip import Trip
+    from datetime import date, time as dtime, datetime, timezone
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(Trip).where(
+                    Trip.status == "open",
+                    Trip.deleted_at.is_(None),
+                )
+            )
+            trips = result.scalars().all()
+            expired_count = 0
+            for trip in trips:
+                if trip.departure_date is None:
+                    continue
+                dep_time = trip.departure_time or dtime(0, 0)
+                if isinstance(dep_time, str):
+                    h, m = dep_time.split(":")[:2]
+                    dep_time = dtime(int(h), int(m))
+                dep_dt = datetime.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
+                if now > dep_dt:
+                    trip.status = "expired"
+                    expired_count += 1
+                    logger.info(f"Trip {trip.id} expired")
+            await db.commit()
+            logger.info(f"Expired {expired_count} trips")
+
+    asyncio.run(_run())
+
+
 @celery_app.task(name="app.workers.booking_tasks.release_payment_after_delivery")
 def release_payment_after_delivery(booking_id: str):
     """

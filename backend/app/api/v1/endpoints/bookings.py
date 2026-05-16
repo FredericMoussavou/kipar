@@ -683,7 +683,6 @@ async def mark_pickup_failed(
     }
 
 
-@router.patch("/{booking_id}/confirm-pickup-failed")
 @router.patch("/{booking_id}/pickup-failed/respond")
 async def respond_pickup_failed(
     booking_id: str,

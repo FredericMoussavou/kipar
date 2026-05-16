@@ -35,5 +35,30 @@ celery_app.conf.update(
             "task": "app.workers.flight_tasks.poll_active_flights",
             "schedule": crontab(minute="*/15"),
         },
+        # Expire les trips dont le départ est passé toutes les heures
+        "expire-old-trips": {
+            "task": "app.workers.booking_tasks.expire_old_trips",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
+        # Resout automatiquement les incidents 48h expirés toutes les heures
+        "incident-response-timeout": {
+            "task": "app.workers.booking_tasks.incident_response_timeout",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
+        # Alerte livraisons en retard une fois par jour a minuit
+        "delivery-timeout-check": {
+            "task": "app.workers.booking_tasks.delivery_timeout_check",
+            "schedule": crontab(minute=0, hour=0),
+        },
+        # Rappels RDV livraison toutes les heures
+        "send-delivery-reminders": {
+            "task": "app.workers.booking_tasks.send_delivery_reminders",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
+        # Expire les annonces expéditeur toutes les heures
+        "expire-package-requests": {
+            "task": "app.workers.booking_tasks.expire_package_requests",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
     },
 )

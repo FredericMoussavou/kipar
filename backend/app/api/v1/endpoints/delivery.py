@@ -100,6 +100,7 @@ async def validate_delivery(
     booking.delivery_confirmed_at = datetime.now(timezone.utc)
     booking.delivery_confirmed_by = current_user.id
     booking.delivery_code_plain = None
+    _schedule_payment_release(str(booking.id))
 
     sender_result = await db.execute(select(User).where(User.id == booking.sender_id))
     sender = sender_result.scalar_one_or_none()
@@ -313,7 +314,7 @@ async def respond_delivery_failed(
     is_sender = booking.sender_id == current_user.id
     declared_by = booking.delivery_failed_by
 
-    if declared_by == "carrier" and not is_receiver and not is_sender:
+    if declared_by == "carrier" and not is_receiver:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if declared_by == "receiver" and not is_carrier:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
@@ -328,6 +329,7 @@ async def respond_delivery_failed(
             booking.delivery_confirmed_at = now
             booking.delivery_confirmed_by = current_user.id
             resolution = "carrier_favored_receiver_fault"
+            _schedule_payment_release(str(booking.id))
         else:
             booking.status = "cancelled"
             booking.cancellation_reason = "delivery_failed_carrier_fault"
@@ -341,6 +343,15 @@ async def respond_delivery_failed(
             body="L'incident de livraison a ete resolu. Le traitement financier va suivre.",
             link=f"/packages/{booking.id}",
         )
+        if booking.receiver_id:
+            await create_notification(
+                db=db,
+                user_id=booking.receiver_id,
+                type="delivery_failed_resolved",
+                title="Incident resolu",
+                body="L'incident de livraison a ete resolu.",
+                link=f"/packages/{booking.id}",
+            )
         await db.commit()
         return {"status": booking.status, "resolution": resolution}
     else:

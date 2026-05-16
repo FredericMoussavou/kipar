@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, Float, DateTime
+from sqlalchemy import String, Boolean, Float, DateTime, Integer, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
@@ -27,6 +27,17 @@ class User(Base):
     is_sender: Mapped[bool] = mapped_column(Boolean, default=True)
     is_carrier: Mapped[bool] = mapped_column(Boolean, default=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Premium
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
+    premium_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    premium_plan: Mapped[str | None] = mapped_column(String(20), nullable=True)  # monthly | annual
+    premium_stripe_sub_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    premium_flw_sub_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    # KiparScan quota
+    kiparscan_monthly_uses: Mapped[int] = mapped_column(Integer, default=0)
+    kiparscan_reset_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_receiver: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # KYC

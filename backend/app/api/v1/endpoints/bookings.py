@@ -84,6 +84,18 @@ async def create_booking(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
+    from app.api.v1.endpoints.premium import is_premium_active
+    from sqlalchemy import func
+    if not is_premium_active(current_user):
+        active_count_result = await db.execute(
+            select(func.count()).where(
+                Booking.sender_id == current_user.id,
+                Booking.status.in_(["pending", "accepted", "paid", "in_transit"]),
+            )
+        )
+        if active_count_result.scalar() >= 3:
+            raise HTTPException(status_code=403, detail=t("errors.premium_booking_limit", lang))
+
     result = await db.execute(select(Trip).where(Trip.id == payload.trip_id))
     trip = result.scalar_one_or_none()
     if not trip:

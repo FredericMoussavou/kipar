@@ -83,10 +83,16 @@ async def get_or_create_scan_credit(db, user_id):
     return credit
 
 
-async def check_and_consume_scan(db, user_id, lang: str):
+async def check_and_consume_scan(db, user_id, lang: str, is_premium: bool = False):
     from datetime import datetime, timezone
     from calendar import monthrange
     credit = await get_or_create_scan_credit(db, user_id)
+    # Premium : scans illimites
+    if is_premium:
+        credit.total_scans += 1
+        credit.updated_at = datetime.now(timezone.utc)
+        await db.commit()
+        return credit
     now = datetime.now(timezone.utc)
     if credit.free_credits_reset_at is None or credit.free_credits_reset_at < now.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
         credit.free_credits_used = 0
@@ -165,7 +171,8 @@ async def scan_package(
     Met à jour le Package avec le résultat et le flag prohibé.
     """
     # Verifier et consommer le quota de scan
-    await check_and_consume_scan(db, current_user.id, lang)
+    from app.api.v1.endpoints.premium import is_premium_active
+    await check_and_consume_scan(db, current_user.id, lang, is_premium=is_premium_active(current_user))
 
     # Vérifie que le colis existe et appartient à l'expéditeur
     result = await db.execute(select(Package).where(Package.id == package_id))

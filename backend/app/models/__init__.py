@@ -14,6 +14,7 @@ from app.models.notification import Notification
 from app.models.verification_code import VerificationCode
 from app.models.dispute import Dispute
 from app.models.scan_credit import ScanCredit
+from app.models.subscription import Subscription
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
@@ -25,4 +26,5 @@ __all__ = [
     "VerificationCode",
     "Dispute",
     "ScanCredit",
+    "Subscription",
 ]

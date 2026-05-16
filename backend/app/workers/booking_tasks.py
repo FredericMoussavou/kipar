@@ -373,3 +373,46 @@ def send_delivery_reminders():
             await db.commit()
 
     asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.expire_premium_subscriptions")
+def expire_premium_subscriptions():
+    """
+    Expire les abonnements premium dont la date d'expiration est depassee.
+    Planifie une fois par jour via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.user import User
+    from app.models.subscription import Subscription
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(User).where(
+                    User.is_premium == True,
+                    User.premium_expires_at < now,
+                )
+            )
+            users = result.scalars().all()
+            for user in users:
+                user.is_premium = False
+                user.premium_plan = None
+                # Marquer la sub comme expiree
+                sub_result = await db.execute(
+                    select(Subscription).where(
+                        Subscription.user_id == user.id,
+                        Subscription.status == "active",
+                    )
+                )
+                sub = sub_result.scalar_one_or_none()
+                if sub:
+                    sub.status = "expired"
+                logger.info(f"Premium expired for user {user.id}")
+            await db.commit()
+            logger.info(f"Expired {len(users)} premium subscription(s)")
+
+    asyncio.run(_run())

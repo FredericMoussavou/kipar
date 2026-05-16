@@ -86,7 +86,10 @@
         "dispute_already_exists": "A dispute already exists for this booking",
         "dispute_opened": "Dispute opened — our team will review the situation",
         "username_taken": "This username is already taken",
-        "flight_number_invalid": "Invalid flight number"
+        "flight_number_invalid": "Invalid flight number",
+        "premium_booking_limit": "Limit reached: 3 active bookings maximum on the free plan. Upgrade to Premium for unlimited bookings.",
+        "premium_trip_limit": "Limit reached: 2 active trips maximum on the free plan. Upgrade to Premium for unlimited trips.",
+        "premium_request_limit": "Limit reached: 2 active listings maximum on the free plan. Upgrade to Premium for unlimited listings."
     },
     "success": {
         "delivery_confirmed": "Delivery confirmed — payment release in progress",

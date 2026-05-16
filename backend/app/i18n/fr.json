@@ -85,7 +85,10 @@
         "dispute_already_exists": "Un litige existe déjà pour cette réservation",
         "dispute_opened": "Litige ouvert — notre équipe va examiner la situation",
         "username_taken": "Ce pseudo est déjà utilisé",
-        "flight_number_invalid": "Numéro de vol invalide"
+        "flight_number_invalid": "Numéro de vol invalide",
+        "premium_booking_limit": "Limite atteinte : 3 réservations actives maximum en version gratuite. Passez en Premium pour réserver sans limite.",
+        "premium_trip_limit": "Limite atteinte : 2 trajets actifs maximum en version gratuite. Passez en Premium pour publier sans limite.",
+        "premium_request_limit": "Limite atteinte : 2 annonces actives maximum en version gratuite. Passez en Premium pour publier sans limite."
     },
     "success": {
         "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

@@ -26,6 +26,19 @@ async def create_request(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
+    from app.api.v1.endpoints.premium import is_premium_active
+    from sqlalchemy import func
+    if not is_premium_active(current_user):
+        active_req_result = await db.execute(
+            select(func.count()).where(
+                PackageRequest.sender_id == current_user.id,
+                PackageRequest.status == "open",
+                PackageRequest.deleted_at.is_(None),
+            )
+        )
+        if active_req_result.scalar() >= 2:
+            raise HTTPException(status_code=403, detail=t("errors.premium_request_limit", lang))
+
     req = PackageRequest(
         sender_id=current_user.id,
         origin_city=payload.origin_city,

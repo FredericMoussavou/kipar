@@ -35,6 +35,19 @@ async def create_trip(
     current_user: User = Depends(get_verified_user),
     lang: str = Depends(get_lang),
 ):
+    from app.api.v1.endpoints.premium import is_premium_active
+    from sqlalchemy import func
+    if not is_premium_active(current_user):
+        active_trips_result = await db.execute(
+            select(func.count()).where(
+                Trip.carrier_id == current_user.id,
+                Trip.status.in_(["open", "full"]),
+                Trip.deleted_at.is_(None),
+            )
+        )
+        if active_trips_result.scalar() >= 2:
+            raise HTTPException(status_code=403, detail=t("errors.premium_trip_limit", lang))
+
     # Contrainte unicite : meme transporteur, meme corridor, meme date+heure
     dup_query = select(Trip).where(
         Trip.carrier_id == current_user.id,

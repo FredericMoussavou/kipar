@@ -60,5 +60,10 @@ celery_app.conf.update(
             "task": "app.workers.booking_tasks.expire_package_requests",
             "schedule": crontab(minute=0, hour="*/1"),
         },
+        # Expire les abonnements premium une fois par jour
+        "expire-premium-subscriptions": {
+            "task": "app.workers.booking_tasks.expire_premium_subscriptions",
+            "schedule": crontab(minute=0, hour=1),
+        },
     },
 )

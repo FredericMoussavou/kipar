@@ -172,11 +172,7 @@ export default function PublicProfilePage() {
   const REVIEWS_PER_PAGE = 5
 
   // Redirection si c'est mon propre profil
-  useEffect(() => {
-    if (user?.id && id && user.id === id) {
-      router.replace('/profile')
-    }
-  }, [user?.id, id, router])
+  const isOwnProfile = !!user?.id && !!id && user.id === id
 
   // Profil public
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<PublicProfile>({
@@ -185,7 +181,7 @@ export default function PublicProfilePage() {
       const res = await api.get(`/users/${id}`)
       return res.data
     },
-    enabled: !!id && user?.id !== id,
+    enabled: !!id,
   })
 
   // Avis paginés
@@ -267,7 +263,7 @@ export default function PublicProfilePage() {
             style={{
               position: 'absolute',
               top: 48,
-              left: 20,
+              left: 64,
               width: 36,
               height: 36,
               borderRadius: '50%',

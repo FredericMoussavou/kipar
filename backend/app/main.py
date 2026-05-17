@@ -19,6 +19,10 @@ from app.i18n.loader import t
 async def lifespan(app: FastAPI):
     setup_logging()
     setup_sentry()
+    if settings.is_production and settings.SECRET_KEY == "dev-secret-change-in-production":
+        raise RuntimeError("[SECURITY] SECRET_KEY non configurée en production !")
+    if settings.is_production and not settings.STRIPE_SECRET_KEY:
+        raise RuntimeError("[SECURITY] STRIPE_SECRET_KEY manquante en production !")
     yield
 
 

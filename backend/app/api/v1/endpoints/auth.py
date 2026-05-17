@@ -17,7 +17,26 @@ from app.core.deps import get_current_user
 from app.core.lang import get_lang
 from app.core.config import settings
 
+import redis as redis_lib
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+def get_redis():
+    from app.core.config import settings
+    return redis_lib.from_url(settings.REDIS_URL, decode_responses=True)
+
+def is_token_blacklisted(token: str) -> bool:
+    try:
+        r = get_redis()
+        return r.exists(f"blacklist:{token}") > 0
+    except Exception:
+        return False
+
+def blacklist_token(token: str, expire_seconds: int = 1800):
+    try:
+        r = get_redis()
+        r.setex(f"blacklist:{token}", expire_seconds, "1")
+    except Exception:
+        pass
 
 
 class RegisterRequest(BaseModel):
@@ -296,3 +315,16 @@ async def change_password(
 
     current_user.hashed_password = hash_password(payload.new_password)
     return {"message": t("success.password_changed", lang)}
+
+
+@router.post("/logout")
+async def logout(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    """Invalide le token JWT courant via blacklist Redis."""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        blacklist_token(token, expire_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    return {"status": "logged_out"}

@@ -314,6 +314,7 @@ async def list_my_bookings(
             Booking.sender_id == current_user.id,
             Booking.receiver_id == current_user.id,
         ))
+        .where(Booking.deleted_at.is_(None))
         .order_by(Booking.created_at.desc())
     )
     return result.scalars().all()

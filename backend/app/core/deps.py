@@ -22,6 +22,18 @@ async def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Token invalide ou expiré")
 
+    # Verifier la blacklist Redis
+    try:
+        import redis as redis_lib
+        from app.core.config import settings as _settings
+        r = redis_lib.from_url(_settings.REDIS_URL, decode_responses=True)
+        if r.exists(f"blacklist:{token}") > 0:
+            raise HTTPException(status_code=401, detail="Token révoqué")
+    except HTTPException:
+        raise
+    except Exception:
+        pass  # Si Redis indisponible, on continue
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
@@ -55,6 +67,9 @@ async def get_optional_user(
         if not user_id:
             return None
         result = await db.execute(select(User).where(User.id == user_id))
-        return result.scalar_one_or_none()
+        user = result.scalar_one_or_none()
+        if not user or not user.is_active:
+            return None
+        return user
     except Exception:
         return None

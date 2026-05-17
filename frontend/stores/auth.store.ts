@@ -31,6 +31,9 @@ interface User {
   username: string | null
   username_updated_at: string | null
   address: string | null
+  is_premium: boolean
+  premium_expires_at: string | null
+  premium_plan: string | null
 }
 
 interface AuthStore {
@@ -84,7 +87,16 @@ export const useAuthStore = create<AuthStore>()(
           console.error('refreshUser failed:', err)
         }
       },
-      logout: () => {
+      logout: async () => {
+        try {
+          const token = get().token
+          if (token) {
+            await fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/logout', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + token },
+            })
+          }
+        } catch { /* silencieux */ }
         set({ token: null, user: null })
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')

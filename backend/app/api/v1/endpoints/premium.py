@@ -79,6 +79,19 @@ async def subscribe_premium(
     if not payment_ref:
         raise HTTPException(status_code=400, detail="Reference de paiement manquante")
 
+    # Verifier le paiement Stripe avant activation
+    if payment_rail == "stripe" and settings.STRIPE_SECRET_KEY:
+        try:
+            import stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            pi = stripe.PaymentIntent.retrieve(payment_ref)
+            if pi.status != "succeeded":
+                raise HTTPException(status_code=400, detail="Paiement Stripe non confirmé")
+            if pi.amount not in (999, 7999):  # 9.99 EUR ou 79.99 EUR en centimes
+                raise HTTPException(status_code=400, detail="Montant Stripe invalide")
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Erreur Stripe : {str(e)}")
+
     plan_data = PLANS[plan]
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(days=plan_data["days"])

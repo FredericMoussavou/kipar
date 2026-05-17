@@ -49,7 +49,7 @@ async def generate_delivery_code(
     code, hashed = generate_and_hash_code()
     qr_token = Booking.generate_qr_token()
     booking.delivery_code_hash = hashed
-    booking.delivery_code_plain = code
+    booking.delivery_code_plain = None  # Ne jamais persister en clair
     booking.delivery_qr_token = qr_token
     booking.delivery_code_expires_at = code_expires_at()
 

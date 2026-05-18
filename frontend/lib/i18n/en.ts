@@ -504,6 +504,8 @@ export const en = {
     no_results_sub: 'Try different search criteria',
 
     results_count_plural: 'trips found',
+    show_own_trips: 'Include my trips',
+    hide_own_trips: 'Hide my trips',
 
   },
 
@@ -549,6 +551,7 @@ export const en = {
   arrival_date_label: 'Arrival date',
   flight_valid: 'Flight found',
   flight_invalid: 'Flight not found',
+  flight_not_found_advisory: 'Flight not found in our database — check the number but you can continue',
 
   flight_label: 'Flight number',
 
@@ -1050,6 +1053,11 @@ profile_public: {
     see_profile: '→ Profile',
 
     kyc_verified: '· ✓ KYC Verified',
+    section_flight: 'Flight',
+    field_route: 'Route',
+    field_flight: 'Flight number',
+    field_departure: 'Departure',
+    field_arrival: 'Estimated arrival',
 
   },
 
@@ -1549,6 +1557,57 @@ profile_public: {
     testimonial3_role: "Sender, Bordeaux",
     testimonial3_text: "The KiparTrust score is a real game changer. I know exactly who I'm entrusting my parcel to before handing it over.",
 
+  },
+
+  premium: {
+    title: 'KIPAR Premium',
+    headline: 'Ship without limits',
+    subtitle: 'Unlock all KIPAR features.',
+    plan_monthly: 'Monthly',
+    plan_annual: 'Annual',
+    plan_annual_badge: '-33%',
+    plan_monthly_price: '€9.99',
+    plan_monthly_per: 'per month',
+    plan_annual_price: '€79.99',
+    plan_annual_per: 'per year · €6.67/month',
+    pay_stripe: 'Pay with Stripe',
+    pay_flutterwave: 'Pay with Flutterwave',
+    no_commitment: 'Cancel anytime · No commitment',
+    included: 'What’s included',
+    active_status: 'Premium subscription active',
+    cancel_renewal: 'Cancel renewal',
+    cancel_confirm: 'Cancel automatic renewal? You keep access until expiration.',
+    legal: 'By subscribing, you agree to our Terms and Privacy Policy.',
+    feature_bookings: 'Unlimited bookings',
+    feature_bookings_sub: '3 max on free plan',
+    feature_trips: 'Unlimited trips',
+    feature_trips_sub: '2 max on free plan',
+    feature_requests: 'Unlimited listings',
+    feature_requests_sub: '2 max on free plan',
+    feature_photos: '5 photos per package',
+    feature_photos_sub: '2 photos on free plan',
+    feature_kiparscan: 'Unlimited KiparScan',
+    feature_kiparscan_sub: '3 scans/month on free plan',
+    feature_tracking: 'Live flight tracking',
+    feature_tracking_sub: 'Not available on free plan',
+    feature_reminder: 'Pre-landing reminder',
+    feature_reminder_sub: 'Not available on free plan',
+    feature_export: 'Finance & tax export',
+    feature_export_sub: 'Not available on free plan',
+    feature_badge: 'Premium badge & visibility boost',
+    feature_badge_sub: 'Not available on free plan',
+    feature_reviews: 'Full review history',
+    feature_reviews_sub: 'Last 5 on free plan',
+    feature_support: 'Priority support (4h SLA)',
+    feature_support_sub: 'Standard support on free plan',
+    upgrade_cta: 'Go Premium',
+    upgrade_bookings: 'Limit reached: 3 active bookings. Upgrade to Premium.',
+    upgrade_trips: 'Limit reached: 2 active trips. Upgrade to Premium.',
+    upgrade_requests: 'Limit reached: 2 active listings. Upgrade to Premium.',
+    upgrade_photos: 'Photo limit reached. Upgrade for 5 photos.',
+    upgrade_tracking: 'Flight tracking available on Premium.',
+    upgrade_export: 'Export available on Premium.',
+    upgrade_kiparscan: 'KiparScan quota exhausted. Upgrade or buy credits.',
   },
 
 }

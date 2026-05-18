@@ -25,8 +25,12 @@ async def verify_flight(
     """Valide qu'un numero de vol existe — appele a la soumission du formulaire new-trip."""
     if not flight_number or len(flight_number) < 3:
         raise HTTPException(status_code=400, detail=t("errors.flight_number_invalid", lang))
-    is_valid = await validate_flight_number(flight_number.upper())
-    return {"valid": is_valid, "flight_number": flight_number.upper()}
+    # Validation non bloquante — AeroDataBox ne couvre pas tous les vols futurs
+    try:
+        is_valid = await validate_flight_number(flight_number.upper())
+    except Exception:
+        is_valid = True  # En cas d'erreur API, on ne bloque pas
+    return {"valid": is_valid, "flight_number": flight_number.upper(), "advisory": not is_valid}
 
 @router.post("", response_model=TripResponse, status_code=201)
 async def create_trip(
@@ -290,8 +294,8 @@ async def get_price_suggestion(
     # Prix sur ce corridor
     corridor_result = await db.execute(
         select(Trip.price_per_kg).where(
-            Trip.origin.ilike(f"%{origin}%"),
-            Trip.destination.ilike(f"%{destination}%"),
+            Trip.origin_airport_code.ilike(f"%{origin}%"),
+            Trip.destination_airport_code.ilike(f"%{destination}%"),
             Trip.departure_date >= cutoff,
             Trip.deleted_at.is_(None),
             Trip.status != "cancelled",

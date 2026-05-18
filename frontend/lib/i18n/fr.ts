@@ -504,6 +504,8 @@ export const fr = {
     no_results_sub: 'Essayez d\'autres critères de recherche',
 
     results_count_plural: 'trajets trouvés',
+    show_own_trips: 'Inclure mes trajets',
+    hide_own_trips: 'Masquer mes trajets',
 
   },
 
@@ -549,6 +551,7 @@ export const fr = {
   arrival_date_label: "Date d'arrivée",
   flight_valid: 'Vol trouvé',
   flight_invalid: 'Vol introuvable',
+  flight_not_found_advisory: 'Vol non trouvé dans notre base — vérifiez le numéro mais vous pouvez continuer',
 
   flight_label: 'Numéro de vol',
 
@@ -1050,6 +1053,11 @@ profile_public: {
     see_profile: 'Profil',
 
     kyc_verified: 'KYC Vérifié',
+    section_flight: 'Vol',
+    field_route: 'Trajet',
+    field_flight: 'N° de vol',
+    field_departure: 'Départ',
+    field_arrival: 'Arrivée estimée',
 
   },
 
@@ -1553,6 +1561,57 @@ profile_public: {
     testimonial3_role: 'Expéditrice, Bordeaux',
     testimonial3_text: 'Le score KiparTrust est une vraie révolution. Je sais exactement à qui je confie mon colis avant même de le lui remettre.',
 
+  },
+
+  premium: {
+    title: 'KIPAR Premium',
+    headline: 'Transportez sans limites',
+    subtitle: 'Débloquez toutes les fonctionnalités KIPAR pour envoyer et transporter sans contraintes.',
+    plan_monthly: 'Mensuel',
+    plan_annual: 'Annuel',
+    plan_annual_badge: '-33%',
+    plan_monthly_price: '9,99€',
+    plan_monthly_per: 'par mois',
+    plan_annual_price: '79,99€',
+    plan_annual_per: 'par an · soit 6,67€/mois',
+    pay_stripe: 'Payer avec Stripe',
+    pay_flutterwave: 'Payer avec Flutterwave',
+    no_commitment: 'Annulation à tout moment · Sans engagement',
+    included: 'Ce qui est inclus',
+    active_status: 'Abonnement Premium actif',
+    cancel_renewal: 'Annuler le renouvellement',
+    cancel_confirm: 'Annuler le renouvellement automatique ? Vous gardez l’accès jusqu’à expiration.',
+    legal: 'En souscrivant, vous acceptez nos CGU et notre politique de confidentialité. Le renouvellement automatique peut être annulé à tout moment.',
+    feature_bookings: 'Réservations illimitées',
+    feature_bookings_sub: '3 max en gratuit',
+    feature_trips: 'Trajets illimités',
+    feature_trips_sub: '2 max en gratuit',
+    feature_requests: 'Annonces illimitées',
+    feature_requests_sub: '2 max en gratuit',
+    feature_photos: '5 photos par colis',
+    feature_photos_sub: '2 photos en gratuit',
+    feature_kiparscan: 'KiparScan illimité',
+    feature_kiparscan_sub: '3 scans/mois en gratuit',
+    feature_tracking: 'Suivi vol en direct',
+    feature_tracking_sub: 'Non disponible en gratuit',
+    feature_reminder: 'Rappel avant atterrissage',
+    feature_reminder_sub: 'Non disponible en gratuit',
+    feature_export: 'Export finance & fiscal',
+    feature_export_sub: 'Non disponible en gratuit',
+    feature_badge: 'Badge Premium & mise en avant',
+    feature_badge_sub: 'Non disponible en gratuit',
+    feature_reviews: 'Historique avis complet',
+    feature_reviews_sub: '5 derniers en gratuit',
+    feature_support: 'Support prioritaire (SLA 4h)',
+    feature_support_sub: 'Support standard en gratuit',
+    upgrade_cta: 'Passer Premium',
+    upgrade_bookings: 'Limite atteinte : 3 réservations actives. Passez en Premium.',
+    upgrade_trips: 'Limite atteinte : 2 trajets actifs. Passez en Premium.',
+    upgrade_requests: 'Limite atteinte : 2 annonces actives. Passez en Premium.',
+    upgrade_photos: 'Limite de photos atteinte. Passez en Premium pour 5 photos.',
+    upgrade_tracking: 'Suivi vol disponible en Premium.',
+    upgrade_export: 'Export disponible en Premium.',
+    upgrade_kiparscan: 'Quota KiparScan épuisé. Passez en Premium ou achetez des crédits.',
   },
 
 }

@@ -11,7 +11,7 @@ async def verify_google_token(id_token: str) -> dict | None:
     Vérifie un token Google ID auprès de l'API Google.
     Retourne le payload (email, name, picture, sub) ou None si invalide.
     """
-    if not settings.GOOGLE_CLIENT_ID:
+    if not settings.GOOGLE_CLIENT_ID or settings.ENVIRONMENT == "test":
         # Simulation pour les tests
         logger.info("[GOOGLE OAUTH SIMULATED]")
         return {

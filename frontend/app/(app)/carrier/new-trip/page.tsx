@@ -228,7 +228,7 @@ export default function NewTripPage() {
               />
               {flightChecking && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
               {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>✓ {t.carrier.flight_valid || 'Vol trouvé'}</p>}
-              {flightValid === false && <p style={{ fontSize: 11, color: RED, marginTop: 4 }}>✗ {t.carrier.flight_invalid || 'Vol introuvable'}</p>}
+              {flightValid === false && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>⚠ {t.carrier.flight_not_found_advisory}</p>}
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -247,9 +247,8 @@ export default function NewTripPage() {
             <div>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.weight_unit_label ?? 'Unité de poids'}</p>
               <Select value={weightUnit} onChange={e => setWeightUnit(e.target.value as WeightUnit)}>
-                {t.profile_edit.weight_unit_kg_long}
-                {t.profile_edit.weight_unit_lb_long}
-                {t.profile_edit.weight_unit_g_long}
+                <option value="kg">{t.profile_edit.weight_unit_kg_long}</option>
+                <option value="lb">{t.profile_edit.weight_unit_lb_long}</option>
               </Select>
             </div>
             <div>

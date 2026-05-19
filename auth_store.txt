@@ -87,20 +87,20 @@ export const useAuthStore = create<AuthStore>()(
           console.error('refreshUser failed:', err)
         }
       },
-      logout: () => {
-        const token = get().token
-        // Redirection immediate
+      logout: async () => {
+        try {
+          const token = get().token
+          if (token) {
+            await fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/logout', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + token },
+            })
+          }
+        } catch { /* silencieux */ }
         set({ token: null, user: null })
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')
           document.cookie = 'kipar_token=; path=/; max-age=0'
-          // Appel API en arriere-plan
-          if (token) {
-            fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/logout', {
-              method: 'POST',
-              headers: { Authorization: 'Bearer ' + token },
-            }).catch(() => {})
-          }
           window.location.href = '/login'
         }
       },

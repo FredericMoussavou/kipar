@@ -186,7 +186,7 @@ export default function PublicProfilePage() {
 
   // Avis paginés
   const { data: reviews } = useQuery<ReviewList>({
-    queryKey: ['public-profile-reviews', id, reviewPage],
+    queryKey: ['public-profile-reviews', id, reviewPage, isMobile],
     queryFn: async () => {
       if (isMobile) {
         // Mobile : charge toujours depuis le debut avec offset 0, limit = page * 5

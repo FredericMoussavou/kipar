@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Search, Bell, Package2 } from 'lucide-react'
@@ -29,8 +29,6 @@ export default function DashboardPage() {
   const [activeCorr, setActiveCorr] = useState(0)
   const [corridors, setCorridors] = useState<Corridor[]>(DEFAULT_CORRIDORS)
   const isMobile = useIsMobile()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
   const corridor = corridors[activeCorr] ?? DEFAULT_CORRIDORS[0]
 
   useState(() => {
@@ -75,14 +73,14 @@ export default function DashboardPage() {
 
             {/* div 1 — cloche + search, aligné à droite */}
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
-              {mounted && isMobile && <Link href="/notifications" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', display: 'flex', flexShrink: 0 }}>
+              <Link href="/notifications" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', display: 'flex', flexShrink: 0 }}>
                 <Bell size={18} color="#fff" />
                 {unreadCount > 0 && (
                   <span style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#DC0029', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,0.3)' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
-              </Link>}
+              </Link>
               <Link href="/search" style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>
                   <Search size={14} color="rgba(255,255,255,0.9)" />

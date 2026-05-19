@@ -100,7 +100,9 @@ export default function BookPage() {
   const value = parseFloat(watch('declared_value') || '0') || 0
   const pricePerKg = trip?.price_per_kg || 0
   const transport = weight * pricePerKg
-  const commission = transport * 0.13
+  const senderFee = transport * 0.15
+  const bookingFlatFee = transport > 0 ? 1.50 : 0
+  const commission = senderFee + bookingFlatFee
   const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
 
@@ -119,7 +121,7 @@ export default function BookPage() {
     },
     onSuccess: (data) => {
       setCurrentBookingId(data.id)
-      router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${(transport + commission).toFixed(2)}&declared_value=${value}`)
+      router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${(transport + commission).toFixed(2)}&transport=${transport.toFixed(2)}&declared_value=${value}`)
     },
     onError: (err: any) => {
       const detail = err.response?.data?.detail

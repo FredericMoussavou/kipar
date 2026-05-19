@@ -126,26 +126,16 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     if (!clientId) { toast.error('Google OAuth non configuré'); return }
-    // Charger le SDK Google GSI si pas encore chargé
-    const initGoogle = () => {
-      (window as any).google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response: any) => {
-          await handleOAuthCallback('google', response.credential)
-        },
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      })
-      ;(window as any).google.accounts.id.prompt()
-    }
-    if ((window as any).google?.accounts?.id) {
-      initGoogle()
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://accounts.google.com/gsi/client'
-      script.onload = initGoogle
-      document.head.appendChild(script)
-    }
+    const redirectUri = window.location.origin + '/auth/google/callback'
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'openid email profile',
+      prompt: 'select_account',
+      access_type: 'offline',
+    })
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params
   }
 
   const handleAppleLogin = () => {
@@ -178,7 +168,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden' }}>
+    <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden', position: 'fixed', inset: 0 }}>
 
       {/* Colonne gauche — Formulaire */}
       <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, overflowY: 'auto', height: '100vh' }}>
@@ -240,19 +230,21 @@ export default function LoginPage() {
           </div>
 
           {/* OAuth */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
-            <button type="button" onClick={handleGoogleLogin}
-              style={{ width: 48, height: 48, borderRadius: '50%', border: '1px solid ' + BORDER, background: WHITE, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <svg width="20" height="20" viewBox="0 0 18 18">
-                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.76-2.7.76-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 008.98 17z"/>
-                <path fill="#FBBC05" d="M4.51 10.52A4.8 4.8 0 014.26 9c0-.53.09-1.04.25-1.52V5.41H1.87A8 8 0 001 9c0 1.3.31 2.53.87 3.59l2.64-2.07z"/>
-                <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.87 5.4L4.5 7.48C5.14 5.6 6.9 4.18 8.98 4.18z"/>
-              </svg>
-            </button>
-
-
-          </div>
+          <button type="button" onClick={handleGoogleLogin} style={{
+            width: '100%', padding: '12px 16px', borderRadius: 10,
+            background: SAND, border: '1px solid ' + BORDER,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600,
+            color: CHARCOAL, boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+              <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.76-2.7.76-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 008.98 17z"/>
+              <path fill="#FBBC05" d="M4.51 10.52A4.8 4.8 0 014.26 9c0-.53.09-1.04.25-1.52V5.41H1.87A8 8 0 001 9c0 1.3.31 2.53.87 3.59l2.64-2.07z"/>
+              <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.87 5.4L4.5 7.48C5.14 5.6 6.9 4.18 8.98 4.18z"/>
+            </svg>
+            {t.auth.google}
+          </button>
 
           <p style={{ textAlign: 'center', fontSize: 13, color: TAUPE, marginTop: 28 }}>
             {t.auth.no_account}{' '}

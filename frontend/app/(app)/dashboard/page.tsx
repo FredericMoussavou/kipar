@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Search, Bell, Package2, Menu } from 'lucide-react'
+import { Search, Bell, Package2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -12,18 +12,12 @@ import { useNotifications } from '@/contexts/notifications.context'
 import { useBookingStore } from '@/stores/booking.store'
 import TripCard from '@/components/trips/TripCard'
 import HeroHeader from '@/components/layout/HeroHeader'
-import Drawer from '@/components/layout/Drawer'
+
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
-const CORRIDORS = [
-  { label: 'Tous', origin: null, dest: null },
-  { label: 'CDG → DSS', origin: 'CDG', dest: 'DSS' },
-  { label: 'CDG → ABJ', origin: 'CDG', dest: 'ABJ' },
-  { label: 'CDG → LBV', origin: 'CDG', dest: 'LBV' },
-  { label: 'ORY → DLA', origin: 'ORY', dest: 'DLA' },
-  { label: 'CDG → LOS', origin: 'CDG', dest: 'LOS' },
-]
+type Corridor = { label: string; origin: string | null; dest: string | null }
+const DEFAULT_CORRIDORS: Corridor[] = [{ label: 'Tous', origin: null, dest: null }]
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -33,9 +27,20 @@ export default function DashboardPage() {
   const { setSelectedTrip } = useBookingStore()
   const { unreadCount } = useNotifications()
   const [activeCorr, setActiveCorr] = useState(0)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [corridors, setCorridors] = useState<Corridor[]>(DEFAULT_CORRIDORS)
   const isMobile = useIsMobile()
-  const corridor = CORRIDORS[activeCorr]
+  const corridor = corridors[activeCorr] ?? DEFAULT_CORRIDORS[0]
+
+  useState(() => {
+    api.get('/trips/corridors').then(res => {
+      const dynamic: Corridor[] = res.data.map((r: any) => ({
+        label: `${r.origin} → ${r.destination}`,
+        origin: r.origin,
+        dest: r.destination,
+      }))
+      setCorridors([{ label: 'Tous', origin: null, dest: null }, ...dynamic])
+    }).catch(() => {})
+  })
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ['trips', corridor.origin, corridor.dest],
@@ -62,36 +67,35 @@ export default function DashboardPage() {
         minHeight={200}
       >
 
-        <div style={{ padding: isMobile ? '20px 16px 24px 64px' : '20px 20px 24px' }} className="md:p-8">
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ padding: isMobile ? '16px 16px 24px' : '20px 20px 24px' }} className="md:p-8">
+          {/* div 0 — colonne principale */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-            {/* Colonne gauche — hamburger + texte */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>{t.dashboard.greeting} 👋</p>
-                <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 26 : 40, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.2 }}>
-                  {user?.first_name} 
-                </h1>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{t.dashboard.hero_sub}</p>
-              </div>
-            </div>
-
-            {/* Colonne droite — cloche + recherche */}
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-              {isMobile && <Link href="/notifications" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', display: 'flex' }}>
+            {/* div 1 — cloche + search, aligné à droite */}
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
+              <Link href="/notifications" style={{ position: 'relative', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', display: 'flex', flexShrink: 0 }}>
                 <Bell size={18} color="#fff" />
                 {unreadCount > 0 && (
                   <span style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#DC0029', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,0.3)' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
-              </Link>}
-              <Link href="/search">
+              </Link>
+              <Link href="/search" style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.25)' }}>
                   <Search size={14} color="rgba(255,255,255,0.9)" />
                   <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 500, whiteSpace: 'nowrap' }}>{t.dashboard.search_placeholder}</span>
                 </div>
               </Link>
+            </div>
+
+            {/* div 2 — greeting + prenom + sous-titre, aligné à gauche */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{t.dashboard.greeting} 👋</p>
+              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 28 : 40, fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.15 }}>
+                {user?.first_name}
+              </h1>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: 0 }}>{t.dashboard.hero_sub}</p>
             </div>
 
           </div>
@@ -105,7 +109,7 @@ export default function DashboardPage() {
           {t.dashboard.popular_corridors}
         </p>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-          {CORRIDORS.map((c, i) => (
+          {corridors.map((c, i) => (
             <button key={i} onClick={() => setActiveCorr(i)} style={{
               flexShrink: 0, padding: '7px 14px', borderRadius: 99, fontSize: 13, fontWeight: 600,
               border: 'none', cursor: 'pointer', transition: 'all 0.2s',

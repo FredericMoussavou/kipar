@@ -214,65 +214,49 @@ async def delete_trip(
     return None
 
 
-@router.get("/{trip_id}", response_model=TripResponse)
-async def get_trip(
-    trip_id: str,
+@router.get("/corridors")
+async def get_corridors(
     db: AsyncSession = Depends(get_db),
-    lang: str = Query("fr"),
+    limit: int = 5,
 ):
+    """Top corridors par activité (90 derniers jours, tous statuts)."""
+    from datetime import date, timedelta
     from sqlalchemy import func
-    from app.models.review import Review
+    from app.core.config import settings
 
-    result = await db.execute(select(Trip).where(Trip.id == trip_id))
-    trip = result.scalar_one_or_none()
-    if not trip:
-        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
+    cutoff = date.today() - timedelta(days=settings.PRICE_SUGGESTION_WINDOW_DAYS)
 
-    carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
-    carrier = carrier_result.scalar_one_or_none()
-
-    trip_count_result = await db.execute(
-        select(func.count()).where(Trip.carrier_id == trip.carrier_id, Trip.deleted_at.is_(None))
+    result = await db.execute(
+        select(
+            Trip.origin_airport_code,
+            Trip.origin_city,
+            Trip.destination_airport_code,
+            Trip.destination_city,
+            func.count(Trip.id).label("trip_count"),
+        ).where(
+            Trip.departure_date >= cutoff,
+            Trip.deleted_at.is_(None),
+        ).group_by(
+            Trip.origin_airport_code,
+            Trip.origin_city,
+            Trip.destination_airport_code,
+            Trip.destination_city,
+        ).order_by(
+            func.count(Trip.id).desc()
+        ).limit(limit)
     )
-    trip_count = trip_count_result.scalar() or 0
-
-    rating_result = await db.execute(
-        select(func.avg(Review.score), func.count(Review.id))
-        .where(Review.reviewed_id == trip.carrier_id)
-    )
-    avg_rating, review_count = rating_result.one()
-
-    return TripResponse(
-        id=trip.id,
-        carrier_id=trip.carrier_id,
-        origin_city=trip.origin_city,
-        origin_airport_code=trip.origin_airport_code,
-        destination_city=trip.destination_city,
-        destination_airport_code=trip.destination_airport_code,
-        departure_date=trip.departure_date,
-        departure_time=trip.departure_time,
-        arrival_date=str(trip.arrival_date) if trip.arrival_date else None,
-        arrival_time=trip.arrival_time,
-        flight_number=trip.flight_number,
-        airline=trip.airline,
-        total_kg=trip.total_kg,
-        remaining_kg=trip.remaining_kg,
-        max_kg_per_package=trip.max_kg_per_package,
-        price_per_kg=trip.price_per_kg,
-        weight_unit=trip.weight_unit,
-        currency=trip.currency,
-        status=trip.status,
-        trust_score=carrier.trust_score if carrier else 50.0,
-        carrier_full_name=carrier.full_name if carrier else None,
-        carrier_avatar_url=carrier.avatar_url if carrier else None,
-        carrier_kyc_status=carrier.kyc_status if carrier else None,
-        carrier_member_since=carrier.created_at.year if carrier else None,
-        carrier_trip_count=trip_count,
-        carrier_avg_rating=round(float(avg_rating), 1) if avg_rating else None,
-        carrier_review_count=review_count or 0,
-        carrier_username=carrier.username if carrier else None,
-    )
-
+    rows = result.fetchall()
+    return [
+        {
+            "origin": row.origin_airport_code,
+            "destination": row.destination_airport_code,
+            "label": f"{row.origin_airport_code} → {row.destination_airport_code}",
+            "origin_city": row.origin_city,
+            "destination_city": row.destination_city,
+            "trip_count": row.trip_count,
+        }
+        for row in rows
+    ]
 
 
 @router.get("/price-suggestion")
@@ -350,3 +334,63 @@ async def get_price_suggestion(
         "is_corridor_data": False,
         "note": "Aucune donnee disponible pour ce corridor",
     }
+
+
+@router.get("/{trip_id}", response_model=TripResponse)
+async def get_trip(
+    trip_id: str,
+    db: AsyncSession = Depends(get_db),
+    lang: str = Query("fr"),
+):
+    from sqlalchemy import func
+    from app.models.review import Review
+
+    result = await db.execute(select(Trip).where(Trip.id == trip_id))
+    trip = result.scalar_one_or_none()
+    if not trip:
+        raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
+
+    carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = carrier_result.scalar_one_or_none()
+
+    trip_count_result = await db.execute(
+        select(func.count()).where(Trip.carrier_id == trip.carrier_id, Trip.deleted_at.is_(None))
+    )
+    trip_count = trip_count_result.scalar() or 0
+
+    rating_result = await db.execute(
+        select(func.avg(Review.score), func.count(Review.id))
+        .where(Review.reviewed_id == trip.carrier_id)
+    )
+    avg_rating, review_count = rating_result.one()
+
+    return TripResponse(
+        id=trip.id,
+        carrier_id=trip.carrier_id,
+        origin_city=trip.origin_city,
+        origin_airport_code=trip.origin_airport_code,
+        destination_city=trip.destination_city,
+        destination_airport_code=trip.destination_airport_code,
+        departure_date=trip.departure_date,
+        departure_time=trip.departure_time,
+        arrival_date=str(trip.arrival_date) if trip.arrival_date else None,
+        arrival_time=trip.arrival_time,
+        flight_number=trip.flight_number,
+        airline=trip.airline,
+        total_kg=trip.total_kg,
+        remaining_kg=trip.remaining_kg,
+        max_kg_per_package=trip.max_kg_per_package,
+        price_per_kg=trip.price_per_kg,
+        weight_unit=trip.weight_unit,
+        currency=trip.currency,
+        status=trip.status,
+        trust_score=carrier.trust_score if carrier else 50.0,
+        carrier_full_name=carrier.full_name if carrier else None,
+        carrier_avatar_url=carrier.avatar_url if carrier else None,
+        carrier_kyc_status=carrier.kyc_status if carrier else None,
+        carrier_member_since=carrier.created_at.year if carrier else None,
+        carrier_trip_count=trip_count,
+        carrier_avg_rating=round(float(avg_rating), 1) if avg_rating else None,
+        carrier_review_count=review_count or 0,
+        carrier_username=carrier.username if carrier else None,
+    )

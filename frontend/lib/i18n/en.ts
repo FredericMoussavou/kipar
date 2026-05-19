@@ -188,7 +188,7 @@ export const en = {
 
     transport_cost: 'Transport',
 
-    commission: 'Kipar commission (13%)',
+    commission: 'Kipar management fees',
 
     total: 'Total',
 
@@ -604,6 +604,9 @@ export const en = {
   weight_unit_label: 'Weight unit',
   currency_label: 'Currency',
   trip_deleted: 'Listing deleted',
+  price_suggestion_corridor: 'Observed prices on this route:',
+  net_per_unit: 'Net received',
+  price_suggestion_global: 'Platform indicative prices:',
 
 },
 

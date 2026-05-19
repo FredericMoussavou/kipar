@@ -13,9 +13,11 @@ import Select from '@/components/ui/kipar/Select'
 import DatePicker from '@/components/ui/kipar/DatePicker'
 import TimePicker from '@/components/ui/kipar/TimePicker'
 import HeroHeader from '@/components/layout/HeroHeader'
+import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/theme'
 import { useAuthStore } from '@/stores/auth.store'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
 const schema = z.object({
@@ -39,6 +41,7 @@ export default function NewTripPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { user } = useAuthStore()
+  const isMobile = useIsMobile()
   const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
   const [tripCurrency, setTripCurrency] = useState(user?.currency ?? 'EUR')
 
@@ -55,8 +58,9 @@ export default function NewTripPage() {
   const [destSuggestions, setDestSuggestions] = useState<any[]>([])
   const [originSelected, setOriginSelected] = useState(false)
   const [destSelected, setDestSelected] = useState(false)
+  const [priceSuggestion, setPriceSuggestion] = useState<{ price_low: number | null; price_high: number | null; is_corridor_data: boolean } | null>(null)
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -83,20 +87,36 @@ export default function NewTripPage() {
     }
   }
 
+  const fetchPriceSuggestion = async (origin: string, destination: string) => {
+    try {
+      const res = await api.get('/trips/price-suggestion', { params: { origin, destination } })
+      const d = res.data
+      if (d.price_low !== null && d.price_high !== null) {
+        setPriceSuggestion({ price_low: d.price_low, price_high: d.price_high, is_corridor_data: d.is_corridor_data })
+      } else {
+        setPriceSuggestion(null)
+      }
+    } catch {
+      setPriceSuggestion(null)
+    }
+  }
+
   const selectOrigin = (a: any) => {
-    setOriginInput(a.code + ' — ' + a.city)
+    setOriginInput(a.code + ' \u2014 ' + a.city)
     setValue('origin_city', a.city)
     setValue('origin_airport_code', a.code)
     setOriginSuggestions([])
     setOriginSelected(true)
+    if (destSelected) fetchPriceSuggestion(a.code, destInput.split(' \u2014 ')[0])
   }
 
   const selectDest = (a: any) => {
-    setDestInput(a.code + ' — ' + a.city)
+    setDestInput(a.code + ' \u2014 ' + a.city)
     setValue('destination_city', a.city)
     setValue('destination_airport_code', a.code)
     setDestSuggestions([])
     setDestSelected(true)
+    if (originSelected) fetchPriceSuggestion(originInput.split(' \u2014 ')[0], a.code)
   }
 
   const onSubmit = async (data: FormData) => {
@@ -131,7 +151,7 @@ export default function NewTripPage() {
           <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL, fontSize: 13, minWidth: 36 }}>{a.code}</span>
           <div>
             <p style={{ fontSize: 13, color: CHARCOAL, fontWeight: 500, margin: 0 }}>{a.city}</p>
-            <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{a.name} · {a.country}</p>
+            <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{a.name} \u00b7 {a.country}</p>
           </div>
         </div>
       ))}
@@ -141,28 +161,17 @@ export default function NewTripPage() {
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      <HeroHeader
+      <HeroBackHeader
         imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        title={t.carrier.trip_form_title}
         minHeight={140}
         gradient="vertical"
-      >
-        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
-          <button
-            onClick={() => router.back()}
-            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <ArrowLeft size={16} color="#fff" />
-          </button>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
-            {t.carrier.trip_form_title}
-          </h1>
-        </div>
-      </HeroHeader>
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', gap: 16 }} className="md:max-w-3xl md:mx-auto">
 
         {/* Départ + Destination */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_departure}</p>
             <div style={{ position: 'relative' }}>
@@ -170,11 +179,11 @@ export default function NewTripPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
                 <input value={originInput}
-                  onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); searchAirports(e.target.value, setOriginSuggestions) }}
+                  onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); setPriceSuggestion(null); searchAirports(e.target.value, setOriginSuggestions) }}
                   placeholder={t.search.origin_placeholder}
                   style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {originInput && (
-                  <button type="button" onClick={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false); setValue('origin_city', ''); setValue('origin_airport_code', '') }}
+                  <button type="button" onClick={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false); setPriceSuggestion(null); setValue('origin_city', ''); setValue('origin_airport_code', '') }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     <X size={12} color={TAUPE} />
                   </button>
@@ -193,11 +202,11 @@ export default function NewTripPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
                 <input value={destInput}
-                  onChange={e => { setDestInput(e.target.value); setDestSelected(false); searchAirports(e.target.value, setDestSuggestions) }}
+                  onChange={e => { setDestInput(e.target.value); setDestSelected(false); setPriceSuggestion(null); searchAirports(e.target.value, setDestSuggestions) }}
                   placeholder={t.search.dest_placeholder}
                   style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }} />
                 {destInput && (
-                  <button type="button" onClick={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false); setValue('destination_city', ''); setValue('destination_airport_code', '') }}
+                  <button type="button" onClick={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false); setPriceSuggestion(null); setValue('destination_city', ''); setValue('destination_airport_code', '') }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     <X size={12} color={TAUPE} />
                   </button>
@@ -213,7 +222,7 @@ export default function NewTripPage() {
         {/* Vol */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <DatePicker label={t.carrier.date_label} value={departureDate}
               onChange={v => { setDepartureDate(v); setValue('departure_date', v) }}
               error={errors.departure_date?.message}
@@ -227,11 +236,11 @@ export default function NewTripPage() {
                 onChange={e => { register('flight_number').onChange(e); validateFlight(e.target.value) }}
               />
               {flightChecking && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
-              {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>✓ {t.carrier.flight_valid || 'Vol trouvé'}</p>}
-              {flightValid === false && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>⚠ {t.carrier.flight_not_found_advisory}</p>}
+              {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>{'\u2713'} {t.carrier.flight_valid || 'Vol trouvé'}</p>}
+              {flightValid === false && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>{'\u26a0'} {t.carrier.flight_not_found_advisory}</p>}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
             <TimePicker label={t.carrier.departure_time_label} value={departureTime}
               onChange={v => { setDepartureTime(v); setValue('departure_time', v) }} />
             <TimePicker label={t.carrier.arrival_time_label} value={arrivalTime}
@@ -243,7 +252,7 @@ export default function NewTripPage() {
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_capacity}</p>
           {/* Selecteurs unite et devise par trip */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.weight_unit_label ?? 'Unité de poids'}</p>
               <Select value={weightUnit} onChange={e => setWeightUnit(e.target.value as WeightUnit)}>
@@ -260,10 +269,27 @@ export default function NewTripPage() {
               </Select>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
             <Input label={`Capacite disponible (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
             <Input label={`Max par colis (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
-            <Input label={`Prix par ${unitLabel(weightUnit)} (${tripCurrency})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
+            <div>
+              <Input label={`Prix par ${unitLabel(weightUnit)} (${tripCurrency})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
+              {(() => {
+                const raw = parseFloat(watch('price_per_kg') || '0')
+                const net = raw * 0.98
+                return raw > 0 ? (
+                  <p style={{ fontSize: 11, color: '#16A34A', marginTop: 2, fontWeight: 600 }}>
+                    {'\u2192'} {t.carrier.net_per_unit ?? 'Net perçu'} : {net.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} {tripCurrency} / {unitLabel(weightUnit)}
+                  </p>
+                ) : null
+              })()}
+              {priceSuggestion && (
+                <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>
+                  {'\uD83D\uDCA1'} {priceSuggestion.is_corridor_data ? t.carrier.price_suggestion_corridor : t.carrier.price_suggestion_global}{' '}
+                  {priceSuggestion.price_low?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} {'\u2013'} {priceSuggestion.price_high?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} {tripCurrency} / {unitLabel(weightUnit)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

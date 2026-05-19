@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
 import HeroHeader from '@/components/layout/HeroHeader'
+import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import Select from '@/components/ui/kipar/Select'
 import api from '@/lib/api'
@@ -50,16 +51,11 @@ export default function CarrierRequestsPage() {
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
-      <HeroHeader imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80" minHeight={160}>
-        <div style={{ padding: '48px 24px 28px', position: 'relative' }}>
-          <button onClick={() => router.back()}
-            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <ArrowLeft size={16} color="#fff" />
-          </button>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', textAlign: 'center' }}>{t.requests.carrier_requests}</h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginTop: 4 }}>{requests.length} {t.requests.status_open.toLowerCase()}</p>
-        </div>
-      </HeroHeader>
+      <HeroBackHeader
+        imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80"
+        title={t.requests.carrier_requests}
+        minHeight={160}
+      />
 
       <div style={{ padding: '20px 16px 80px' }} className="md:max-w-2xl md:mx-auto">
         {isLoading ? (

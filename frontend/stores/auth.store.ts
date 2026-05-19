@@ -101,6 +101,7 @@ export const useAuthStore = create<AuthStore>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')
           document.cookie = 'kipar_token=; path=/; max-age=0'
+          window.location.href = '/login'
         }
       },
       isAuthenticated: () => !!get().token,

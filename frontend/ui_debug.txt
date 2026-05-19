@@ -1,0 +1,284 @@
+          aria-label={t.chat.title}
+        >
+          <MessageCircle size={22} color={WHITE} />
+        </button>
+      )}
+
+      {chatOpen && (
+        <ChatModal
+          bookingId={String(id)}
+          bookingStatus={booking.status}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
+
+      {isCarrier && booking.status === 'in_transit' && (
+        <button onClick={() => setPickupFailedOpen(true)}
+          style={{ position: 'fixed', bottom: 212, right: 20, zIndex: 100,
+            width: 52, height: 52, borderRadius: '50%', background: '#F59E0B',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', boxShadow: '0 4px 16px rgba(245,158,11,0.3)' }}
+          aria-label={t.packages.pickup_failed_btn}>
+          <AlertTriangle size={22} color={WHITE} />
+        </button>
+      )}
+      {isSender && booking.status === 'pickup_failed' && (
+        <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 16, padding: 16, marginBottom: 12 }}>
+          <p style={{ fontSize: 12, color: '#C2410C', fontWeight: 600, marginBottom: 12 }}>{t.packages.pickup_failed_warning}</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleConfirmPickupFailed} disabled={confirmPickupFailedLoading}
+              style={{ flex: 1, padding: '10px 12px', background: SAND, color: CHARCOAL, border: '1px solid ' + BORDER, borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {confirmPickupFailedLoading ? '...' : t.packages.confirm_pickup_failed}
+            </button>
+            <button onClick={() => setDisputeOpen(true)}
+              style={{ flex: 1, padding: '10px 12px', background: RED, color: WHITE, border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {t.packages.dispute_btn}
+            </button>
+          </div>
+        </div>
+      )}
+      {(isSender && ['pending','accepted','paid'].includes(booking.status) || isCarrier && booking.status === 'accepted') && (
+        <button onClick={() => setCancelOpen(true)}
+--
+            style={{ padding: '10px 20px', background: RED, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.5 : 1, minWidth: 100 }}>
+            {cancelling ? '...' : t.packages.cancel_booking}
+          </button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={pickupFailedOpen} onClose={() => { setPickupFailedOpen(false); setPickupFailedReason('') }} title={t.packages.pickup_failed_title}>
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, color: '#92400E' }}>{t.packages.pickup_failed_warning}</p>
+        </div>
+        <textarea value={pickupFailedReason} onChange={e => setPickupFailedReason(e.target.value)}
+          placeholder={t.packages.pickup_failed_placeholder} rows={3}
+          style={{ width: '100%', borderRadius: 10, border: '1px solid ' + BORDER, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', marginBottom: 12, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => { setPickupFailedOpen(false); setPickupFailedReason('') }} disabled={pickupFailedLoading}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={handlePickupFailed} disabled={pickupFailedLoading}
+            style={{ padding: '10px 20px', background: '#F59E0B', color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: pickupFailedLoading ? 'not-allowed' : 'pointer', opacity: pickupFailedLoading ? 0.5 : 1 }}>
+            {pickupFailedLoading ? '...' : t.packages.pickup_failed_btn}
+          </button>
+        </div>
+      </Modal>
+      <Modal isOpen={disputeOpen} onClose={() => { setDisputeOpen(false); setDisputeReason(''); setDisputeType('other'); setDisputeStage('delivery'); setDisputeValue(''); setDisputePhotos([]); setDisputeAirline('') }} title={t.packages.dispute_title}>
+        {/* Type d'incident */}
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: CHARCOAL, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>{t.packages.dispute_type}</label>
+          <Select value={disputeType} onChange={e => setDisputeType(e.target.value)}
+            style={{ width: '100%' }}>
+            <option value='' disabled>{t.packages.dispute_type}</option>
+            <option value='pickup_failed'>{t.packages.dispute_type_pickup}</option>
+            <option value='delivery_failed'>{t.packages.dispute_type_delivery}</option>
+            <option value='damaged'>{t.packages.dispute_type_damaged}</option>
+            <option value='lost'>{t.packages.dispute_type_lost}</option>
+            <option value='wrong_content'>{t.packages.dispute_type_wrong_content}</option>
+            <option value='other'>{t.packages.dispute_type_other}</option>
+          </Select>
+        </div>
+        {/* Moment de l'incident */}
+        <div style={{ marginBottom: 10 }}>
+        reason: reason,
+        incident_type: disputeType,
+        incident_stage: disputeStage,
+        declared_value: disputeValue ? parseFloat(disputeValue) : undefined,
+        evidence_urls: disputePhotos,
+        airline: disputeAirline || undefined,
+      })
+      toast.success(t.packages.dispute_opened)
+      setDisputeOpen(false)
+      setDisputeReason('')
+      if (disputeReasonRef.current) disputeReasonRef.current.value = ''
+      setDisputeType('other')
+      setDisputeStage('delivery')
+      setDisputeValue('')
+      setDisputePhotos([])
+      setDisputeAirline('')
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch { toast.error(t.errors.generic) }
+    finally { setDisputeLoading(false) }
+  }
+
+  const isSender_ = user?.id === booking?.sender_id
+  const isReceiver_ = user?.id === booking?.receiver_id
+
+  const reviewTargetIdForQuery = booking ? (
+    isSender_ ? booking.carrier_id :
+    isReceiver_ ? booking.carrier_id :
+    booking.sender_id
+  ) : null
+
+  const { data: canReviewData } = useQuery({
+    queryKey: ['can-review', id, reviewTargetIdForQuery],
+    enabled: !!booking && !!reviewTargetIdForQuery && ['delivered','cancelled_by_carrier','cancelled_by_sender'].includes(booking.status),
+    queryFn: async () => (await api.get(`/reviews/booking/${id}/can-review?reviewed_id=${reviewTargetIdForQuery}`)).data,
+  })
+
+  const reviewMutation = useMutation({
+    mutationFn: async () => api.post('/reviews', {
+      booking_id: id,
+      reviewed_id: reviewTargetId,
+      criteria: criteriaScores,
+      comment: reviewCommentRef.current?.value || null,
+    }),
+    onSuccess: () => {
+      setReviewOpen(false)
+      setCriteriaScores({})
+      if (reviewCommentRef.current) reviewCommentRef.current.value = ''
+      queryClient.invalidateQueries({ queryKey: ['can-review', id, reviewTargetIdForQuery] })
+    },
+  })
+
+  useEffect(() => {
+    if (!deliveryData?.qr_token || !canvasRef.current) return
+    QRCode.toCanvas(canvasRef.current, deliveryData.qr_token, {
+      width: 180,
+      margin: 2,
+      color: { dark: '#1a1a1a', light: '#f5f3f0' },
+    }).catch(console.error)
+  }, [deliveryData])
+
+  const canSeeCode = !!(booking && user?.id === booking?.receiver_id && booking.status === 'in_transit')
+
+
+
+  const generateCode = async () => {
+    if (!booking) return
+    setGenerating(true)
+    try {
+      const res = await api.post(`/delivery/${booking.id}/generate-code`)
+      setDeliveryData(res.data)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+    } catch {
+      // erreur silencieuse
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  if (isLoading) return (
+    <div style={{ padding: 20, paddingTop: 80 }}>
+      {[1, 2, 3].map(i => (
+        <div key={i} style={{ height: 100, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER, marginBottom: 12 }} />
+      ))}
+    </div>
+  )
+
+  if (!booking) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <p style={{ color: TAUPE }}>{t.package_detail.not_found}</p>
+    </div>
+  )
+
+  // Détermine le rôle de l'utilisateur connecté
+  const isSender = isSender_
+  const isReceiver = isReceiver_
+  const isCarrier = !isSender && !isReceiver
+
+  const getDaysUntilDeparture = () => {
+    if (!booking?.departure_date) return 999
+    const dep = new Date(booking.departure_date)
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    dep.setHours(0,0,0,0)
+    return Math.floor((dep.getTime() - today.getTime()) / (1000*60*60*24))
+  }
+
+  const getRefundMsg = () => {
+    if (!booking || booking.status === 'pending') return t.packages.refund_full
+    const days = getDaysUntilDeparture()
+    if (days <= 0) return t.packages.refund_none
+    if (days < 3) return t.packages.refund_partial
+    return t.packages.refund_full
+  }
+
+  const handleCancel = async () => {
+    if (!booking) return
+    if (!cancelReason.trim()) { toast.error(t.packages.cancel_reason_required); return }
+    setCancelling(true)
+    try {
+      await api.patch(`/bookings/${booking.id}/cancel`, { reason: cancelReason.trim() })
+      toast.success(t.packages.booking_cancelled)
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      setCancelOpen(false)
+      setCancelReason('')
+    } catch { toast.error(t.errors.generic) }
+    finally { setCancelling(false) }
+  }
+
+
+  return (
+    <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
+
+      <HeroHeader
+        imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        minHeight={180}
+        gradient="vertical"
+      >
+        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
+          <button onClick={() => router.back()}
+            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <ArrowLeft size={16} color="#fff" />
+          </button>
+          {booking.origin_airport_code && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 8 }}>
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 800, color: '#fff' }}>{booking.origin_airport_code}</p>
+              <Plane size={20} color="rgba(255,255,255,0.6)" />
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 800, color: '#fff' }}>{booking.destination_airport_code}</p>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <StatusBadge status={booking.status} />
+          </div>
+          {booking.departure_date && (
+            <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
+              {booking.flight_number && `${booking.flight_number} · `}{booking.departure_date}
+            </p>
+          )}
+        </div>
+      </HeroHeader>
+
+      <div style={{ padding: '16px 16px 80px' }} className="md:max-w-2xl md:mx-auto">
+
+        {/* Colis */}
+        <Section title={t.package_detail.section_package}>
+          <InfoRow label={t.package_detail.field_content} value={booking.content_description} />
+          <InfoRow label={t.package_detail.field_weight} value={booking.weight_kg ? `${booking.weight_kg} kg` : null} />
+          <InfoRow label={t.package_detail.field_declared_value} value={booking.declared_value ? `${booking.declared_value}€` : null} />
+          <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
+          <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
+          {booking.ai_prohibited_flag && (
+            <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, padding: '8px 12px', marginTop: 8 }}>
+              <p style={{ fontSize: 12, color: '#F59E0B', fontWeight: 500 }}>{t.package_detail.ai_flag_warning}</p>
+            </div>
+          )}
+        </Section>
+
+        {/* Transporteur — visible par expéditeur et récepteur */}
+        {(isSender || isReceiver) && (booking.carrier_first_name || booking.carrier_last_name) && (
+          <Section title={t.package_detail.section_carrier}>
+            <PersonCard
+              firstName={booking.carrier_first_name}
+              lastName={booking.carrier_last_name}
+              kycStatus={booking.carrier_kyc_status}
+              trustScore={booking.carrier_trust_score}
+              role={t.package_detail.role_carrier}
+              onPress={() => router.push(`/profile/${booking.carrier_id}`)}
+              t={t}
+            />
+          </Section>
+        )}
+
+        {/* Expéditeur — visible par transporteur et récepteur */}
+        {(isCarrier || isReceiver) && booking.sender_first_name && (
+          <Section title={t.package_detail.section_sender}>
+            <PersonCard
+              firstName={booking.sender_first_name}
+              lastName={booking.sender_last_name}
+              email={booking.sender_email}
+              role={t.package_detail.role_sender}
+              onPress={() => router.push(`/profile/${booking.sender_id}`)}
+              t={t}

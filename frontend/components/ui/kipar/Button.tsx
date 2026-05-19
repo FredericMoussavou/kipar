@@ -14,7 +14,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   variant = 'primary', size = 'md', loading = false,
   fullWidth = false, className, children, disabled, ...props
 }, ref) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-sans font-semibold rounded-pill transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]'
+  const base = 'inline-flex items-center justify-center gap-2 font-sans font-semibold rounded-[10px] transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]'
 
   const variants = {
     primary: 'text-white shadow-red',

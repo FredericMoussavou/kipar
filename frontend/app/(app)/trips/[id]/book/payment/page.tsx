@@ -8,6 +8,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
+import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 import { loadStripe } from '@stripe/stripe-js'
@@ -98,6 +99,8 @@ export default function PaymentPage() {
   const declaredValue = parseFloat(searchParams.get('declared_value') || '0') || 0
   const baseAmount = parseFloat(amount || '0') || 0
   const totalAmount = baseAmount.toFixed(2)
+  const transportAmount = parseFloat(searchParams.get('transport') || '0') || 0
+  const feesAmount = transportAmount > 0 ? baseAmount - transportAmount : 0
 
   const handleStripeSuccess = () => {
     toast.success(t.payment.success ?? 'Paiement confirmé !')
@@ -130,26 +133,13 @@ export default function PaymentPage() {
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
-      <HeroHeader
+      <HeroBackHeader
         imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
+        title={t.payment.title}
         minHeight={160}
         gradient="vertical"
-      >
-        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
-          <button
-            onClick={() => router.back()}
-            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <ArrowLeft size={16} color="#fff" />
-          </button>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
-            {t.payment.title}
-          </h1>
-          <p style={{ textAlign: 'center', fontSize: 28, fontWeight: 800, marginTop: 8, fontFamily: 'var(--font-syne,Syne)', color: '#fff' }}>
-            {totalAmount}€
-          </p>
-        </div>
-      </HeroHeader>
+        rightSlot={<p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: '#fff' }}>{totalAmount}€</p>}
+      />
 
       <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}
         className="md:max-w-2xl md:mx-auto">
@@ -171,10 +161,25 @@ export default function PaymentPage() {
           </div>
         ))}
 
-        {/* Résumé montant */}
-        <div style={{ background: SAND, borderRadius: 14, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: CHARCOAL2 }}>{t.payment.total}</span>
-          <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
+        {/* Récapitulatif */}
+        <div style={{ background: SAND, borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{t.booking.subtitle ?? 'Détail'}</p>
+          {transportAmount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: CHARCOAL2 }}>
+              <span>{t.booking.transport_cost}</span>
+              <span>{transportAmount.toFixed(2)}€</span>
+            </div>
+          )}
+          {feesAmount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: CHARCOAL2 }}>
+              <span>{t.booking.commission}</span>
+              <span>{feesAmount.toFixed(2)}€</span>
+            </div>
+          )}
+          <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
+            <span>{t.payment.total}</span>
+            <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
+          </div>
         </div>
 
         {/* Politique annulation */}

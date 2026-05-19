@@ -10,6 +10,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
 import DatePicker from '@/components/ui/kipar/DatePicker'
 import HeroHeader from '@/components/layout/HeroHeader'
+import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, WHITE, GREEN } from '@/lib/theme'
 import { useAuthStore } from '@/stores/auth.store'
@@ -148,21 +149,12 @@ export default function NewRequestPage() {
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
-      <HeroHeader
+      <HeroBackHeader
         imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80"
+        title={t.requests.form_title}
         minHeight={160}
         gradient="vertical"
-      >
-        <div style={{ padding: '48px 20px 24px', position: 'relative' }}>
-          <button onClick={() => router.back()}
-            style={{ position: 'absolute', top: 48, left: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <ArrowLeft size={16} color="#fff" />
-          </button>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
-            {t.requests.form_title}
-          </h1>
-        </div>
-      </HeroHeader>
+      />
 
       <form onSubmit={handleSubmit(onSubmit)}
         style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}

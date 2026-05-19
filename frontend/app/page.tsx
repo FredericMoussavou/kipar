@@ -145,6 +145,14 @@ export default function LandingPage() {
   const { ref: whyRef, inView: whyInView } = useInView()
   const { ref: corridorRef, inView: corridorInView } = useInView()
   const { ref: testimonialRef, inView: testimonialInView } = useInView()
+  const [corridorsData, setCorridorsData] = useState<{ origin_city: string; destination_city: string; origin: string; destination: string }[]>([])
+
+  useEffect(() => {
+    fetch((process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1') + '/trips/corridors?limit=8')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setCorridorsData(data) })
+      .catch(() => {})
+  }, [])
 
   const px = isMobile ? 20 : 48
 
@@ -343,12 +351,17 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 28 : 36, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', marginBottom: 28, textAlign: 'center' }}>{t.landing.corridors_title}</h2>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[{ from: 'Paris CDG', to: 'Abidjan', flag: '🇫🇷→🇨🇮' }, { from: 'Paris CDG', to: 'Dakar', flag: '🇫🇷→🇸🇳' }, { from: 'Paris CDG', to: 'Libreville', flag: '🇫🇷→🇬🇦' }, { from: 'Paris ORY', to: 'Douala', flag: '🇫🇷→🇨🇲' }, { from: 'Paris CDG', to: 'Lagos', flag: '🇫🇷→🇳🇬' }, { from: 'Paris CDG', to: 'Casablanca', flag: '🇫🇷→🇲🇦' }, { from: 'Lyon', to: 'Kinshasa', flag: '🇫🇷→🇨🇩' }, { from: 'Paris CDG', to: 'Accra', flag: '🇫🇷→🇬🇭' }].map((c, i) => (
+            {(corridorsData.length > 0 ? corridorsData : [
+              { origin: 'CDG', destination: 'ABJ', origin_city: 'Paris CDG', destination_city: 'Abidjan' },
+              { origin: 'CDG', destination: 'DSS', origin_city: 'Paris CDG', destination_city: 'Dakar' },
+              { origin: 'CDG', destination: 'LBV', origin_city: 'Paris CDG', destination_city: 'Libreville' },
+              { origin: 'ORY', destination: 'DLA', origin_city: 'Paris ORY', destination_city: 'Douala' },
+              { origin: 'CDG', destination: 'LOS', origin_city: 'Paris CDG', destination_city: 'Lagos' },
+            ]).map((cor, i) => (
               <div key={i} style={{ background: WHITE, borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 2px 10px rgba(0,0,0,0.05)', opacity: corridorInView ? 1 : 0, transform: corridorInView ? 'translateY(0)' : 'translateY(12px)', transition: `opacity 0.4s ease ${i * 0.05}s, transform 0.4s ease ${i * 0.05}s`, cursor: 'pointer' }}>
-                <span style={{ fontSize: 14 }}>{c.flag}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>{c.from}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: R }}>{cor.origin}</span>
                 <span style={{ fontSize: 10, color: TAUPE }}>→</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>{c.to}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>{cor.destination_city}</span>
               </div>
             ))}
           </div>

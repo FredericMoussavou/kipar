@@ -317,6 +317,69 @@ async def change_password(
     return {"message": t("success.password_changed", lang)}
 
 
+class GoogleCodeRequest(BaseModel):
+    code: str
+    redirect_uri: str
+
+
+@router.post("/google/code", response_model=TokenResponse)
+async def google_code(
+    payload: GoogleCodeRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Echange un authorization code Google contre un token KIPAR."""
+    import httpx
+    from app.services.oauth_service import verify_google_token
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": payload.code,
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": payload.redirect_uri,
+                "grant_type": "authorization_code",
+            },
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=400, detail="Code Google invalide")
+
+    id_token = resp.json().get("id_token")
+    if not id_token:
+        raise HTTPException(status_code=400, detail="Token Google manquant")
+
+    google_user = await verify_google_token(id_token)
+    if not google_user:
+        raise HTTPException(status_code=401, detail="Token Google invalide")
+
+    # Chercher ou créer l'utilisateur
+    result = await db.execute(select(User).where(User.google_id == google_user['sub']))
+    user = result.scalar_one_or_none()
+    if not user:
+        result = await db.execute(select(User).where(User.email == google_user['email']))
+        user = result.scalar_one_or_none()
+    if user:
+        if not user.google_id:
+            user.google_id = google_user['sub']
+    else:
+        user = User(
+            email=google_user['email'],
+            first_name=google_user.get('given_name', '') or google_user['email'].split('@')[0],
+            last_name=google_user.get('family_name', '') or '',
+            hashed_password='',
+            is_active=True,
+            google_id=google_user['sub'],
+        )
+        db.add(user)
+        await db.flush()
+
+    return TokenResponse(
+        access_token=create_access_token(str(user.id)),
+        refresh_token=create_refresh_token(str(user.id)),
+    )
+
+
 @router.post("/logout")
 async def logout(
     request: Request,

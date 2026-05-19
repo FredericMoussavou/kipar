@@ -26,6 +26,9 @@ import {
   Headphones,
   Scale,
   CreditCard,
+  TrendingUp,
+  Plane,
+  Crown,
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -633,6 +636,49 @@ export default function ProfilePage() {
             </div>
           </div>
         </Card>
+
+      {/* Premium */}
+      <SectionTitle title="KIPAR Premium" />
+      <Card>
+        <Link href="/premium" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none' }}>
+          <Crown size={16} color="#F59E0B" />
+          <div style={{ flex: 1 }}>
+            {user?.is_premium
+              ? <p style={{ fontSize: 13, fontWeight: 600, color: '#B45309', margin: 0 }}>Abonnement Premium actif</p>
+              : <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Passer en Premium</p>
+            }
+            <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>
+              {user?.is_premium ? 'Gérer mon abonnement' : 'Débloquer toutes les fonctionnalités'}
+            </p>
+          </div>
+          <ChevronRight size={16} color={TAUPE} />
+        </Link>
+      </Card>
+
+      {/* Espace transporteur */}
+      {user?.is_carrier && (
+        <>
+          <SectionTitle title="Espace transporteur" />
+          <Card>
+            <Link href="/carrier/finance" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none', borderBottom: `1px solid ${SAND}` }}>
+              <TrendingUp size={16} color={TAUPE} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Mes finances</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>Revenus, historique, export fiscal</p>
+              </div>
+              <ChevronRight size={16} color={TAUPE} />
+            </Link>
+            <Link href="/carrier" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none' }}>
+              <Plane size={16} color={TAUPE} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Tableau de bord transporteur</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>Mes trajets et réservations</p>
+              </div>
+              <ChevronRight size={16} color={TAUPE} />
+            </Link>
+          </Card>
+        </>
+      )}
 
       {/* Support */}
       <SectionTitle title={t.support.section_title} />

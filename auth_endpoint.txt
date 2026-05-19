@@ -76,7 +76,6 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    user: dict | None = None
 
 
 class RefreshRequest(BaseModel):
@@ -119,11 +118,9 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     lang = user.language if user else "fr"
     if not user or not user.is_active or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
-    from app.api.v1.endpoints.users import _serialize_me
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
-        user=_serialize_me(user),
     )
 
 

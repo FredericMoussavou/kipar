@@ -93,13 +93,24 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', data)
       setToken(res.data.access_token)
-      const me = await api.get('/users/me')
-      setUser(me.data)
-      if (me.data.language) setLangCookie(me.data.language as SupportedLang)
-      if (!me.data.onboarding_completed) {
-        router.push('/onboarding')
+      const userData = res.data.user
+      if (userData) {
+        setUser(userData)
+        if (userData.language) setLangCookie(userData.language as SupportedLang)
+        if (!userData.onboarding_completed) {
+          router.push('/onboarding')
+        } else {
+          router.push('/dashboard')
+        }
       } else {
-        router.push('/dashboard')
+        const me = await api.get('/users/me')
+        setUser(me.data)
+        if (me.data.language) setLangCookie(me.data.language as SupportedLang)
+        if (!me.data.onboarding_completed) {
+          router.push('/onboarding')
+        } else {
+          router.push('/dashboard')
+        }
       }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t.errors.invalid_credentials)

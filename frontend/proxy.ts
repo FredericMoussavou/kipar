@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 const PUBLIC_PATHS = ['/', '/splash', '/login', '/register', '/forgot-password', '/onboarding', '/privacy', '/cgu', '/mentions-legales', '/cookies', '/legal', '/auth/google/callback']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('kipar_token')?.value
 

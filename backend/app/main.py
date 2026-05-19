@@ -81,7 +81,7 @@ app.add_middleware(
 if settings.is_production:
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["kipar.app", "*.kipar.app"]
+        allowed_hosts=["kipar.app", "*.kipar.app", "*.railway.app", "healthcheck.railway.app", "localhost", "127.0.0.1"]
     )
 
 app.include_router(api_router, prefix="/api/v1")

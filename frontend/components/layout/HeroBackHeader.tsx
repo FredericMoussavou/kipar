@@ -40,11 +40,11 @@ export default function HeroBackHeader({
       <div style={{ position: 'absolute', inset: 0, background: bg }} />
       <div style={{
         position: 'relative', zIndex: 50,
-        padding: '48px 20px 24px',
+        padding: '48px 16px 24px',
         display: 'grid',
-        gridTemplateColumns: '40px 1fr 40px',
+        gridTemplateColumns: '44px 1fr 44px',
         alignItems: 'center',
-        gap: 8,
+        gap: 4,
         '--k-bg': '#ffffff',
         '--k-white': '#ffffff',
         '--k-charcoal': '#3D3D3D',

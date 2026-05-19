@@ -138,7 +138,6 @@ export default function PaymentPage() {
         title={t.payment.title}
         minHeight={160}
         gradient="vertical"
-        rightSlot={<p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: '#fff' }}>{totalAmount}€</p>}
       />
 
       <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}

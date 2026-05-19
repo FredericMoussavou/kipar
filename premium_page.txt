@@ -6,7 +6,6 @@ import { Check, Zap, Shield, TrendingUp, Bell, Camera, Star, Crown, ArrowLeft } 
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/kipar'
-import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
@@ -82,13 +81,29 @@ export default function PremiumPage() {
   return (
     <div style={{ background: SAND, minHeight: '100vh', paddingBottom: 100 }}>
 
-      <HeroBackHeader
-        imageUrl="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80"
-        title="KIPAR Premium"
-        subtitle="Transportez sans limites"
-        minHeight={160}
-        gradient="vertical"
-      />
+      {/* Header */}
+      <div style={{ background: `linear-gradient(135deg, #1A1A1A 0%, #2d1a00 60%, #1a0a00 100%)`, padding: '48px 20px 40px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -100, right: -100, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)' }} />
+        <div style={{ maxWidth: 600, margin: '0 auto', position: 'relative' }}>
+          <button onClick={() => router.back()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '7px 14px', fontSize: 12, color: 'rgba(255,255,255,0.8)', cursor: 'pointer', marginBottom: 24 }}>
+            <ArrowLeft size={13} /> Retour
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Crown size={22} color={GOLD} />
+            </div>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: GOLD, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>KIPAR Premium</p>
+              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
+                Transportez sans limites
+              </h1>
+            </div>
+          </div>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.6 }}>
+            Débloquez toutes les fonctionnalités KIPAR pour envoyer et transporter sans contraintes.
+          </p>
+        </div>
+      </div>
 
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px' }}>
 
@@ -124,10 +139,10 @@ export default function PremiumPage() {
               </button>
               {/* Annuel */}
               <button type="button" onClick={() => setSelectedPlan('annual')}
-                style={{ padding: '16px', borderRadius: 12, border: `2px solid ${selectedPlan === 'annual' ? GOLD : BORDER}`, background: selectedPlan === 'annual' ? GOLD_LIGHT : WHITE, cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', overflow: 'visible', minWidth: 0 }}>
+                style={{ padding: '16px', borderRadius: 12, border: `2px solid ${selectedPlan === 'annual' ? GOLD : BORDER}`, background: selectedPlan === 'annual' ? GOLD_LIGHT : WHITE, cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s' }}>
                 <div style={{ position: 'absolute', top: -10, right: 10, background: RED, color: WHITE, fontSize: 9, fontWeight: 800, borderRadius: 99, padding: '3px 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>-33%</div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: selectedPlan === 'annual' ? GOLD_DARK : TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Annuel</p>
-                <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 900, color: selectedPlan === 'annual' ? GOLD_DARK : CHARCOAL, margin: '0 0 2px' }}>79,99€</p>
+                <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 24, fontWeight: 900, color: selectedPlan === 'annual' ? GOLD_DARK : CHARCOAL, margin: '0 0 2px' }}>79,99€</p>
                 <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>par an · soit 6,67€/mois</p>
               </button>
             </div>

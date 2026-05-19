@@ -493,16 +493,37 @@ export default function ProfilePage() {
             marginBottom: 16,
           }}
         >
-          <div
-            onClick={() => setAvatarModalOpen(true)}
+          <label
+            htmlFor="avatar-upload-input"
             style={{
               position: 'relative',
               width: 96,
               height: 96,
               margin: '0 auto 12px',
               cursor: 'pointer',
+              display: 'block',
             }}
           >
+          <input
+            id="avatar-upload-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: 'none' }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              try {
+                validateAvatarFile(file)
+                const url = await uploadAvatar(file)
+                patchUser({ avatar_url: url })
+                showToast(t.profile_edit.upload_success, 'success')
+                refreshUser().catch(() => {})
+              } catch (err: any) {
+                showToast(err?.message || t.profile_edit.upload_error, 'error')
+              }
+              e.target.value = ''
+            }}
+          />
             <div
               style={{
                 width: '100%',
@@ -553,7 +574,7 @@ export default function ProfilePage() {
             >
               <Camera size={14} color={WHITE} />
             </div>
-          </div>
+          </label>
 
           <h1
             style={{

@@ -441,34 +441,34 @@ async def get_public_user(
     if not user or not user.is_active:
         raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
 
-    sender_q = await db.execute(
-        select(func.count(Booking.id)).where(
-            Booking.sender_id == user.id,
-            Booking.status == "delivered",
-        )
+    import asyncio
+    sender_q, carrier_q, trips_q, reviews_q = await asyncio.gather(
+        db.execute(
+            select(func.count(Booking.id)).where(
+                Booking.sender_id == user.id,
+                Booking.status == "delivered",
+            )
+        ),
+        db.execute(
+            select(func.count(Booking.id))
+            .join(Trip, Booking.trip_id == Trip.id)
+            .where(
+                Trip.carrier_id == user.id,
+                Booking.status == "delivered",
+            )
+        ),
+        db.execute(
+            select(func.count(Trip.id)).where(Trip.carrier_id == user.id)
+        ),
+        db.execute(
+            select(func.count(Review.id), func.avg(Review.score)).where(
+                Review.reviewed_id == user.id
+            )
+        ),
     )
     deliveries_as_sender = sender_q.scalar() or 0
-
-    carrier_q = await db.execute(
-        select(func.count(Booking.id))
-        .join(Trip, Booking.trip_id == Trip.id)
-        .where(
-            Trip.carrier_id == user.id,
-            Booking.status == "delivered",
-        )
-    )
     deliveries_as_carrier = carrier_q.scalar() or 0
-
-    trips_q = await db.execute(
-        select(func.count(Trip.id)).where(Trip.carrier_id == user.id)
-    )
     trips_count = trips_q.scalar() or 0
-
-    reviews_q = await db.execute(
-        select(func.count(Review.id), func.avg(Review.score)).where(
-            Review.reviewed_id == user.id
-        )
-    )
     reviews_count, avg_rating = reviews_q.one()
     reviews_count = reviews_count or 0
     avg_rating = round(avg_rating, 1) if avg_rating is not None else None

@@ -4,7 +4,7 @@ from app.i18n.loader import t
 
 resend.api_key = settings.RESEND_API_KEY
 
-FROM_EMAIL = "Kipar <onboarding@resend.dev>"  # Remplacer par noreply@kipar.app en prod
+FROM_EMAIL = "Kipar <noreply@kipar.app>"
 
 
 async def send_receiver_invitation(

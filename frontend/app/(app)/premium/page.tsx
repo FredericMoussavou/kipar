@@ -47,18 +47,14 @@ export default function PremiumPage() {
     api.get('/premium/status').then(r => setStatus(r.data)).finally(() => setLoading(false))
   }, [])
 
-  const handleSubscribe = async (rail: 'stripe' | 'flutterwave') => {
+  const handleSubscribe = async (rail: 'stripe' | 'cinetpay') => {
+    if (rail === 'cinetpay') return // TODO: CinetPay integration
     setSubscribing(true)
     try {
-      // Simulation — en prod, déclencher le flow Stripe/Flutterwave
-      // et passer le payment_ref réel
-      const res = await api.post('/premium/subscribe', {
+      const res = await api.post('/premium/create-checkout-session', {
         plan: selectedPlan,
-        payment_rail: rail,
-        payment_ref: `sim_${Date.now()}`,
       })
-      setStatus({ is_premium: true, plan: selectedPlan, expires_at: res.data.expires_at })
-      alert('Abonnement activé ! Rechargez la page pour voir les changements.')
+      window.location.href = res.data.url
     } catch (err: any) {
       alert(err?.response?.data?.detail || 'Erreur lors de la souscription')
     } finally {
@@ -139,10 +135,10 @@ export default function PremiumPage() {
                 <svg width="20" height="20" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#635BFF"/><path d="M13.5 12.5c0-1.1.9-1.5 2.3-1.5 2 0 4.6.6 6.2 1.7V8.4C20.4 7.5 18.4 7 16 7c-4.4 0-7.3 2.3-7.3 6 0 5.8 8 4.9 8 7.4 0 1.3-1.1 1.7-2.6 1.7-2.3 0-5.1-.9-7-2.3v4.5C8.8 25.5 11 26 13.4 26c4.5 0 7.6-2.2 7.6-6.1-.1-6.3-8-5.2-8-7.4z" fill="white"/></svg>
                 Payer avec Stripe
               </button>
-              <button type="button" onClick={() => handleSubscribe('flutterwave')} disabled={subscribing}
-                style={{ width: '100%', padding: '14px', borderRadius: 12, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: subscribing ? 'not-allowed' : 'pointer', opacity: subscribing ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#F5A623"/><text x="8" y="27" fontSize="16" fontWeight="bold" fill="white">Fw</text></svg>
-                Payer avec Flutterwave
+              <button type="button" onClick={() => handleSubscribe('cinetpay')} disabled={true}
+                style={{ width: '100%', padding: '14px', borderRadius: 12, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', opacity: 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#009A44"/><text x="6" y="27" fontSize="13" fontWeight="bold" fill="white">CP</text></svg>
+                CinetPay (bientôt disponible)
               </button>
             </div>
             <p style={{ fontSize: 11, color: TAUPE, textAlign: 'center', margin: '12px 0 0' }}>

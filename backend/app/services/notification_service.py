@@ -93,8 +93,8 @@ async def send_email(to: str, subject: str, html: str) -> bool:
         })
         return True
     except Exception as e:
-        logger.error(f"Email failed: {e}")
-        return False
+        logger.error(f"Email failed: {e}", exc_info=True)
+        raise
 
 
 # ── Notifications métier Kipar ──

@@ -189,8 +189,15 @@ async def accept_booking(
     trip = result.scalar_one_or_none()
     if trip.carrier_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if booking.status not in ("pending", "awaiting_receiver"):
+    if booking.status not in ("pending", "awaiting_receiver", "paid"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    # Capture Stripe si paiement en escrow
+    if booking.escrow_ref and booking.payment_rail == "stripe":
+        from app.services.stripe_service import capture_payment_intent
+        captured = await capture_payment_intent(booking.escrow_ref)
+        if not captured:
+            raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
 
     # Récupère le poids réel depuis le package
     pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
@@ -285,8 +292,14 @@ async def refuse_booking(
     trip = result.scalar_one_or_none()
     if trip.carrier_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if booking.status not in ("pending", "awaiting_receiver"):
+    if booking.status not in ("pending", "awaiting_receiver", "paid"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    # Annuler le PaymentIntent Stripe et rembourser (- 1.5EUR frais de gestion)
+    if booking.escrow_ref and booking.payment_rail == "stripe":
+        from app.services.stripe_service import cancel_payment_intent
+        await cancel_payment_intent(booking.escrow_ref)
+        booking.booking_fee_collected = True
 
     booking.status = "refused"
     sender_ref_result = await db.execute(select(User).where(User.id == booking.sender_id))

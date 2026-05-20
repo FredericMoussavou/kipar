@@ -30,7 +30,7 @@ async def initiate_stripe_payment(
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.sender_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if booking.status not in ("pending", "accepted"):
+    if booking.status not in ("pending", "accepted", "awaiting_receiver"):
         raise HTTPException(status_code=400, detail=t("errors.booking_not_accepted", lang))
 
     result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
@@ -46,6 +46,8 @@ async def initiate_stripe_payment(
 
     booking.escrow_ref = intent["id"]
     booking.payment_rail = "stripe"
+    booking.status = "paid"
+    await db.commit()
 
     return PaymentIntentResponse(
         booking_id=booking.id,

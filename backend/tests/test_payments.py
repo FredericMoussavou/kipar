@@ -58,6 +58,32 @@ async def setup_accepted_booking(client, db_session, suffix: str) -> tuple:
     return booking_id, sender_token, carrier_token
 
 
+
+async def setup_paid_booking(client, db_session, suffix: str) -> tuple:
+    """Cree un booking en statut paid (paiement initie)."""
+    carrier_token = await make_verified_carrier(
+        client, db_session, f"carrier_paid{suffix}@kipar.com"
+    )
+    sender_token = await register_and_login(client, f"sender_paid{suffix}@kipar.com")
+    trip = await client.post("/api/v1/trips", json={
+        "origin_city": "Paris", "origin_airport_code": "CDG",
+        "destination_city": "Dakar", "destination_airport_code": "DSS",
+        "departure_date": TOMORROW, "total_kg": 15.0,
+        "max_kg_per_package": 5.0, "price_per_kg": 2.0
+    }, headers={"Authorization": f"Bearer {carrier_token}"})
+    booking = await client.post("/api/v1/bookings", json={
+        "trip_id": trip.json()["id"],
+        "receiver_email_or_phone": f"receiver_paid{suffix}@kipar.com",
+        "weight_kg": 3.0, "content_description": "Livres",
+        "declared_value": 30.0
+    }, headers={"Authorization": f"Bearer {sender_token}"})
+    booking_id = booking.json()["id"]
+    await client.post(
+        f"/api/v1/payments/{booking_id}/stripe",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    return booking_id, sender_token, carrier_token
+
 async def test_stripe_payment_intent(client, db_session):
     """Crée un PaymentIntent Stripe — retourne un client_secret."""
     booking_id, sender_token, _ = await setup_accepted_booking(
@@ -90,23 +116,10 @@ async def test_flutterwave_payment_link(client, db_session):
 
 
 async def test_confirm_stripe_payment(client, db_session):
-    """Confirme un paiement Stripe — booking passe en 'paid'."""
-    booking_id, sender_token, _ = await setup_accepted_booking(
+    """Initie un paiement Stripe - booking passe en statut paid."""
+    booking_id, sender_token, _ = await setup_paid_booking(
         client, db_session, "3"
     )
-    # Initie le paiement
-    await client.post(
-        f"/api/v1/payments/{booking_id}/stripe",
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
-    # Confirme
-    res = await client.post(
-        f"/api/v1/payments/{booking_id}/confirm",
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
-    assert res.status_code == 200
-
-    # Vérifie que le statut est bien 'paid'
     from sqlalchemy import select
     from app.models.booking import Booking
     result = await db_session.execute(
@@ -146,28 +159,27 @@ async def test_only_sender_can_pay(client, db_session):
 
 
 async def test_cannot_pay_pending_booking(client, db_session):
-    """Impossible de payer une réservation non encore acceptée."""
+    """Dans le nouveau flux, pending est valide pour payer (expéditeur paie en premier)."""
     carrier_token = await make_verified_carrier(
         client, db_session, "carrier_p6@kipar.com"
     )
     sender_token = await register_and_login(client, "sender_p6@kipar.com")
-
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
         "destination_city": "Dakar", "destination_airport_code": "DSS",
         "departure_date": TOMORROW, "total_kg": 15.0,
         "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {carrier_token}"})
-
     booking = await client.post("/api/v1/bookings", json={
         "trip_id": trip.json()["id"],
         "receiver_email_or_phone": "receiver@kipar.com",
         "weight_kg": 3.0, "content_description": "Test",
         "declared_value": 10.0
     }, headers={"Authorization": f"Bearer {sender_token}"})
-
     res = await client.post(
         f"/api/v1/payments/{booking.json()['id']}/stripe",
         headers={"Authorization": f"Bearer {sender_token}"}
     )
-    assert res.status_code == 400
+    assert res.status_code == 200
+
+

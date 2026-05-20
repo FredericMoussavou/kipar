@@ -52,6 +52,20 @@ async def capture_payment_intent(payment_intent_id: str) -> bool:
         return False
 
 
+async def cancel_payment_intent(payment_intent_id: str, booking_fee: float = 1.5) -> bool:
+    """Annule le PaymentIntent en cas de refus transporteur.
+    Les frais de gestion (1.5EUR) sont conserves par KIPAR.
+    """
+    if payment_intent_id.startswith("pi_simulated"):
+        return True
+    try:
+        intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        if intent.status in ("requires_capture", "requires_confirmation", "requires_payment_method"):
+            stripe.PaymentIntent.cancel(payment_intent_id)
+        return True
+    except stripe.StripeError:
+        return False
+
 async def release_payment_to_carrier(
     payment_intent_id: str,
     carrier_stripe_account: str,

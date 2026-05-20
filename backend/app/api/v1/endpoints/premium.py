@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone, timedelta
@@ -9,17 +9,20 @@ from app.core.config import settings
 from app.models.user import User
 from app.models.subscription import Subscription
 from app.i18n.loader import t
+import stripe
 
 router = APIRouter(prefix="/premium", tags=["premium"])
 
 PLANS = {
-    "monthly": {"amount": 9.99, "days": 30},
-    "annual":  {"amount": 79.99, "days": 365},
+    "monthly": {"amount": 9.99, "days": 30,  "price_id": "price_1TYycv6bYbTmQJgWw6IMu3VN"},
+    "annual":  {"amount": 79.99, "days": 365, "price_id": "price_1TYykl6bYbTmQJgW3kLo8kc4"},
 }
+
+SUCCESS_URL = f"{settings.FRONTEND_URL}/premium/success"
+CANCEL_URL  = f"{settings.FRONTEND_URL}/premium"
 
 
 def is_premium_active(user: User) -> bool:
-    """Verifie si l'abonnement premium est actif."""
     if not user.is_premium:
         return False
     if user.premium_expires_at and user.premium_expires_at < datetime.now(timezone.utc):
@@ -32,7 +35,6 @@ async def get_premium_status(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Retourne le statut premium de l'utilisateur."""
     active = is_premium_active(current_user)
     subs_result = await db.execute(
         select(Subscription)
@@ -60,94 +62,135 @@ async def get_premium_status(
     }
 
 
-@router.post("/subscribe")
-async def subscribe_premium(
+@router.post("/create-checkout-session")
+async def create_checkout_session(
     payload: dict,
-    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    lang: str = Depends(get_lang),
+    db: AsyncSession = Depends(get_db),
 ):
-    """Souscrit au plan premium via Stripe ou Flutterwave."""
     plan = payload.get("plan", "monthly")
-    payment_rail = payload.get("payment_rail", "stripe")
-    payment_ref = payload.get("payment_ref")  # Stripe PI id ou Flutterwave tx id
-
     if plan not in PLANS:
         raise HTTPException(status_code=400, detail="Plan invalide (monthly|annual)")
-    if payment_rail not in ("stripe", "flutterwave"):
-        raise HTTPException(status_code=400, detail="Rail invalide (stripe|flutterwave)")
-    if not payment_ref:
-        raise HTTPException(status_code=400, detail="Reference de paiement manquante")
 
-    # Verifier le paiement Stripe avant activation
-    if payment_rail == "stripe" and settings.STRIPE_SECRET_KEY:
-        try:
-            import stripe
-            stripe.api_key = settings.STRIPE_SECRET_KEY
-            pi = stripe.PaymentIntent.retrieve(payment_ref)
-            if pi.status != "succeeded":
-                raise HTTPException(status_code=400, detail="Paiement Stripe non confirmé")
-            if pi.amount not in (999, 7999):  # 9.99 EUR ou 79.99 EUR en centimes
-                raise HTTPException(status_code=400, detail="Montant Stripe invalide")
-        except stripe.error.StripeError as e:
-            raise HTTPException(status_code=400, detail=f"Erreur Stripe : {str(e)}")
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    plan_data = PLANS[plan]
-    now = datetime.now(timezone.utc)
-    expires_at = now + timedelta(days=plan_data["days"])
+    # Creer ou recuperer le customer Stripe
+    customer_id = getattr(current_user, "stripe_customer_id", None)
+    if not customer_id:
+        customer = stripe.Customer.create(
+            email=current_user.email,
+            name=f"{current_user.first_name} {current_user.last_name}".strip(),
+            metadata={"user_id": str(current_user.id)},
+        )
+        customer_id = customer.id
+        current_user.stripe_customer_id = customer_id
+        await db.commit()
 
-    # Creer la souscription
-    sub = Subscription(
-        user_id=current_user.id,
-        plan=plan,
-        status="active",
-        amount=plan_data["amount"],
-        currency="EUR",
-        payment_rail=payment_rail,
-        stripe_subscription_id=payment_ref if payment_rail == "stripe" else None,
-        flw_transaction_id=payment_ref if payment_rail == "flutterwave" else None,
-        started_at=now,
-        expires_at=expires_at,
+    session = stripe.checkout.Session.create(
+        customer=customer_id,
+        payment_method_types=["card"],
+        line_items=[{"price": PLANS[plan]["price_id"], "quantity": 1}],
+        mode="subscription",
+        success_url=SUCCESS_URL + "?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url=CANCEL_URL,
+        metadata={"user_id": str(current_user.id), "plan": plan},
+        subscription_data={"metadata": {"user_id": str(current_user.id), "plan": plan}},
     )
-    db.add(sub)
 
-    # Activer le premium sur l'user
-    current_user.is_premium = True
-    current_user.premium_plan = plan
-    current_user.premium_expires_at = expires_at
-    if payment_rail == "stripe":
-        current_user.premium_stripe_sub_id = payment_ref
-    else:
-        current_user.premium_flw_sub_id = payment_ref
+    return {"url": session.url}
 
-    await db.commit()
-    await db.refresh(sub)
 
-    return {
-        "status": "active",
-        "plan": plan,
-        "expires_at": expires_at.isoformat(),
-        "subscription_id": str(sub.id),
-    }
+@router.post("/webhook")
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Signature webhook invalide")
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        user_id = session["metadata"].get("user_id")
+        plan = session["metadata"].get("plan", "monthly")
+        stripe_sub_id = session.get("subscription")
+
+        if user_id:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user:
+                plan_data = PLANS.get(plan, PLANS["monthly"])
+                now = datetime.now(timezone.utc)
+                expires_at = now + timedelta(days=plan_data["days"])
+
+                sub = Subscription(
+                    user_id=user.id,
+                    plan=plan,
+                    status="active",
+                    amount=plan_data["amount"],
+                    currency="EUR",
+                    payment_rail="stripe",
+                    stripe_subscription_id=stripe_sub_id,
+                    started_at=now,
+                    expires_at=expires_at,
+                )
+                db.add(sub)
+
+                user.is_premium = True
+                user.premium_plan = plan
+                user.premium_expires_at = expires_at
+                user.premium_stripe_sub_id = stripe_sub_id
+                await db.commit()
+
+    elif event["type"] == "customer.subscription.deleted":
+        sub_obj = event["data"]["object"]
+        stripe_sub_id = sub_obj["id"]
+
+        result = await db.execute(
+            select(Subscription).where(Subscription.stripe_subscription_id == stripe_sub_id)
+        )
+        sub = result.scalar_one_or_none()
+        if sub:
+            sub.status = "cancelled"
+            sub.cancelled_at = datetime.now(timezone.utc)
+
+            result2 = await db.execute(select(User).where(User.id == sub.user_id))
+            user = result2.scalar_one_or_none()
+            if user:
+                user.is_premium = False
+                user.premium_plan = None
+                user.premium_stripe_sub_id = None
+            await db.commit()
+
+    return {"status": "ok"}
 
 
 @router.post("/cancel")
 async def cancel_premium(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    lang: str = Depends(get_lang),
 ):
-    """Annule le renouvellement automatique — acces jusqu'a expiration."""
     if not current_user.is_premium:
         raise HTTPException(status_code=400, detail="Aucun abonnement actif")
 
-    # Marquer la sub active comme cancelled
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    # Annuler le renouvellement Stripe en fin de periode
+    if current_user.premium_stripe_sub_id:
+        try:
+            stripe.Subscription.modify(
+                current_user.premium_stripe_sub_id,
+                cancel_at_period_end=True,
+            )
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Erreur Stripe : {str(e)}")
+
     result = await db.execute(
         select(Subscription)
-        .where(
-            Subscription.user_id == current_user.id,
-            Subscription.status == "active",
-        )
+        .where(Subscription.user_id == current_user.id, Subscription.status == "active")
         .order_by(Subscription.created_at.desc())
     )
     sub = result.scalar_one_or_none()
@@ -155,7 +198,6 @@ async def cancel_premium(
         sub.status = "cancelled"
         sub.cancelled_at = datetime.now(timezone.utc)
 
-    # On ne coupe pas l'acces immediatement — jusqu'a expires_at
     await db.commit()
 
     return {
@@ -165,10 +207,7 @@ async def cancel_premium(
 
 
 @router.get("/limits")
-async def get_user_limits(
-    current_user: User = Depends(get_current_user),
-):
-    """Retourne les limites applicables a l'utilisateur selon son plan."""
+async def get_user_limits(current_user: User = Depends(get_current_user)):
     premium = is_premium_active(current_user)
     return {
         "is_premium": premium,

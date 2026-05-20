@@ -130,6 +130,7 @@ class PublicUserResponse(BaseModel):
     trips_count: int
     reviews_count: int
     avg_rating: float | None
+    is_premium: bool
 
     model_config = {"from_attributes": True}
 
@@ -487,6 +488,7 @@ async def get_public_user(
         trips_count=trips_count,
         reviews_count=reviews_count,
         avg_rating=avg_rating,
+        is_premium=user.is_premium,
     )
 
 

@@ -588,6 +588,11 @@ export default function ProfilePage() {
           >
             {fullName}
           </h1>
+          {user?.is_premium && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 99, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: '#B45309', marginBottom: 8 }}>
+              <Crown size={12} color="#B45309" /> Premium
+            </div>
+          )}
           <p style={{ fontSize: 13, color: TAUPE, margin: 0, marginBottom: 16 }}>
             {user.email}
           </p>

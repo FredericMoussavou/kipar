@@ -41,6 +41,7 @@ export default function PremiumPage() {
   const [status, setStatus] = useState<PremiumStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [subscribing, setSubscribing] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual')
 
   useEffect(() => {
@@ -63,10 +64,10 @@ export default function PremiumPage() {
   }
 
   const handleCancel = async () => {
-    if (!confirm('Annuler le renouvellement automatique ? Vous gardez l\'accès jusqu\'à expiration.')) return
+    setShowCancelModal(false)
     try {
       await api.post('/premium/cancel')
-      alert('Renouvellement annulé.')
+      setStatus(s => s ? { ...s, is_premium: false } : s)
       router.refresh()
     } catch {
       alert('Erreur')
@@ -100,7 +101,7 @@ export default function PremiumPage() {
                 </p>
               </div>
             </div>
-            <button onClick={handleCancel} style={{ fontSize: 11, color: GOLD_DARK, background: 'transparent', border: `1px solid ${GOLD_DARK}`, borderRadius: 8, padding: '5px 12px', cursor: 'pointer', fontWeight: 600 }}>
+            <button onClick={() => setShowCancelModal(true)} style={{ fontSize: 11, color: GOLD_DARK, background: 'transparent', border: `1px solid ${GOLD_DARK}`, borderRadius: 8, padding: '5px 12px', cursor: 'pointer', fontWeight: 600 }}>
               Annuler le renouvellement
             </button>
           </div>
@@ -168,7 +169,28 @@ export default function PremiumPage() {
           </div>
         </div>
 
-        {/* Note légale */}
+        {/* Modal annulation */}
+      {showCancelModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+          <div style={{ background: WHITE, borderRadius: 20, padding: '32px 24px', maxWidth: 360, width: '100%', textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: GOLD_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Crown size={28} color={GOLD_DARK} />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 700, color: CHARCOAL, margin: '0 0 10px' }}>Annuler le renouvellement ?</h3>
+            <p style={{ fontSize: 13, color: TAUPE, margin: '0 0 24px', lineHeight: 1.6 }}>Vous gardez l'accès Premium jusqu'à la fin de votre période en cours.</p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setShowCancelModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 12, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                Garder Premium
+              </button>
+              <button onClick={handleCancel} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: CHARCOAL, color: WHITE, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Note légale */}
         <p style={{ fontSize: 11, color: TAUPE, textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
           En souscrivant, vous acceptez nos <a href="/cgu" style={{ color: RED, textDecoration: 'none' }}>CGU</a> et notre <a href="/privacy" style={{ color: RED, textDecoration: 'none' }}>politique de confidentialité</a>.
           Le renouvellement automatique peut être annulé à tout moment depuis votre profil.

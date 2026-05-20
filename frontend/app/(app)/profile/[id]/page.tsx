@@ -21,6 +21,7 @@ interface PublicProfile {
   kyc_status: string
   trust_score: number
   is_carrier: boolean
+  is_premium: boolean
   created_at: string
   deliveries_as_sender: number
   deliveries_as_carrier: number
@@ -323,6 +324,11 @@ export default function PublicProfilePage() {
 
           {/* Badges rôle + KYC */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {profile.is_premium && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 99, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: '#B45309' }}>
+                ★ Premium
+              </div>
+            )}
             {profile.is_carrier && (
               <span style={{
                 fontSize: 11,

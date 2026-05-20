@@ -65,7 +65,7 @@ async def test_create_booking(client, db_session):
     }, headers={"Authorization": f"Bearer {sender['token']}"})
     assert res.status_code == 201
     assert res.json()["status"] in ("pending", "awaiting_receiver")
-    assert res.json()["amount"] == 6.0  # 3kg * 2€
+    assert res.json()["amount"] == 8.4  # 3kg * 2€ * 1.15 + 1.5€ frais dossier
 
 
 async def test_booking_exceeds_capacity(client, db_session):

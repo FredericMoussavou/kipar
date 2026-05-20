@@ -97,7 +97,7 @@ async def test_stripe_payment_intent(client, db_session):
     data = res.json()
     assert "client_secret" in data
     assert data["payment_rail"] == "stripe"
-    assert data["amount"] == 6.0
+    assert data["amount"] == 8.4  # 3kg * 2EUR * 1.15 + 1.5EUR frais dossier
 
 
 async def test_flutterwave_payment_link(client, db_session):

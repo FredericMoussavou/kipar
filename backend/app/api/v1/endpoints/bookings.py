@@ -117,7 +117,8 @@ async def create_booking(
             "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
         ))
 
-    amount = payload.weight_kg * trip.price_per_kg
+    base_amount = payload.weight_kg * trip.price_per_kg
+    amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + settings.BOOKING_FLAT_FEE, 2)
     package = Package(
         sender_id=current_user.id,
         weight_kg=payload.weight_kg,
@@ -515,9 +516,6 @@ async def cancel_booking(
     booking = result.scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-    if booking.status not in ("pending", "awaiting_receiver", "accepted", "paid"):
-        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
-
     trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
     trip = trip_result.scalar_one_or_none()
 
@@ -526,6 +524,11 @@ async def cancel_booking(
 
     if not is_sender and not is_carrier:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if is_sender and booking.status not in ("pending", "awaiting_receiver", "paid", "accepted"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    if is_carrier and booking.status not in ("accepted",):
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
 
     refund_rate = 1.0
     carrier_compensation_rate = 0.0

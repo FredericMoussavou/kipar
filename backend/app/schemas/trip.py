@@ -10,7 +10,7 @@ class TripCreate(BaseModel):
     destination_airport_code: str
     departure_date: date
     departure_time: str | None = None
-    arrival_date: str | None = None
+    arrival_date: date | None = None
     arrival_time: str | None = None
     flight_number: str | None = None
     airline: str | None = None
@@ -52,7 +52,7 @@ class TripResponse(BaseModel):
     destination_airport_code: str
     departure_date: date
     departure_time: str | None = None
-    arrival_date: str | None = None
+    arrival_date: date | None = None
     arrival_time: str | None = None
     flight_number: str | None
     airline: str | None

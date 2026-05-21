@@ -318,19 +318,17 @@ async def accept_application(
     db.add(pkg)
     await db.flush()
 
-    # Calculer montant
+    # Calculer montant (15% commission expediteur + 1.5EUR forfait dossier)
     transport = req.weight_kg * trip.price_per_kg
-    commission = transport * (settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT)
-    amount = transport + commission
+    amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + settings.BOOKING_FLAT_FEE, 2)
 
-    # Créer booking directement accepté
+    # Creer booking en pending - l'expediteur doit payer
     booking = Booking(
         trip_id=trip.id,
         package_id=pkg.id,
         sender_id=current_user.id,
         amount=amount,
-        status="accepted",
-        accepted_at=datetime.now(timezone.utc),
+        status="pending",
     )
     db.add(booking)
     await db.flush()
@@ -350,7 +348,7 @@ async def accept_application(
         trip.status = "full"
 
     await db.flush()
-    return {"booking_id": str(booking.id), "amount": amount}
+    return {"booking_id": str(booking.id), "amount": amount, "trip_id": str(trip.id)}
 
 
 def _enrich_request(req: PackageRequest, sender: User | None, apps_count: int, has_applied: bool = False) -> dict:

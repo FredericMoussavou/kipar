@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import BottomNav from '@/components/layout/BottomNav'
@@ -8,16 +8,14 @@ import { BG } from '@/lib/theme'
 import { NotificationsProvider } from '@/contexts/notifications.context'
 import TawkButton from '@/components/ui/kipar/TawkButton'
 import Drawer from '@/components/layout/Drawer'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
   const [hydrated, setHydrated] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const isMobile = useIsMobile()
-  const touchStartX = useRef<number | null>(null)
-  const touchStartY = useRef<number | null>(null)
+  const { isOpen: drawerOpen, close: closeDrawer } = useDrawerStore()
+
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => {
@@ -30,33 +28,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     return () => unsub()
   }, [])
-  useEffect(() => {
-    if (!isMobile) return
-    const onStart = (e: TouchEvent) => {
-      touchStartX.current = e.touches[0].clientX
-      touchStartY.current = e.touches[0].clientY
-    }
-    const onEnd = (e: TouchEvent) => {
-      if (touchStartX.current === null || touchStartY.current === null) return
-      const dx = e.changedTouches[0].clientX - touchStartX.current
-      const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
-      if (touchStartX.current < 20 && dx > 80 && dy < 50) setDrawerOpen(true)
-      touchStartX.current = null
-      touchStartY.current = null
-    }
-    window.addEventListener('touchstart', onStart, { passive: true })
-    window.addEventListener('touchend', onEnd, { passive: true })
-    return () => {
-      window.removeEventListener('touchstart', onStart)
-      window.removeEventListener('touchend', onEnd)
-    }
-  }, [isMobile])
+
 
   if (!hydrated) return null
 
   return (
     <NotificationsProvider>
-    <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    <Drawer isOpen={drawerOpen} onClose={closeDrawer} />
     <div style={{ minHeight: '100vh', background: BG }}>
       {/* Desktop top nav */}
       <div className="hidden md:block">

@@ -12,6 +12,7 @@ import { useNotifications } from '@/contexts/notifications.context'
 import { useBookingStore } from '@/stores/booking.store'
 import TripCard from '@/components/trips/TripCard'
 import HeroHeader from '@/components/layout/HeroHeader'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [activeCorr, setActiveCorr] = useState(0)
   const [corridors, setCorridors] = useState<Corridor[]>(DEFAULT_CORRIDORS)
   const isMobile = useIsMobile()
+  const { open: openDrawer } = useDrawerStore()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const corridor = corridors[activeCorr] ?? DEFAULT_CORRIDORS[0]
@@ -67,6 +69,7 @@ export default function DashboardPage() {
       <HeroHeader
         imageUrl="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80"
         minHeight={200}
+        onMenuOpen={openDrawer}
       >
 
         <div style={{ padding: isMobile ? '16px 16px 24px' : '20px 20px 24px' }} className="md:p-8">

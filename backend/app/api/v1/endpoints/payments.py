@@ -180,22 +180,14 @@ async def stripe_webhook(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
     if event["type"] == "payment_intent.succeeded":
-        pi_id = event["data"]["object"]["id"]
+        # Ce webhook est declenche apres capture reelle
+        # La capture est deja faite dans accept_booking - on met juste a jour paid_at
         booking_id = event["data"]["object"]["metadata"].get("booking_id")
         if booking_id:
             result = await db.execute(select(Booking).where(Booking.id == booking_id))
             booking = result.scalar_one_or_none()
-            if booking and booking.status == "accepted":
-                booking.status = "paid"
+            if booking and booking.status == "accepted" and not booking.paid_at:
                 booking.paid_at = datetime.now(timezone.utc)
-                await db.commit()
-                await create_notification(
-                    db=db, user_id=booking.sender_id,
-                    type="payment_confirmed",
-                    title="Paiement confirme",
-                    body="Votre paiement a ete confirme.",
-                    link=f"/packages/{booking.id}",
-                )
                 await db.commit()
     return {"status": "ok"}
 

@@ -1,19 +1,19 @@
 'use client'
-
 import { ReactNode } from 'react'
+import { Menu } from 'lucide-react'
 
 interface HeroHeaderProps {
   imageUrl: string
   children: ReactNode
   minHeight?: number
   gradient?: 'vertical' | 'horizontal'
+  onMenuOpen?: () => void
 }
 
-export default function HeroHeader({ imageUrl, children, minHeight = 180, gradient = 'horizontal' }: HeroHeaderProps) {
+export default function HeroHeader({ imageUrl, children, minHeight = 180, gradient = 'horizontal', onMenuOpen }: HeroHeaderProps) {
   const bg = gradient === 'horizontal'
     ? 'linear-gradient(90deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.70) 100%)'
     : 'linear-gradient(180deg, rgba(220,0,41,0.92) 0%, rgba(60,0,15,0.80) 100%)'
-
   return (
     <div
       style={{ position: 'relative', overflow: 'visible', minHeight, borderRadius: '0 0 24px 24px' }}
@@ -35,6 +35,22 @@ export default function HeroHeader({ imageUrl, children, minHeight = 180, gradie
         '--k-sand': '#F0EDE8',
         '--k-border': '#EEEBE6',
       } as React.CSSProperties}>
+        {onMenuOpen && (
+          <button
+            onClick={onMenuOpen}
+            style={{
+              position: 'absolute', top: 16, left: 16, zIndex: 60,
+              width: 40, height: 40, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+            aria-label="Menu"
+          >
+            <Menu size={20} color="#fff" />
+          </button>
+        )}
         {children}
       </div>
     </div>

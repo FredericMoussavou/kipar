@@ -50,7 +50,7 @@ export default function RequestDetailPage() {
     onSuccess: (data) => {
       toast.success(t.requests.accepted)
       queryClient.invalidateQueries({ queryKey: ['request', id] })
-      router.push(`/packages/${data.booking_id}`)
+      router.push(`/trips/${data.trip_id}/book/payment?booking_id=${data.booking_id}`)
     },
     onError: () => toast.error(t.errors.generic),
   })

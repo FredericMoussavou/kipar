@@ -104,7 +104,7 @@ export default function PaymentPage() {
 
   const handleStripeSuccess = () => {
     toast.success(t.payment.success ?? 'Paiement confirmé !')
-    router.push(`/packages/${bookingId}?success=true`)
+    router.replace(`/packages/${bookingId}?success=true`)
   }
 
   const handleStripeError = (msg: string) => {
@@ -120,7 +120,7 @@ export default function PaymentPage() {
       if (data.payment_link) {
         window.open(data.payment_link, '_blank')
         toast.info(t.payment.flutterwave_redirect ?? 'Redirection vers Mobile Money...')
-        setTimeout(() => router.push(`/packages/${bookingId}`), 2000)
+        setTimeout(() => router.replace(`/packages/${bookingId}`), 2000)
       }
     },
     onError: () => toast.error(t.errors.generic),

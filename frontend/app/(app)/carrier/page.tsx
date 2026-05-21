@@ -47,8 +47,8 @@ export default function CarrierPage() {
     },
   })
 
-  const pendingBookings = allBookings.filter((b: any) => ['pending', 'awaiting_receiver'].includes(b.status))
-  const treatedBookings = allBookings.filter((b: any) => !['pending', 'awaiting_receiver'].includes(b.status))
+  const pendingBookings = allBookings.filter((b: any) => ['pending', 'awaiting_receiver', 'paid'].includes(b.status))
+  const treatedBookings = allBookings.filter((b: any) => !['pending', 'awaiting_receiver', 'paid'].includes(b.status))
   const deliverableBookings = treatedBookings.filter((b: any) => ['accepted', 'paid', 'in_transit'].includes(b.status))
   const refusedBookings = treatedBookings.filter((b: any) => b.status === 'refused')
 

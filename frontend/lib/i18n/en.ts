@@ -245,11 +245,17 @@ export const en = {
 
     cancel_policy_none: 'Cancellation on departure day: no refund.',
     
-    flutterwave_redirect:"Redirecting to Mobile Money...", 
+    pawapay_waiting: 'Waiting for confirmation on your phone...',
+    pawapay_success: 'Mobile Money payment confirmed!',
+    pawapay_failed: 'Payment failed, please try again.',
+    pawapay_phone_label: 'Mobile Money number',
+    pawapay_phone_placeholder: 'e.g. +221 77 000 00 00',
+    pawapay_provider_label: 'Operator',
     
     success: 'Payment confirmed!',
    
     pay_mobile_money: 'Pay by Mobile Money',
+    pay_pawapay: 'Confirm Mobile Money payment',
 
 },
 
@@ -1576,7 +1582,6 @@ profile_public: {
     plan_annual_price: '€79.99',
     plan_annual_per: 'per year · €6.67/month',
     pay_stripe: 'Pay with Stripe',
-    pay_flutterwave: 'Pay with Flutterwave',
     no_commitment: 'Cancel anytime · No commitment',
     included: 'What’s included',
     active_status: 'Premium subscription active',

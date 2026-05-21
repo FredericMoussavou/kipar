@@ -247,9 +247,15 @@ export const fr = {
     
     success: 'Paiement confirmé !',
 
-    flutterwave_redirect: 'Redirection vers Mobile Money...',
+    pawapay_waiting: 'En attente de confirmation sur votre téléphone...',
+    pawapay_success: 'Paiement Mobile Money confirmé !',
+    pawapay_failed: 'Paiement échoué, veuillez réessayer.',
+    pawapay_phone_label: 'Numéro Mobile Money',
+    pawapay_phone_placeholder: 'Ex: +221 77 000 00 00',
+    pawapay_provider_label: 'Opérateur',
     
     pay_mobile_money: 'Payer par Mobile Money',
+    pay_pawapay: 'Confirmer le paiement Mobile Money',
 
 },
 
@@ -1580,7 +1586,6 @@ profile_public: {
     plan_annual_price: '79,99€',
     plan_annual_per: 'par an · soit 6,67€/mois',
     pay_stripe: 'Payer avec Stripe',
-    pay_flutterwave: 'Payer avec Flutterwave',
     no_commitment: 'Annulation à tout moment · Sans engagement',
     included: 'Ce qui est inclus',
     active_status: 'Abonnement Premium actif',

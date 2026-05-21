@@ -49,7 +49,7 @@ class User(Base):
 
     # Paiements
     stripe_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    flutterwave_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    mobile_money_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)  # ex: MTN_MOMO_CMR
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)

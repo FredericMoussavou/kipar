@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
 
-    # Flutterwave
-    FLUTTERWAVE_SECRET_KEY: str = ""
+    # PawaPay
+    PAWAPAY_API_TOKEN: str = ""
+    PAWAPAY_BASE_URL: str = "https://api.sandbox.pawapay.io"
 
     # Twilio
     TWILIO_ACCOUNT_SID: str = ""

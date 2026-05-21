@@ -95,7 +95,7 @@ export default function PaymentPage() {
   const { t } = useTranslation()
   const bookingId = searchParams.get('booking_id')
   const amount = searchParams.get('amount')
-  const [selectedPM, setSelectedPM] = useState<'stripe' | 'flutterwave'>('stripe')
+  const [selectedPM, setSelectedPM] = useState<'stripe' | 'pawapay'>('stripe')
   const declaredValue = parseFloat(searchParams.get('declared_value') || '0') || 0
   const baseAmount = parseFloat(amount || '0') || 0
   const totalAmount = baseAmount.toFixed(2)
@@ -111,24 +111,45 @@ export default function PaymentPage() {
     toast.error(msg)
   }
 
-  const flutterwaveMutation = useMutation({
+  const [pawapayPhone, setPawapayPhone] = useState('')
+  const [pawapayProvider, setPawapayProvider] = useState('ORANGE_SEN')
+  const [pawapayWaiting, setPawapayWaiting] = useState(false)
+
+  const pawapayMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await api.post(`/payments/${bookingId}/flutterwave`, { currency: 'XOF' })
+      const { data } = await api.post(`/payments/${bookingId}/pawapay`, null, {
+        params: { phone: pawapayPhone, provider: pawapayProvider, currency: 'XOF' }
+      })
       return data
     },
-    onSuccess: (data) => {
-      if (data.payment_link) {
-        window.open(data.payment_link, '_blank')
-        toast.info(t.payment.flutterwave_redirect ?? 'Redirection vers Mobile Money...')
-        setTimeout(() => router.replace(`/packages/${bookingId}`), 2000)
-      }
+    onSuccess: () => {
+      setPawapayWaiting(true)
+      toast.info(t.payment.pawapay_waiting ?? 'En attente de confirmation...')
+      // Poll statut booking toutes les 3s pendant 2 min
+      let attempts = 0
+      const interval = setInterval(async () => {
+        attempts++
+        try {
+          const { data } = await api.get(`/bookings/${bookingId}`)
+          if (data.status === 'accepted' || data.status === 'paid') {
+            clearInterval(interval)
+            setPawapayWaiting(false)
+            toast.success(t.payment.pawapay_success ?? 'Paiement confirmé !')
+            router.replace(`/packages/${bookingId}?success=true`)
+          }
+        } catch {}
+        if (attempts >= 40) {
+          clearInterval(interval)
+          setPawapayWaiting(false)
+        }
+      }, 3000)
     },
-    onError: () => toast.error(t.errors.generic),
+    onError: () => toast.error(t.payment.pawapay_failed ?? t.errors.generic),
   })
 
   const paymentMethods = [
     { id: 'stripe' as const, icon: CreditCard, label: t.payment.card, desc: t.payment.card_desc },
-    { id: 'flutterwave' as const, icon: Smartphone, label: t.payment.mobile_money, desc: t.payment.mobile_money_desc },
+    { id: 'pawapay' as const, icon: Smartphone, label: t.payment.mobile_money, desc: t.payment.mobile_money_desc },
   ]
 
   return (
@@ -199,10 +220,56 @@ export default function PaymentPage() {
             />
           </Elements>
         ) : (
-          <Button fullWidth size="lg" loading={flutterwaveMutation.isPending} onClick={() => flutterwaveMutation.mutate()}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>
+                {t.payment.pawapay_phone_label ?? 'Numéro Mobile Money'}
+              </label>
+              <input
+                type="tel"
+                value={pawapayPhone}
+                onChange={e => setPawapayPhone(e.target.value)}
+                placeholder={t.payment.pawapay_phone_placeholder ?? '+221 77 000 00 00'}
+                style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 14px', fontSize: 14, color: CHARCOAL, background: WHITE, outline: 'none', fontFamily: 'DM Sans, sans-serif' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>
+                {t.payment.pawapay_provider_label ?? 'Opérateur'}
+              </label>
+              <select
+                value={pawapayProvider}
+                onChange={e => setPawapayProvider(e.target.value)}
+                style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 14px', fontSize: 14, color: CHARCOAL, background: WHITE, outline: 'none', fontFamily: 'DM Sans, sans-serif' }}
+              >
+                <option value="ORANGE_SEN">Orange Senegal</option>
+                <option value="FREE_SEN">Free Senegal</option>
+                <option value="MTN_MOMO_CMR">MTN Cameroun</option>
+                <option value="ORANGE_CMR">Orange Cameroun</option>
+                <option value="MTN_MOMO_CIV">MTN Côte d'Ivoire</option>
+                <option value="ORANGE_CIV">Orange Côte d'Ivoire</option>
+                <option value="MTN_MOMO_GHA">MTN Ghana</option>
+                <option value="VODAFONE_GHA">Vodafone Ghana</option>
+                <option value="MTN_MOMO_UGA">MTN Uganda</option>
+                <option value="AIRTEL_UGA">Airtel Uganda</option>
+                <option value="MPESA_KEN">M-Pesa Kenya</option>
+                <option value="MTN_MOMO_ZMB">MTN Zambia</option>
+              </select>
+            </div>
+            {pawapayWaiting && (
+              <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#166534', margin: 0 }}>
+                  📱 {t.payment.pawapay_waiting ?? 'En attente de confirmation sur votre téléphone...'}
+                </p>
+              </div>
+            )}
+            <Button fullWidth size="lg" loading={pawapayMutation.isPending || pawapayWaiting}
+            onClick={() => pawapayMutation.mutate()}
+            disabled={!pawapayPhone || pawapayWaiting}>
             <Smartphone size={15} />
-            {t.payment.pay_mobile_money ?? 'Payer par Mobile Money'}
+            {pawapayWaiting ? (t.payment.pawapay_waiting ?? 'En attente...') : (t.payment.pay_pawapay ?? 'Payer par Mobile Money')}
           </Button>
+          </div>
         )}
 
         <p style={{ textAlign: 'center', fontSize: 11, color: TAUPE }}>

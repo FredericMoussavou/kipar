@@ -100,19 +100,21 @@ async def test_stripe_payment_intent(client, db_session):
     assert data["amount"] == 8.4  # 3kg * 2EUR * 1.15 + 1.5EUR frais dossier
 
 
-async def test_flutterwave_payment_link(client, db_session):
-    """Crée un lien de paiement Flutterwave."""
+async def test_pawapay_payment(client, db_session):
+    """Initie un paiement PawaPay - booking passe en statut paid."""
     booking_id, sender_token, _ = await setup_accepted_booking(
         client, db_session, "2"
     )
     res = await client.post(
-        f"/api/v1/payments/{booking_id}/flutterwave?currency=XOF",
+        f"/api/v1/payments/{booking_id}/pawapay",
+        params={"phone": "221700000001", "provider": "ORANGE_SEN", "currency": "XOF"},
         headers={"Authorization": f"Bearer {sender_token}"}
     )
     assert res.status_code == 200
     data = res.json()
-    assert "payment_link" in data
-    assert data["payment_rail"] == "flutterwave"
+    assert "deposit_id" in data
+    assert data["payment_rail"] == "pawapay"
+    assert data["status"] == "ACCEPTED"
 
 
 async def test_confirm_stripe_payment(client, db_session):
@@ -129,21 +131,24 @@ async def test_confirm_stripe_payment(client, db_session):
     assert booking.status == "paid"
 
 
-async def test_confirm_flutterwave_payment(client, db_session):
-    """Confirme un paiement Flutterwave."""
+async def test_pawapay_webhook_completed(client, db_session):
+    """Webhook PawaPay COMPLETED - paid_at mis a jour."""
     booking_id, sender_token, _ = await setup_accepted_booking(
         client, db_session, "flw1"
     )
-    await client.post(
-        f"/api/v1/payments/{booking_id}/flutterwave",
-        params={"currency": "XOF"},
-        headers={"Authorization": f"Bearer {sender_token}"}
-    )
     res = await client.post(
-        f"/api/v1/payments/{booking_id}/confirm",
+        f"/api/v1/payments/{booking_id}/pawapay",
+        params={"phone": "221700000002", "provider": "ORANGE_SEN", "currency": "XOF"},
         headers={"Authorization": f"Bearer {sender_token}"}
     )
     assert res.status_code == 200
+    deposit_id = res.json()["deposit_id"]
+    res = await client.post(
+        "/api/v1/payments/pawapay/webhook",
+        json={"status": "COMPLETED", "depositId": deposit_id}
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "ok"
 
 
 async def test_only_sender_can_pay(client, db_session):

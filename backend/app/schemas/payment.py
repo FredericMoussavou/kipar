@@ -10,12 +10,13 @@ class PaymentIntentResponse(BaseModel):
     payment_rail: str
 
 
-class FlutterwavePaymentResponse(BaseModel):
+class PawapayPaymentResponse(BaseModel):
     booking_id: uuid.UUID
-    payment_link: str       # lien de paiement Flutterwave
+    deposit_id: str         # UUID PawaPay pour tracking
     amount: float
     currency: str
     payment_rail: str
+    status: str             # ACCEPTED | FAILED
 
 
 class WebhookResponse(BaseModel):

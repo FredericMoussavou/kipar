@@ -9,9 +9,9 @@ from app.core.lang import get_lang
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
-from app.schemas.payment import PaymentIntentResponse, FlutterwavePaymentResponse
+from app.schemas.payment import PaymentIntentResponse, PawapayPaymentResponse
 from app.services.stripe_service import create_payment_intent, capture_payment_intent, release_payment_to_carrier
-from app.services.flutterwave_service import create_payment_link, verify_transaction
+from app.services.pawapay_service import initiate_deposit, initiate_refund, initiate_payout
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -58,9 +58,11 @@ async def initiate_stripe_payment(
     )
 
 
-@router.post("/{booking_id}/flutterwave", response_model=FlutterwavePaymentResponse)
-async def initiate_flutterwave_payment(
+@router.post("/{booking_id}/pawapay", response_model=PawapayPaymentResponse)
+async def initiate_pawapay_payment(
     booking_id: str,
+    phone: str,
+    provider: str,
     currency: str = "XOF",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -72,28 +74,39 @@ async def initiate_flutterwave_payment(
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.sender_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if booking.status not in ("pending", "accepted"):
+    if booking.status not in ("pending", "accepted", "awaiting_receiver"):
         raise HTTPException(status_code=400, detail=t("errors.booking_not_accepted", lang))
 
-    flw_response = await create_payment_link(
+    pawapay_response = await initiate_deposit(
         amount=booking.amount,
         currency=currency,
+        phone=phone,
+        provider=provider,
         booking_id=str(booking.id),
-        customer_email=current_user.email,
     )
 
-    if flw_response.get("status") != "success":
-        raise HTTPException(status_code=400, detail=t("errors.flutterwave_error", lang))
+    if pawapay_response.get("status") not in ("ACCEPTED", "COMPLETED"):
+        raise HTTPException(status_code=400, detail=t("errors.pawapay_error", lang))
 
-    booking.escrow_ref = flw_response["data"]["tx_ref"]
-    booking.payment_rail = "flutterwave"
+    booking.escrow_ref = pawapay_response["depositId"]
+    booking.payment_rail = "pawapay"
+    booking.status = "paid"
 
-    return FlutterwavePaymentResponse(
+    # Sauvegarder phone + provider sur le profil expediteur pour futurs paiements
+    if phone and not current_user.mobile_money_number:
+        current_user.mobile_money_number = phone
+    if provider and not current_user.mobile_money_provider:
+        current_user.mobile_money_provider = provider
+
+    await db.commit()
+
+    return PawapayPaymentResponse(
         booking_id=booking.id,
-        payment_link=flw_response["data"]["link"],
+        deposit_id=pawapay_response["depositId"],
         amount=booking.amount,
         currency=currency,
-        payment_rail="flutterwave",
+        payment_rail="pawapay",
+        status=pawapay_response.get("status", "ACCEPTED"),
     )
 
 
@@ -123,10 +136,9 @@ async def confirm_payment(
                     raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
             except stripe.StripeError as e:
                 raise HTTPException(status_code=400, detail=str(e))
-    elif booking.payment_rail == "flutterwave":
-        success = await verify_transaction(booking.escrow_ref)
-        if not success:
-            raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
+    elif booking.payment_rail == "pawapay":
+        # PawaPay : confirmation via webhook uniquement - pas de verification synchrone
+        success = True
 
     if booking.status != "paid":
         booking.status = "paid"
@@ -214,29 +226,32 @@ async def stripe_webhook(
     return {"status": "ok"}
 
 
-@router.post("/flutterwave/webhook")
-async def flutterwave_webhook(
+@router.post("/pawapay/webhook")
+async def pawapay_webhook(
     payload: dict,
     db: AsyncSession = Depends(get_db),
 ):
-    """Webhook Flutterwave - confirme le paiement cote serveur."""
-    from app.services.flutterwave_service import verify_transaction
+    """Webhook PawaPay - confirme le depot cote serveur."""
     from app.services.notif_db_service import create_notification
-    if payload.get("event") != "charge.completed":
+    # PawaPay envoie le statut final : COMPLETED | FAILED
+    status = payload.get("status")
+    if status not in ("COMPLETED", "FAILED"):
         return {"status": "ignored"}
-    tx_ref = payload.get("data", {}).get("tx_ref", "")
-    booking_id = tx_ref.replace("kipar_", "") if tx_ref.startswith("kipar_") else None
-    if not booking_id:
+    deposit_id = payload.get("depositId", "")
+    if not deposit_id:
         return {"status": "ignored"}
-    transaction_id = str(payload.get("data", {}).get("id", ""))
-    verified = await verify_transaction(transaction_id)
-    if not verified:
-        raise HTTPException(status_code=400, detail="Transaction verification failed")
-    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    # Retrouver le booking via escrow_ref
+    result = await db.execute(select(Booking).where(Booking.escrow_ref == deposit_id))
     booking = result.scalar_one_or_none()
-    if booking and booking.status == "accepted":
-        booking.status = "paid"
+    if not booking:
+        return {"status": "ignored"}
+    if status == "COMPLETED" and booking.status == "paid":
         booking.paid_at = datetime.now(timezone.utc)
+        # Flux request : capture + accepted automatique
+        if booking.package_request_id:
+            booking.status = "accepted"
+            booking.accepted_at = datetime.now(timezone.utc)
+            booking.booking_fee_collected = True
         await db.commit()
         await create_notification(
             db=db, user_id=booking.sender_id,
@@ -245,6 +260,12 @@ async def flutterwave_webhook(
             body="Votre paiement Mobile Money a ete confirme.",
             link=f"/packages/{booking.id}",
         )
+        await db.commit()
+    elif status == "FAILED" and booking.status == "paid":
+        # Deposit echoue apres acceptation initiale - on repasse en pending
+        booking.status = "pending"
+        booking.escrow_ref = None
+        booking.payment_rail = None
         await db.commit()
     return {"status": "ok"}
 
@@ -290,16 +311,13 @@ async def refund_booking(
             success = True
         except stripe.StripeError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    elif booking.payment_rail == "flutterwave":
-        import httpx
-        from app.core.config import settings
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            res = await client.post(
-                f"https://api.flutterwave.com/v3/transactions/{booking.escrow_ref}/refund",
-                headers={"Authorization": f"Bearer {settings.FLUTTERWAVE_SECRET_KEY}"},
-                json={"amount": refund_amount},
-            )
-            success = res.json().get("status") == "success"
+    elif booking.payment_rail == "pawapay":
+        refund_resp = await initiate_refund(
+            deposit_id=booking.escrow_ref,
+            amount=refund_amount,
+            booking_id=str(booking.id),
+        )
+        success = refund_resp.get("status") in ("ACCEPTED", "COMPLETED")
     else:
         success = True
     if success:
@@ -346,29 +364,22 @@ async def release_payment(
             carrier_stripe_account=carrier.stripe_account_id if carrier else None,
             amount_eur=booking.amount,
         )
-    elif booking.payment_rail == "flutterwave":
-        # Flutterwave Payouts vers le transporteur
-        if carrier and carrier.mobile_money_number and settings.FLUTTERWAVE_SECRET_KEY:
-            import httpx
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                from app.core.config import settings as s
-                total_fee = booking.amount * (s.SERVICE_FEE_SENDER_PERCENT + s.SERVICE_FEE_CARRIER_PERCENT)
-                carrier_amount = max(booking.amount - max(total_fee, s.MIN_COMMISSION), 0)
-                res = await client.post(
-                    "https://api.flutterwave.com/v3/transfers",
-                    headers={"Authorization": f"Bearer {s.FLUTTERWAVE_SECRET_KEY}"},
-                    json={
-                        "account_bank": "MPS",
-                        "account_number": carrier.mobile_money_number,
-                        "amount": carrier_amount,
-                        "currency": "XOF",
-                        "narration": f"KIPAR paiement trajet {booking_id[:8]}",
-                        "reference": f"kipar_release_{booking_id[:8]}",
-                    }
-                )
-                success = res.json().get("status") == "success"
+    elif booking.payment_rail == "pawapay":
+        # PawaPay payout vers le wallet mobile du transporteur
+        if carrier and carrier.mobile_money_number and carrier.mobile_money_provider:
+            from app.core.config import settings as s
+            total_fee = booking.amount * (s.SERVICE_FEE_SENDER_PERCENT + s.SERVICE_FEE_CARRIER_PERCENT)
+            carrier_amount = max(booking.amount - max(total_fee, s.MIN_COMMISSION), 0)
+            payout_resp = await initiate_payout(
+                amount=carrier_amount,
+                currency=booking_currency if hasattr(booking, "currency") else "XOF",
+                phone=carrier.mobile_money_number,
+                provider=carrier.mobile_money_provider,
+                booking_id=str(booking.id),
+            )
+            success = payout_resp.get("status") in ("ACCEPTED", "COMPLETED")
         else:
-            success = True  # simulation si pas de config
+            success = True  # simulation si carrier sans config mobile money
     else:
         success = True
 

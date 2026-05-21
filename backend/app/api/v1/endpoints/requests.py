@@ -211,6 +211,19 @@ async def apply_to_request(
     if trip.remaining_kg < req.weight_kg:
         raise HTTPException(status_code=400, detail=t("errors.insufficient_kg", lang))
 
+    # Regle delai minimum 36h avant depart du trip
+    from datetime import date as dclass, time as tclass, datetime as dtclass, timezone
+    dep_time = trip.departure_time if hasattr(trip, 'departure_time') and trip.departure_time else tclass(0, 0)
+    if isinstance(dep_time, str):
+        h, m = dep_time.split(':')[:2]
+        dep_time = tclass(int(h), int(m))
+    dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
+    hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
+    if hours_until_dep <= 5:
+        raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
+    if hours_until_dep <= 36 and not trip.accepts_urgent:
+        raise HTTPException(status_code=400, detail=t("errors.trip_not_urgent", lang))
+
     # Pas de double candidature
     existing = await db.execute(
         select(Application).where(
@@ -318,9 +331,18 @@ async def accept_application(
     db.add(pkg)
     await db.flush()
 
-    # Calculer montant (15% commission expediteur + 1.5EUR forfait dossier)
+    # Calculer montant (15% commission expediteur + forfait dossier 1.5EUR ou 5EUR si urgent)
+    from datetime import time as tclass, datetime as dtclass, timezone
+    dep_time = trip.departure_time if hasattr(trip, 'departure_time') and trip.departure_time else tclass(0, 0)
+    if isinstance(dep_time, str):
+        h, m = dep_time.split(':')[:2]
+        dep_time = tclass(int(h), int(m))
+    dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
+    hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
+    is_urgent = hours_until_dep <= 36
+    flat_fee = 5.0 if is_urgent else settings.BOOKING_FLAT_FEE
     transport = req.weight_kg * trip.price_per_kg
-    amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + settings.BOOKING_FLAT_FEE, 2)
+    amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
 
     # Creer booking en pending - l'expediteur doit payer
     booking = Booking(
@@ -329,6 +351,9 @@ async def accept_application(
         sender_id=current_user.id,
         amount=amount,
         status="pending",
+        package_request_id=req.id,
+        is_urgent=is_urgent,
+        booking_flat_fee_amount=flat_fee,
     )
     db.add(booking)
     await db.flush()

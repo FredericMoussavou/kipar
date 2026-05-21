@@ -88,7 +88,9 @@
         "flight_number_invalid": "Numéro de vol invalide",
         "premium_booking_limit": "Limite atteinte : 3 réservations actives maximum en version gratuite. Passez en Premium pour réserver sans limite.",
         "premium_trip_limit": "Limite atteinte : 2 trajets actifs maximum en version gratuite. Passez en Premium pour publier sans limite.",
-        "premium_request_limit": "Limite atteinte : 2 annonces actives maximum en version gratuite. Passez en Premium pour publier sans limite."
+        "premium_request_limit": "Limite atteinte : 2 annonces actives maximum en version gratuite. Passez en Premium pour publier sans limite.",
+        "trip_not_urgent": "Ce trajet n'accepte pas les colis urgents (moins de 36h avant le depart)",
+        "trip_too_close": "Impossible de reserver moins de 5h avant le depart"
     },
     "success": {
         "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

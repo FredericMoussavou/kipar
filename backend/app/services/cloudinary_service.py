@@ -116,6 +116,46 @@ def validate_avatar_url(url: str, user_id: uuid_module.UUID) -> bool:
     return expected_host in url and expected_folder in url
 
 
+def generate_evidence_upload_signature(booking_id: uuid_module.UUID, file_index: int) -> dict[str, Any]:
+    """
+    Genere une signature pour uploader une preuve d'annulation (photo/video/doc).
+    Max 5 fichiers par booking. Le file_index (0-4) est inclus dans le public_id.
+    """
+    _configure()
+
+    if file_index < 0 or file_index > 4:
+        raise ValueError("file_index doit etre entre 0 et 4")
+
+    timestamp = int(time.time())
+    folder = f"kipar/cancellation_evidence/{booking_id}"
+    public_id = f"evidence_{booking_id}_{file_index}"
+
+    params_to_sign = {
+        "folder": folder,
+        "overwrite": "true",
+        "public_id": public_id,
+        "resource_type": "auto",
+        "timestamp": timestamp,
+        "upload_preset": settings.CLOUDINARY_UPLOAD_PRESET,
+    }
+
+    signature = cloudinary_utils.api_sign_request(
+        params_to_sign,
+        settings.CLOUDINARY_API_SECRET,
+    )
+
+    return {
+        "signature": signature,
+        "timestamp": timestamp,
+        "api_key": settings.CLOUDINARY_API_KEY,
+        "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+        "folder": folder,
+        "public_id": public_id,
+        "upload_preset": settings.CLOUDINARY_UPLOAD_PRESET,
+        "resource_type": "auto",
+    }
+
+
 def delete_avatar(user_id: uuid_module.UUID) -> None:
     """
     Supprime l'avatar d'un utilisateur dans Cloudinary.

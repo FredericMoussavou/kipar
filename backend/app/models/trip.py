@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date, timezone
-from sqlalchemy import String, Float, Date, DateTime, ForeignKey
+from sqlalchemy import String, Float, Date, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
@@ -40,6 +40,7 @@ class Trip(Base):
 
     # Statut : open / full / in_transit / completed / cancelled
     status: Mapped[str] = mapped_column(String(20), default="open", index=True)
+    accepts_urgent: Mapped[bool] = mapped_column(Boolean, default=False)
 
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None

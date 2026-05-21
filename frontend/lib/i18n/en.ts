@@ -597,6 +597,8 @@ export const en = {
 
   airport_selected: '✓ Selected',
 
+  accepts_urgent_label: 'Accept urgent packages',
+  accepts_urgent_desc: 'Packages dropped less than 36h before departure (5€ handling fee instead of 1.50€)',
   trip_published: 'Listing published!',
 
   trip_delete_confirm: 'Delete this listing?',

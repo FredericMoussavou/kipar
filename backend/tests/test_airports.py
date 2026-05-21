@@ -78,7 +78,7 @@ async def test_trip_invalid_iata(client, db_session):
     res = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "XXX",
         "destination_city": "Dakar", "destination_airport_code": "DSS",
-        "departure_date": str(date.today() + timedelta(days=1)),
+        "departure_date": str(date.today() + timedelta(days=3)),
         "total_kg": 15.0, "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {token}"})
 
@@ -111,7 +111,7 @@ async def test_trip_valid_iata(client, db_session):
     res = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
         "destination_city": "Libreville", "destination_airport_code": "LBV",
-        "departure_date": str(date.today() + timedelta(days=1)),
+        "departure_date": str(date.today() + timedelta(days=3)),
         "total_kg": 15.0, "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {token}"})
 

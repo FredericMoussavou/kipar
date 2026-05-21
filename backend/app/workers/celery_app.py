@@ -60,6 +60,20 @@ celery_app.conf.update(
             "task": "app.workers.booking_tasks.expire_package_requests",
             "schedule": crontab(minute=0, hour="*/1"),
         },
+        # Rappels awaiting_receiver 24h et 36h - toutes les heures
+        "remind-awaiting-receiver-24h": {
+            "task": "app.workers.booking_tasks.remind_awaiting_receiver_24h",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
+        "remind-awaiting-receiver-36h": {
+            "task": "app.workers.booking_tasks.remind_awaiting_receiver_36h",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
+        # Expire les bookings awaiting_receiver apres 48h - toutes les heures
+        "expire-awaiting-receiver-bookings": {
+            "task": "app.workers.booking_tasks.expire_awaiting_receiver_bookings",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
         # Expire les abonnements premium une fois par jour
         "expire-premium-subscriptions": {
             "task": "app.workers.booking_tasks.expire_premium_subscriptions",

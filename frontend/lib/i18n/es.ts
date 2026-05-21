@@ -599,6 +599,8 @@ export const es = {
 
     airport_selected: '✓ Seleccionado',
 
+    accepts_urgent_label: 'Aceptar paquetes urgentes',
+    accepts_urgent_desc: 'Paquetes depositados menos de 36h antes de la salida (tarifa de gestión 5€ en lugar de 1,50€)',
     trip_published: '¡Anuncio publicado!',
 
   trip_delete_confirm: '¿Eliminar este anuncio?',

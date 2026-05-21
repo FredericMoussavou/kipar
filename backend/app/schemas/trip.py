@@ -19,6 +19,7 @@ class TripCreate(BaseModel):
     price_per_kg: float
     weight_unit: str = "kg"
     currency: str = "EUR"
+    accepts_urgent: bool = False
 
     @field_validator("origin_airport_code", "destination_airport_code")
     @classmethod
@@ -72,4 +73,5 @@ class TripResponse(BaseModel):
     carrier_username: str | None = None
     weight_unit: str | None = None
     currency: str | None = None
+    accepts_urgent: bool = False
     model_config = {"from_attributes": False}

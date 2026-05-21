@@ -416,3 +416,172 @@ def expire_premium_subscriptions():
             logger.info(f"Expired {len(users)} premium subscription(s)")
 
     asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.remind_awaiting_receiver_24h")
+def remind_awaiting_receiver_24h():
+    """
+    Envoie un rappel au recepteur 24h apres creation du booking awaiting_receiver.
+    Lance toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.user import User
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            cutoff_min = now - timedelta(hours=25)
+            cutoff_max = now - timedelta(hours=24)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "awaiting_receiver",
+                    Booking.created_at >= cutoff_min,
+                    Booking.created_at <= cutoff_max,
+                    Booking.awaiting_receiver_reminded_24h.is_(False),
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                if booking.receiver_id:
+                    await create_notification(
+                        db=db, user_id=booking.receiver_id,
+                        type="awaiting_receiver_reminder",
+                        title="Rappel : colis en attente",
+                        body="Un colis vous attend. Confirmez votre reception avant 48h.",
+                        link=f"/packages/{booking.id}",
+                    )
+                booking.awaiting_receiver_reminded_24h = True
+                logger.info(f"[AWAITING] Rappel 24h envoye booking {booking.id}")
+            await db.commit()
+            logger.info(f"[AWAITING] {len(bookings)} rappel(s) 24h envoyes")
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.remind_awaiting_receiver_36h")
+def remind_awaiting_receiver_36h():
+    """
+    Envoie un second rappel au recepteur 36h apres creation du booking awaiting_receiver.
+    Lance toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.user import User
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            cutoff_min = now - timedelta(hours=37)
+            cutoff_max = now - timedelta(hours=36)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "awaiting_receiver",
+                    Booking.created_at >= cutoff_min,
+                    Booking.created_at <= cutoff_max,
+                    Booking.awaiting_receiver_reminded_36h.is_(False),
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                if booking.receiver_id:
+                    await create_notification(
+                        db=db, user_id=booking.receiver_id,
+                        type="awaiting_receiver_reminder",
+                        title="Dernier rappel : colis en attente",
+                        body="Derniere chance : confirmez votre reception avant expiration dans 12h.",
+                        link=f"/packages/{booking.id}",
+                    )
+                booking.awaiting_receiver_reminded_36h = True
+                logger.info(f"[AWAITING] Rappel 36h envoye booking {booking.id}")
+            await db.commit()
+            logger.info(f"[AWAITING] {len(bookings)} rappel(s) 36h envoyes")
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.expire_awaiting_receiver_bookings")
+def expire_awaiting_receiver_bookings():
+    """
+    Annule les bookings awaiting_receiver sans reponse apres 48h.
+    Remboursement 100% expediteur. Restitue les kg au trip.
+    Lance toutes les heures via Celery Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.package import Package
+    from app.models.user import User
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            cutoff = now - timedelta(hours=48)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "awaiting_receiver",
+                    Booking.created_at < cutoff,
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                booking.status = "cancelled"
+                booking.cancellation_reason = "awaiting_receiver_timeout_48h"
+
+                # Remboursement 100% expediteur
+                if booking.escrow_ref and booking.payment_rail == "stripe":
+                    try:
+                        import stripe as stripe_lib
+                        from app.core.config import settings as s
+                        if s.STRIPE_SECRET_KEY and not booking.escrow_ref.startswith("pi_simulated"):
+                            stripe_lib.Refund.create(
+                                payment_intent=booking.escrow_ref,
+                                amount=int(booking.amount * 100),
+                            )
+                    except Exception as e:
+                        logger.error(f"[AWAITING] Erreur remboursement booking {booking.id}: {e}")
+
+                # Restituer les kg au trip
+                trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+                trip = trip_r.scalar_one_or_none()
+                pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
+                pkg = pkg_r.scalar_one_or_none()
+                if trip and pkg:
+                    trip.remaining_kg += pkg.weight_kg
+                    if trip.status == "full":
+                        trip.status = "open"
+
+                # Notifier expediteur
+                await create_notification(
+                    db=db, user_id=booking.sender_id,
+                    type="awaiting_receiver_expired",
+                    title="Reservation annulee",
+                    body="Le recepteur n'a pas repondu dans les 48h. Remboursement en cours.",
+                    link=f"/packages/{booking.id}",
+                )
+                # Notifier transporteur
+                if trip:
+                    await create_notification(
+                        db=db, user_id=trip.carrier_id,
+                        type="awaiting_receiver_expired",
+                        title="Reservation annulee",
+                        body="Le recepteur n'a pas repondu dans les 48h. La reservation est annulee.",
+                        link=f"/carrier",
+                    )
+                logger.info(f"[AWAITING] Booking {booking.id} annule apres 48h sans reponse")
+            await db.commit()
+            logger.info(f"[AWAITING] {len(bookings)} booking(s) expires")
+
+    asyncio.run(_run())

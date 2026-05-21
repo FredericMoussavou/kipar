@@ -5,7 +5,7 @@ from app.models.booking import Booking
 import datetime as dt
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(dt.date.today() + dt.timedelta(days=1))
+TOMORROW = str(dt.date.today() + dt.timedelta(days=3))
 
 
 async def register_and_login(client, email: str) -> str:

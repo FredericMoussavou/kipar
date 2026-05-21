@@ -89,7 +89,9 @@
         "flight_number_invalid": "Invalid flight number",
         "premium_booking_limit": "Limit reached: 3 active bookings maximum on the free plan. Upgrade to Premium for unlimited bookings.",
         "premium_trip_limit": "Limit reached: 2 active trips maximum on the free plan. Upgrade to Premium for unlimited trips.",
-        "premium_request_limit": "Limit reached: 2 active listings maximum on the free plan. Upgrade to Premium for unlimited listings."
+        "premium_request_limit": "Limit reached: 2 active listings maximum on the free plan. Upgrade to Premium for unlimited listings.",
+        "trip_not_urgent": "This trip does not accept urgent packages (less than 36h before departure)",
+        "trip_too_close": "Cannot book less than 5h before departure"
     },
     "success": {
         "delivery_confirmed": "Delivery confirmed — payment release in progress",

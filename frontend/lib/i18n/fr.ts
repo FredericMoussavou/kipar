@@ -597,6 +597,8 @@ export const fr = {
 
   airport_selected: '✓ Sélectionné',
 
+  accepts_urgent_label: 'Accepter les colis urgents',
+  accepts_urgent_desc: 'Colis déposés moins de 36h avant le départ (frais dossier 5€ au lieu de 1,50€)',
   trip_published: 'Annonce publiée !',
 
   trip_delete_confirm: 'Supprimer cette annonce ?',

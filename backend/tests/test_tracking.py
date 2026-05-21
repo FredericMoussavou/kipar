@@ -3,7 +3,7 @@ from sqlalchemy import update
 from app.models.user import User
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=1))
+TOMORROW = str(date.today() + timedelta(days=3))
 
 
 async def register_and_login(client, email: str) -> str:

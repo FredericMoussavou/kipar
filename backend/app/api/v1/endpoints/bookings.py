@@ -117,8 +117,23 @@ async def create_booking(
             "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
         ))
 
+    # Regle delai minimum 36h avant depart
+    from datetime import date as dclass, time as tclass, datetime as dtclass, timezone as tz
+    dep_time = trip.departure_time if hasattr(trip, 'departure_time') and trip.departure_time else tclass(0, 0)
+    if isinstance(dep_time, str):
+        h, m = dep_time.split(':')[:2]
+        dep_time = tclass(int(h), int(m))
+    dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=tz.utc)
+    hours_until_dep = (dep_dt - dtclass.now(tz.utc)).total_seconds() / 3600
+    is_urgent = hours_until_dep <= 36
+    if is_urgent and not trip.accepts_urgent:
+        raise HTTPException(status_code=400, detail=t("errors.trip_not_urgent", lang))
+    if hours_until_dep <= 5:
+        raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
+
+    flat_fee = 5.0 if is_urgent else settings.BOOKING_FLAT_FEE
     base_amount = payload.weight_kg * trip.price_per_kg
-    amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + settings.BOOKING_FLAT_FEE, 2)
+    amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
     package = Package(
         sender_id=current_user.id,
         weight_kg=payload.weight_kg,
@@ -137,6 +152,8 @@ async def create_booking(
         insurance_subscribed=payload.insurance_subscribed,
         reminder_hours=payload.reminder_hours,
         status="pending",
+        is_urgent=is_urgent,
+        booking_flat_fee_amount=flat_fee,
     )
     db.add(booking)
     await db.flush()
@@ -296,11 +313,25 @@ async def refuse_booking(
     if booking.status not in ("pending", "awaiting_receiver", "paid"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
-    # Annuler le PaymentIntent Stripe et rembourser (- 1.5EUR frais de gestion)
+    # Remboursement 100% quel que soit le statut (paid/pending/awaiting_receiver)
     if booking.escrow_ref and booking.payment_rail == "stripe":
+        import stripe
+        from app.core.config import settings
         from app.services.stripe_service import cancel_payment_intent
-        await cancel_payment_intent(booking.escrow_ref)
-        booking.booking_fee_collected = True
+        if not booking.escrow_ref.startswith("pi_simulated") and settings.STRIPE_SECRET_KEY:
+            if booking.status == "paid":
+                # Paiement deja capture - remboursement integral
+                try:
+                    stripe.Refund.create(
+                        payment_intent=booking.escrow_ref,
+                        amount=int(booking.amount * 100),
+                    )
+                except stripe.StripeError as e:
+                    raise HTTPException(status_code=400, detail=str(e))
+            else:
+                # PaymentIntent pas encore capture - on annule
+                await cancel_payment_intent(booking.escrow_ref)
+        booking.booking_fee_collected = False
 
     booking.status = "refused"
     sender_ref_result = await db.execute(select(User).where(User.id == booking.sender_id))
@@ -530,43 +561,85 @@ async def cancel_booking(
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
 
-    refund_rate = 1.0
-    carrier_compensation_rate = 0.0
-    kipar_fee_rate = 0.0
+    import stripe as stripe_lib
+    from datetime import date as dclass
+    from app.core.config import settings as s
+    FLAT_FEE = s.BOOKING_FLAT_FEE  # 1.50EUR
+
+    refund_amount = 0.0
+    carrier_amount = 0.0
 
     if is_sender:
         booking.status = "cancelled_by_sender"
-        if booking.cancellation_justified:
-            # Force majeure (flag admin) -> remboursement 100%, Kipar 0
-            refund_rate = 1.0
-            kipar_fee_rate = 0.0
-        elif trip and trip.departure_date:
-            from datetime import date, timedelta
-            hours_until = (trip.departure_date - date.today()).days * 24
-            if hours_until > settings.LATE_CANCEL_HOURS:
-                # Annulation >72h -> exp. +85%, Kipar +15%
-                refund_rate = 1.0 - settings.SERVICE_FEE_SENDER_PERCENT
-                kipar_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT
+        if booking.status in ("pending", "awaiting_receiver") or not booking.escrow_ref:
+            # Pas encore paye - rien a rembourser
+            refund_amount = 0.0
+        elif booking.cancellation_justified:
+            # Force majeure (flag admin) -> remboursement 100%
+            refund_amount = booking.amount
+        elif booking.accepted_at and trip and trip.departure_date:
+            hours_until = (trip.departure_date - dclass.today()).days * 24
+            if booking.status in ("paid",):
+                # Statut paid -> remboursement 100% toujours
+                refund_amount = booking.amount
+            elif hours_until >= 72:
+                # accepted >= 72h -> remboursement montant - 1.50EUR
+                refund_amount = round(booking.amount - FLAT_FEE, 2)
+                carrier_amount = 0.0
+            elif hours_until > 24:
+                # accepted <72h et >24h -> exp 50%, tra 25%, kipar 25% + 1.50EUR
+                base = round(booking.amount - FLAT_FEE, 2)
+                refund_amount = round(base * 0.50, 2)
+                carrier_amount = round(base * 0.25, 2)
             else:
-                # Annulation <=72h non justifiee -> exp. 0%, tra. +85%, Kipar +15%
-                refund_rate = 0.0
-                carrier_compensation_rate = 1.0 - settings.SERVICE_FEE_SENDER_PERCENT
-                kipar_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT
-        print(f"[ESCROW] Annulation expéditeur booking {booking_id} — remboursement {int(refund_rate*100)}% Kipar {int(kipar_fee_rate*100)}%")
-    else:
-        booking.status = "cancelled_by_carrier"
-        refund_rate = 1.0  # expediteur toujours rembourse 100%
-        if not booking.cancellation_justified:
-            # Annulation non justifiee -> 5% (min 5EUR) factures au transporteur
-            carrier_penalty = max(
-                booking.amount * settings.CARRIER_CANCEL_FEE_PERCENT,
-                settings.CARRIER_CANCEL_FEE_MIN
-            )
-            print(f"[TRUST] Annulation transporteur booking {booking_id} — penalite {carrier_penalty:.2f}EUR + trust downgrade")
-            # TODO Sprint 4 : prelevement reel Stripe/Flutterwave sur le transporteur
+                # accepted <=24h -> exp 0%, tra 83%, kipar 17%
+                refund_amount = 0.0
+                carrier_amount = round(booking.amount * 0.83, 2)
         else:
-            print(f"[ESCROW] Annulation transporteur justifiee booking {booking_id} — force majeure")
-        print(f"[TRUST] Annulation transporteur booking {booking_id} — downgrade simulé")
+            refund_amount = booking.amount
+
+        # Remboursement Stripe expediteur
+        if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
+            try:
+                if refund_amount > 0:
+                    stripe_lib.Refund.create(
+                        payment_intent=booking.escrow_ref,
+                        amount=int(refund_amount * 100),
+                    )
+                # Transfer transporteur si applicable
+                if carrier_amount > 0:
+                    carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+                    carrier_u = carrier_r.scalar_one_or_none()
+                    if carrier_u and carrier_u.stripe_account_id and not carrier_u.stripe_account_id.startswith("simulated"):
+                        stripe_lib.Transfer.create(
+                            amount=int(carrier_amount * 100),
+                            currency="eur",
+                            destination=carrier_u.stripe_account_id,
+                            description=f"KIPAR compensation annulation booking {booking_id}",
+                        )
+            except stripe_lib.StripeError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        print(f"[ESCROW] Annulation expediteur booking {booking_id} - remboursement {refund_amount:.2f}EUR transporteur {carrier_amount:.2f}EUR")
+
+    else:
+        # Transporteur -> remboursement 100% expediteur + pending_review
+        booking.status = "cancelled_by_carrier"
+        booking.cancellation_review_status = "pending_review"
+        booking.carrier_penalty_due = s.CARRIER_CANCEL_FEE_MIN  # 5.0EUR par defaut
+        refund_amount = booking.amount
+
+        # Remboursement immediat 100% expediteur
+        if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
+            try:
+                stripe_lib.Refund.create(
+                    payment_intent=booking.escrow_ref,
+                    amount=int(booking.amount * 100),
+                )
+            except stripe_lib.StripeError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        print(f"[ESCROW] Annulation transporteur booking {booking_id} - remboursement 100% expediteur - pending_review")
 
     if payload.reason:
         booking.cancellation_reason = payload.reason
@@ -606,7 +679,7 @@ async def cancel_booking(
         )
         await db.commit()
 
-    return {"status": booking.status, "refund_rate": refund_rate, "amount": booking.amount}
+    return {"status": booking.status, "refund_amount": refund_amount, "carrier_amount": carrier_amount, "amount": booking.amount}
 
 @router.patch("/{booking_id}/in-transit")
 async def mark_in_transit(
@@ -1191,3 +1264,193 @@ async def delete_booking(
     booking.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     return None
+
+
+@router.post("/{booking_id}/cancellation-evidence/signature")
+async def get_cancellation_evidence_signature(
+    booking_id: str,
+    file_index: int = 0,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Genere une signature Cloudinary pour uploader une preuve d'annulation."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    is_carrier = trip and trip.carrier_id == current_user.id
+    if not is_carrier:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if file_index < 0 or file_index > 4:
+        raise HTTPException(status_code=400, detail="file_index doit etre entre 0 et 4")
+    from app.services.cloudinary_service import generate_evidence_upload_signature
+    import uuid as uuid_mod
+    return generate_evidence_upload_signature(uuid_mod.UUID(booking_id), file_index)
+
+
+@router.post("/{booking_id}/request-cancellation")
+async def request_cancellation(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Transporteur soumet une demande d'annulation avec justification et preuves.
+    Passe le booking en cancelled_by_carrier + pending_review.
+    Rembourse 100% l'expediteur immediatement.
+    """
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    if not trip or trip.carrier_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if booking.status != "accepted":
+        raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+
+    justification = payload.get("justification", "").strip()
+    evidence_urls = payload.get("evidence_urls", [])
+
+    if not justification:
+        raise HTTPException(status_code=400, detail="Une justification est requise")
+    if len(evidence_urls) > 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 fichiers de preuve")
+
+    # Valider que les URLs appartiennent bien a notre Cloudinary
+    from app.core.config import settings as s
+    for url in evidence_urls:
+        expected_host = f"res.cloudinary.com/{s.CLOUDINARY_CLOUD_NAME}/"
+        expected_folder = f"kipar/cancellation_evidence/{booking_id}/"
+        if expected_host not in url or expected_folder not in url:
+            raise HTTPException(status_code=400, detail="URL de preuve invalide")
+
+    booking.status = "cancelled_by_carrier"
+    booking.cancellation_review_status = "pending_review"
+    booking.cancellation_justification = justification
+    booking.cancellation_evidence_urls = evidence_urls
+    booking.carrier_penalty_due = s.CARRIER_CANCEL_FEE_MIN
+    if payload.get("reason"):
+        booking.cancellation_reason = payload.get("reason")
+
+    # Restituer les kg au trip
+    pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
+    pkg = pkg_result.scalar_one_or_none()
+    if pkg and trip:
+        trip.remaining_kg += pkg.weight_kg
+        if trip.status == "full":
+            trip.status = "open"
+
+    # Remboursement immediat 100% expediteur
+    import stripe as stripe_lib
+    if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
+        try:
+            stripe_lib.Refund.create(
+                payment_intent=booking.escrow_ref,
+                amount=int(booking.amount * 100),
+            )
+        except stripe_lib.StripeError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    await db.commit()
+
+    # Notifier l'expediteur
+    sender_result = await db.execute(select(User).where(User.id == booking.sender_id))
+    sender_notif = sender_result.scalar_one_or_none()
+    if sender_notif:
+        from app.services.notif_db_service import notify_booking_cancelled_by_carrier_db
+        await notify_booking_cancelled_by_carrier_db(
+            db=db,
+            sender_id=sender_notif.id,
+            receiver_id=booking.receiver_id,
+            booking_id=booking.id,
+            lang=sender_notif.language or "fr",
+        )
+        await db.commit()
+
+    return {"status": "pending_review", "message": "Demande soumise, en attente de validation KIPAR"}
+
+
+@router.post("/{booking_id}/review-cancellation")
+async def review_cancellation(
+    booking_id: str,
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Admin KIPAR statue sur une demande d'annulation transporteur.
+    decision: 'justified' ou 'unjustified'
+    - justified  : rien, remboursement deja fait
+    - unjustified: penalite 5EUR enregistree, a prelever manuellement
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.cancellation_review_status != "pending_review":
+        raise HTTPException(status_code=400, detail="Aucune demande en attente de review")
+
+    decision = payload.get("decision", "").strip()
+    if decision not in ("justified", "unjustified"):
+        raise HTTPException(status_code=400, detail="decision doit etre 'justified' ou 'unjustified'")
+
+    booking.cancellation_review_status = decision
+
+    if decision == "justified":
+        booking.cancellation_justified = True
+        booking.carrier_penalty_due = 0.0
+    else:
+        booking.cancellation_justified = False
+        booking.carrier_penalty_due = 5.0
+        # Prelevement reel Stripe si le transporteur a un compte Connect
+        trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+        trip_penalty = trip_r.scalar_one_or_none()
+        if trip_penalty:
+            carrier_r = await db.execute(select(User).where(User.id == trip_penalty.carrier_id))
+            carrier_u = carrier_r.scalar_one_or_none()
+            if carrier_u and carrier_u.stripe_account_id and not carrier_u.stripe_account_id.startswith("simulated"):
+                import stripe as stripe_lib
+                from app.core.config import settings as s
+                if s.STRIPE_SECRET_KEY:
+                    try:
+                        # Debit negatif sur le compte Connect du transporteur
+                        stripe_lib.Transfer.create(
+                            amount=-int(5.0 * 100),
+                            currency="eur",
+                            destination=carrier_u.stripe_account_id,
+                            description=f"KIPAR penalite annulation non justifiee booking {booking_id}",
+                        )
+                        booking.carrier_penalty_due = 0.0  # preleve
+                    except stripe_lib.StripeError:
+                        # Echec prelevement - reste en DB pour traitement manuel
+                        pass
+
+    await db.commit()
+
+    # Notifier le transporteur de la decision
+    trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_result.scalar_one_or_none()
+    if trip:
+        from app.services.notif_db_service import create_notification
+        msg = "Votre annulation a ete validee." if decision == "justified" else "Votre annulation n'a pas ete validee. Une penalite de 5EUR vous sera prelevee."
+        await create_notification(
+            db=db,
+            user_id=trip.carrier_id,
+            type="cancellation_reviewed",
+            title="Decision annulation",
+            body=msg,
+            link=f"/packages/{booking_id}",
+        )
+        await db.commit()
+
+    return {"status": decision, "carrier_penalty_due": booking.carrier_penalty_due}

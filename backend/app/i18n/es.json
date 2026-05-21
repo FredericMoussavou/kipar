@@ -88,7 +88,9 @@
         "flight_number_invalid": "Número de vuelo inválido",
         "premium_booking_limit": "Límite alcanzado: 3 reservas activas máximo en el plan gratuito. Actualice a Premium para reservar sin límites.",
         "premium_trip_limit": "Límite alcanzado: 2 viajes activos máximo en el plan gratuito. Actualice a Premium para publicar sin límites.",
-        "premium_request_limit": "Límite alcanzado: 2 anuncios activos máximo en el plan gratuito. Actualice a Premium para publicar sin límites."
+        "premium_request_limit": "Límite alcanzado: 2 anuncios activos máximo en el plan gratuito. Actualice a Premium para publicar sin límites.",
+        "trip_not_urgent": "Este viaje no acepta paquetes urgentes (menos de 36h antes de la salida)",
+        "trip_too_close": "No se puede reservar menos de 5h antes de la salida"
     },
     "success": {
         "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

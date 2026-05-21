@@ -113,17 +113,39 @@ async def confirm_payment(
     if not booking.escrow_ref:
         raise HTTPException(status_code=400, detail=t("errors.payment_not_initiated", lang))
 
-    success = False
     if booking.payment_rail == "stripe":
-        success = await capture_payment_intent(booking.escrow_ref)
+        import stripe
+        from app.core.config import settings
+        if settings.STRIPE_SECRET_KEY and not booking.escrow_ref.startswith("pi_simulated"):
+            try:
+                intent = stripe.PaymentIntent.retrieve(booking.escrow_ref)
+                if intent.status not in ("requires_capture", "succeeded"):
+                    raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
+            except stripe.StripeError as e:
+                raise HTTPException(status_code=400, detail=str(e))
     elif booking.payment_rail == "flutterwave":
         success = await verify_transaction(booking.escrow_ref)
+        if not success:
+            raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
 
-    if not success:
-        raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
+    if booking.status != "paid":
+        booking.status = "paid"
+    if not booking.paid_at:
+        booking.paid_at = datetime.now(timezone.utc)
 
-    booking.status = "paid"
-    booking.paid_at = datetime.now(timezone.utc)
+    # Flux request : booking issu d'accept_application -> capture + accepted automatique
+    if booking.package_request_id:
+        if booking.payment_rail == "stripe" and booking.escrow_ref and not booking.escrow_ref.startswith("pi_simulated"):
+            from app.core.config import settings as s
+            if s.STRIPE_SECRET_KEY:
+                captured = await capture_payment_intent(booking.escrow_ref)
+                if not captured:
+                    raise HTTPException(status_code=400, detail=t("errors.payment_capture_failed", lang))
+        booking.status = "accepted"
+        booking.accepted_at = datetime.now(timezone.utc)
+        booking.booking_fee_collected = True
+
+    await db.commit()
 
     return {"message": t("notifications.payment_confirmed", lang)}
 

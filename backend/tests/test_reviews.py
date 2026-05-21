@@ -4,7 +4,7 @@ from app.models.user import User
 from app.models.booking import Booking
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=1))
+TOMORROW = str(date.today() + timedelta(days=3))
 
 CRITERIA_SENDER_TO_CARRIER = {
     "ponctualite": 4,

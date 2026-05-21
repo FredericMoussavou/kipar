@@ -59,6 +59,7 @@ export default function NewTripPage() {
   const [originSelected, setOriginSelected] = useState(false)
   const [destSelected, setDestSelected] = useState(false)
   const [priceSuggestion, setPriceSuggestion] = useState<{ price_low: number | null; price_high: number | null; is_corridor_data: boolean } | null>(null)
+  const [acceptsUrgent, setAcceptsUrgent] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -128,6 +129,7 @@ export default function NewTripPage() {
         price_per_kg: parseFloat(data.price_per_kg),
         weight_unit: weightUnit,
         currency: tripCurrency,
+        accepts_urgent: acceptsUrgent,
         arrival_date: arrivalDate || undefined,
       })
       toast.success(t.carrier.trip_published)
@@ -291,6 +293,18 @@ export default function NewTripPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Toggle colis urgents */}
+        <div style={{ background: 'var(--k-white,#fff)', borderRadius: 16, padding: 16, border: '1px solid var(--k-border,#E8E3DD)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--k-charcoal,#1A1A1A)', margin: 0 }}>{t.carrier.accepts_urgent_label}</p>
+            <p style={{ fontSize: 12, color: 'var(--k-taupe,#8C7B6B)', marginTop: 4 }}>{t.carrier.accepts_urgent_desc}</p>
+          </div>
+          <button type="button" onClick={() => setAcceptsUrgent(v => !v)}
+            style={{ width: 48, height: 28, borderRadius: 14, background: acceptsUrgent ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsUrgent ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+          </button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>

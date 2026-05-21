@@ -84,6 +84,7 @@ async def create_trip(
         price_per_kg=payload.price_per_kg,
         weight_unit=payload.weight_unit if hasattr(payload, "weight_unit") else "kg",
         currency=payload.currency if hasattr(payload, "currency") else "EUR",
+        accepts_urgent=payload.accepts_urgent if hasattr(payload, "accepts_urgent") else False,
     )
     db.add(trip)
     await db.flush()

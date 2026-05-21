@@ -92,14 +92,14 @@ async def send_receiver_invitation(
     </div>
     """
 
-    params = resend.Emails.SendParams(
-        from_=FROM_EMAIL,
-        to=[to_email],
-        subject=subject,
-        html=body_html,
-    )
     # En dev sans clé réelle → on logue sans crasher
     if not settings.RESEND_API_KEY:
         print(f"[RESEND SIMULATION] To: {to_email} | Link: {link}")
         return
+    params: resend.Emails.SendParams = {
+        "from": FROM_EMAIL,
+        "to": [to_email],
+        "subject": subject,
+        "html": body_html,
+    }
     resend.Emails.send(params)

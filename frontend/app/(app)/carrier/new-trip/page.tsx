@@ -16,6 +16,7 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/theme'
+import { useLimits } from '@/hooks/useLimits'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
@@ -40,6 +41,7 @@ type FormData = z.infer<typeof schema>
 export default function NewTripPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const { tripsBlocked, limits } = useLimits()
   const { user } = useAuthStore()
   const isMobile = useIsMobile()
   const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
@@ -159,6 +161,27 @@ export default function NewTripPage() {
       ))}
     </div>
   )
+
+  if (tripsBlocked) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
+          <p style={{ fontSize: 36, marginBottom: 12 }}>🔒</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>Limite atteinte</h2>
+          <p style={{ fontSize: 14, color: '#92400E', marginBottom: 4 }}>
+            {limits?.trips.current}/{limits?.trips.max} utilisés en gratuit
+          </p>
+          <p style={{ fontSize: 13, color: '#92400E', marginBottom: 20 }}>
+            Passez à Premium pour continuer sans limite.
+          </p>
+          <button onClick={() => router.push('/premium')}
+            style={{ background: '#DC0029', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%' }}>
+            Débloquer Premium
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>

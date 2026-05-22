@@ -14,6 +14,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
+import { useLimits } from '@/hooks/useLimits'
 import { useInsuranceConfig, calculateInsurancePremium } from '@/hooks/useInsuranceConfig'
 
 const schema = z.object({
@@ -28,6 +29,7 @@ type FormData = z.infer<typeof schema>
 export default function BookPage() {
   const { id } = useParams()
   const router = useRouter()
+  const { bookingsBlocked, limits } = useLimits()
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const insuranceConfig = useInsuranceConfig()
@@ -131,6 +133,27 @@ export default function BookPage() {
       toast.error(msg)
     },
   })
+
+  if (bookingsBlocked) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
+          <p style={{ fontSize: 36, marginBottom: 12 }}>🔒</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>Limite atteinte</h2>
+          <p style={{ fontSize: 14, color: '#92400E', marginBottom: 4 }}>
+            {limits?.bookings.current}/{limits?.bookings.max} utilisés en gratuit
+          </p>
+          <p style={{ fontSize: 13, color: '#92400E', marginBottom: 20 }}>
+            Passez à Premium pour continuer sans limite.
+          </p>
+          <button onClick={() => router.push('/premium')}
+            style={{ background: '#DC0029', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%' }}>
+            Débloquer Premium
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>

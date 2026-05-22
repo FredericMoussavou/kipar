@@ -429,6 +429,53 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return _serialize_me(current_user)
 
 
+@router.get("/me/limits")
+async def get_my_limits(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retourne les compteurs freemium de l'utilisateur."""
+    from app.api.v1.endpoints.premium import is_premium_active
+    from sqlalchemy import func
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.package_request import PackageRequest
+    is_premium = is_premium_active(current_user)
+    if is_premium:
+        return {
+            "is_premium": True,
+            "bookings": {"current": 0, "max": None},
+            "trips": {"current": 0, "max": None},
+            "requests": {"current": 0, "max": None},
+        }
+    booking_count = await db.execute(
+        select(func.count()).where(
+            Booking.sender_id == current_user.id,
+            Booking.status.in_(["pending", "accepted", "paid", "in_transit"]),
+        )
+    )
+    trip_count = await db.execute(
+        select(func.count()).where(
+            Trip.carrier_id == current_user.id,
+            Trip.status.in_(["open", "full"]),
+            Trip.deleted_at.is_(None),
+        )
+    )
+    request_count = await db.execute(
+        select(func.count()).where(
+            PackageRequest.sender_id == current_user.id,
+            PackageRequest.status == "open",
+            PackageRequest.deleted_at.is_(None),
+        )
+    )
+    return {
+        "is_premium": False,
+        "bookings": {"current": booking_count.scalar(), "max": 3},
+        "trips": {"current": trip_count.scalar(), "max": 2},
+        "requests": {"current": request_count.scalar(), "max": 2},
+    }
+
+
 @router.get("/{user_id}", response_model=PublicUserResponse)
 async def get_public_user(
     user_id: uuid.UUID,

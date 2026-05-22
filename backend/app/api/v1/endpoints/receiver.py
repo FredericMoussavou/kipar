@@ -6,7 +6,7 @@ import secrets
 import string
 
 from app.core.database import get_db
-from app.core.lang import get_lang
+from app.core.lang import get_lang_optional as get_lang
 from app.core.security import hash_password
 from app.models.receiver_invitation import ReceiverInvitation
 from app.models.booking import Booking

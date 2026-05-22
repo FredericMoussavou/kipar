@@ -14,10 +14,12 @@ import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 type Tab = 'listings' | 'bookings'
 
 export default function PackagesPage() {
+  const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
   const { isAuthenticated, user } = useAuthStore()
   const router = useRouter()
@@ -127,6 +129,7 @@ export default function PackagesPage() {
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
       <HeroHeader
+        onMenuOpen={openDrawer}
         imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
         minHeight={160}
       >

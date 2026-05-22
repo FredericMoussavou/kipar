@@ -11,8 +11,10 @@ import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import api from '@/lib/api'
 import { CHARCOAL, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
 import { useState } from 'react'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 export default function RequestsPage() {
+  const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
   const router = useRouter()
   const { user } = useAuthStore()
@@ -40,7 +42,7 @@ export default function RequestsPage() {
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
-      <HeroHeader imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80" minHeight={160}>
+      <HeroHeader onMenuOpen={openDrawer} imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80" minHeight={160}>
         <div style={{ padding: '48px 24px 28px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.requests.my_requests}</h1>

@@ -13,10 +13,12 @@ import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80'
 
 export default function CarrierPage() {
+  const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
   const { user, setUser } = useAuthStore()
   const router = useRouter()
@@ -104,7 +106,7 @@ export default function CarrierPage() {
   if (!user?.is_carrier) {
     return (
       <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)' }}>
-        <HeroHeader imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
+        <HeroHeader onMenuOpen={openDrawer} imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
           <div style={{ padding: '56px 24px 32px', textAlign: 'center' }}>
             <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 26, fontWeight: 800, color: WHITE, marginBottom: 8 }}>
               {t.carrier.onboarding_title}
@@ -154,7 +156,7 @@ export default function CarrierPage() {
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
-      <HeroHeader imageUrl={HERO_IMG} minHeight={180}>
+      <HeroHeader onMenuOpen={openDrawer} imageUrl={HERO_IMG} minHeight={180}>
         <div style={{ padding: '48px 24px 28px' }} className="md:p-8">
           <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}
             className="md:text-3xl">

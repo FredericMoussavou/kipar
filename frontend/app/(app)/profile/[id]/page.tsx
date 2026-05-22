@@ -12,6 +12,7 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
 import api from '@/lib/api'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN, RED } from '@/lib/theme'
+import { useDrawerStore } from '@/stores/drawer.store'
 
 interface PublicProfile {
   id: string
@@ -163,6 +164,7 @@ function ReviewCard({ review }: { review: ReviewItem }) {
 }
 
 export default function PublicProfilePage() {
+  const { open: openDrawer } = useDrawerStore()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { t } = useTranslation()
@@ -257,7 +259,7 @@ export default function PublicProfilePage() {
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
       {/* Hero */}
-      <HeroHeader imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
+      <HeroHeader onMenuOpen={openDrawer} imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
         <div style={{ padding: '48px 20px 24px', position: 'relative', textAlign: 'center' }}>
           <button
             onClick={() => router.back()}

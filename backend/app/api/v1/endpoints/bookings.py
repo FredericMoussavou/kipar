@@ -131,7 +131,7 @@ async def create_booking(
     if hours_until_dep <= 5:
         raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
 
-    flat_fee = 5.0 if is_urgent else settings.BOOKING_FLAT_FEE
+    flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
     base_amount = payload.weight_kg * trip.price_per_kg
     amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
     package = Package(
@@ -403,6 +403,8 @@ async def list_carrier_bookings(
             weight_kg=pkg.weight_kg if pkg else None,
             content_description=pkg.content_description if pkg else None,
             declared_value=pkg.declared_value if pkg else None,
+            is_urgent=b.is_urgent,
+            booking_flat_fee_amount=b.booking_flat_fee_amount,
         ))
     return responses
 
@@ -441,6 +443,8 @@ async def list_my_bookings_detailed(
             weight_kg=pkg.weight_kg if pkg else None,
             content_description=pkg.content_description if pkg else None,
             declared_value=pkg.declared_value if pkg else None,
+            is_urgent=b.is_urgent,
+            booking_flat_fee_amount=b.booking_flat_fee_amount,
         )
         responses.append(resp)
     return responses
@@ -493,6 +497,8 @@ async def get_booking_full(
         weight_kg=pkg.weight_kg if pkg else None,
         content_description=pkg.content_description if pkg else None,
         declared_value=pkg.declared_value if pkg else None,
+        is_urgent=b.is_urgent,
+        booking_flat_fee_amount=b.booking_flat_fee_amount,
         ai_scan_result=pkg.ai_scan_result if pkg else None,
         ai_prohibited_flag=pkg.ai_prohibited_flag if pkg else None,
         origin_airport_code=trip.origin_airport_code if trip else None,
@@ -578,23 +584,30 @@ async def cancel_booking(
             # Force majeure (flag admin) -> remboursement 100%
             refund_amount = booking.amount
         elif booking.accepted_at and trip and trip.departure_date:
-            hours_until = (trip.departure_date - dclass.today()).days * 24
             if booking.status in ("paid",):
                 # Statut paid -> remboursement 100% toujours
                 refund_amount = booking.amount
-            elif hours_until >= 72:
-                # accepted >= 72h -> remboursement montant - 1.50EUR
-                refund_amount = round(booking.amount - FLAT_FEE, 2)
-                carrier_amount = 0.0
-            elif hours_until > 24:
-                # accepted <72h et >24h -> exp 50%, tra 25%, kipar 25% + 1.50EUR
-                base = round(booking.amount - FLAT_FEE, 2)
-                refund_amount = round(base * 0.50, 2)
-                carrier_amount = round(base * 0.25, 2)
+            elif booking.is_urgent:
+                # Urgence : regles specifiques independantes du delai
+                # Expediteur annule -> rembourse montant - 10EUR (7 carrier + 3 kipar)
+                refund_amount = round(booking.amount - settings.URGENT_FLAT_FEE, 2)
+                carrier_amount = settings.URGENT_FEE_CARRIER
             else:
-                # accepted <=24h -> exp 0%, tra 83%, kipar 17%
-                refund_amount = 0.0
-                carrier_amount = round(booking.amount * 0.83, 2)
+                # Classique : tableau 72h/24h
+                hours_until = (trip.departure_date - dclass.today()).days * 24
+                if hours_until >= 72:
+                    # accepted >= 72h -> remboursement montant - 1.50EUR
+                    refund_amount = round(booking.amount - FLAT_FEE, 2)
+                    carrier_amount = 0.0
+                elif hours_until > 24:
+                    # accepted <72h et >24h -> exp 50%, tra 25%, kipar 25% + 1.50EUR
+                    base = round(booking.amount - FLAT_FEE, 2)
+                    refund_amount = round(base * 0.50, 2)
+                    carrier_amount = round(base * 0.25, 2)
+                else:
+                    # accepted <=24h -> exp 0%, tra 83%, kipar 17%
+                    refund_amount = 0.0
+                    carrier_amount = round(booking.amount * 0.83, 2)
         else:
             refund_amount = booking.amount
 
@@ -627,14 +640,19 @@ async def cancel_booking(
         booking.status = "cancelled_by_carrier"
         booking.cancellation_review_status = "pending_review"
         booking.carrier_penalty_due = s.CARRIER_CANCEL_FEE_MIN  # 5.0EUR par defaut
-        refund_amount = booking.amount
+        # Urgence : KIPAR garde 3EUR, expediteur rembourse montant - 3EUR
+        # Classique : remboursement 100% expediteur
+        if booking.is_urgent:
+            refund_amount = round(booking.amount - s.URGENT_FEE_KIPAR, 2)
+        else:
+            refund_amount = booking.amount
 
-        # Remboursement immediat 100% expediteur
+        # Remboursement immediat expediteur
         if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
             try:
                 stripe_lib.Refund.create(
                     payment_intent=booking.escrow_ref,
-                    amount=int(booking.amount * 100),
+                    amount=int(refund_amount * 100),
                 )
             except stripe_lib.StripeError as e:
                 raise HTTPException(status_code=400, detail=str(e))

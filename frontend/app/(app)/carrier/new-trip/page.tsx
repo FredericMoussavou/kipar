@@ -324,10 +324,17 @@ export default function NewTripPage() {
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--k-charcoal,#1A1A1A)', margin: 0 }}>{t.carrier.accepts_urgent_label}</p>
             <p style={{ fontSize: 12, color: 'var(--k-taupe,#8C7B6B)', marginTop: 4 }}>{t.carrier.accepts_urgent_desc}</p>
           </div>
-          <button type="button" onClick={() => setAcceptsUrgent(v => !v)}
-            style={{ width: 48, height: 28, borderRadius: 14, background: acceptsUrgent ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsUrgent ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+          <button type="button"
+            onClick={() => user?.is_premium ? setAcceptsUrgent(v => !v) : router.push('/premium')}
+            title={user?.is_premium ? '' : (t.carrier.accepts_urgent_premium ?? 'Fonctionnalité Premium')}
+            style={{ width: 48, height: 28, borderRadius: 14, background: acceptsUrgent && user?.is_premium ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: user?.is_premium ? 'pointer' : 'not-allowed', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: user?.is_premium ? 1 : 0.5 }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsUrgent && user?.is_premium ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
           </button>
+          {!user?.is_premium && (
+            <span style={{ fontSize: 10, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', fontWeight: 700, marginLeft: 4, alignSelf: 'center' }}>
+              Premium
+            </span>
+          )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>

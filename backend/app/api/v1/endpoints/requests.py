@@ -340,7 +340,7 @@ async def accept_application(
     dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
     hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
     is_urgent = hours_until_dep <= 36
-    flat_fee = 5.0 if is_urgent else settings.BOOKING_FLAT_FEE
+    flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
     transport = req.weight_kg * trip.price_per_kg
     amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
 

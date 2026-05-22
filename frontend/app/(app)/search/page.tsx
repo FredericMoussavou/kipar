@@ -106,6 +106,7 @@ export default function SearchPage() {
   const [destSuggestions, setDestSuggestions] = useState<any[]>([])
   const [searched, setSearched] = useState(false)
   const [showOwnTrips, setShowOwnTrips] = useState(false)
+  const [showUrgentOnly, setShowUrgentOnly] = useState(false)
   const { user } = useAuthStore()
 
   const { data: trips = [], isLoading, refetch } = useQuery({
@@ -261,13 +262,16 @@ export default function SearchPage() {
             <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
               {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
             </button>
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? '#92400E' : TAUPE, background: showUrgentOnly ? '#FFF3CD' : 'transparent', border: '1px solid ' + (showUrgentOnly ? '#FFE082' : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+              ⚡ {showUrgentOnly ? (t.search.filter_urgent_active ?? 'Urgents uniquement') : (t.search.filter_urgent ?? 'Accepte urgents')}
+            </button>
           </div>
           {(() => {
-              const filtered = trips.filter((trip: any) => showOwnTrips || String(trip.carrier_id) !== String(user?.id))
+              const filtered = trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent))
               return <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{filtered.length} {filtered.length > 1 ? t.search.results_count_plural : t.search.results_count}</p>
             })()}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {trips.filter((trip: any) => showOwnTrips || String(trip.carrier_id) !== String(user?.id)).map((trip: any) => (
+              {trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent)).map((trip: any) => (
                 <TripCard key={trip.id} trip={trip} onClick={() => handleTripClick(trip)} />
               ))}
             </div>

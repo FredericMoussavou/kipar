@@ -31,6 +31,7 @@ interface Trip {
   carrier_last_name?: string
   carrier_username?: string
   carrier_avatar_url?: string | null
+  accepts_urgent?: boolean
 }
 
 export default function TripCard({ trip, onClick, className }: {
@@ -116,7 +117,12 @@ export default function TripCard({ trip, onClick, className }: {
       </div>
 
       {/* Tags capacité */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+        {trip.accepts_urgent && (
+          <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: '#FFF3CD', color: '#92400E', fontWeight: 700, border: '1px solid #FFE082' }}>
+            ⚡ Urgent
+          </span>
+        )}
         <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
           <WeightDisplay value={trip.remaining_kg} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} /> {t.trip.available_kg}
         </span>

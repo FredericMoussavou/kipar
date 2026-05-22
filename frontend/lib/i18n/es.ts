@@ -512,6 +512,8 @@ export const es = {
     results_count_plural: 'viajes encontrados',
     show_own_trips: 'Incluir mis viajes',
     hide_own_trips: 'Ocultar mis viajes',
+    filter_urgent: 'Acepta urgentes',
+    filter_urgent_active: 'Solo urgentes',
 
   },
 
@@ -606,7 +608,9 @@ export const es = {
     airport_selected: '✓ Seleccionado',
 
     accepts_urgent_label: 'Aceptar paquetes urgentes',
-    accepts_urgent_desc: 'Paquetes depositados menos de 36h antes de la salida (tarifa de gestión 5€ en lugar de 1,50€)',
+    accepts_urgent_desc: 'Paquetes depositados menos de 36h antes de la salida',
+    accepts_urgent_premium: 'Función Premium',
+    accepts_urgent_sender_fee: 'Tarifa urgente: 10€ (en lugar de 1,50€)',
     trip_published: '¡Anuncio publicado!',
 
   trip_delete_confirm: '¿Eliminar este anuncio?',

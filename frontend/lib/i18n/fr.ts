@@ -512,6 +512,8 @@ export const fr = {
     results_count_plural: 'trajets trouvés',
     show_own_trips: 'Inclure mes trajets',
     hide_own_trips: 'Masquer mes trajets',
+    filter_urgent: 'Accepte urgents',
+    filter_urgent_active: 'Urgents uniquement',
 
   },
 
@@ -604,7 +606,9 @@ export const fr = {
   airport_selected: '✓ Sélectionné',
 
   accepts_urgent_label: 'Accepter les colis urgents',
-  accepts_urgent_desc: 'Colis déposés moins de 36h avant le départ (frais dossier 5€ au lieu de 1,50€)',
+  accepts_urgent_desc: 'Colis déposés moins de 36h avant le départ',
+  accepts_urgent_premium: 'Fonctionnalité Premium',
+  accepts_urgent_sender_fee: 'Frais dossier urgence : 10€ (au lieu de 1,50€)',
   trip_published: 'Annonce publiée !',
 
   trip_delete_confirm: 'Supprimer cette annonce ?',

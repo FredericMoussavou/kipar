@@ -512,6 +512,8 @@ export const en = {
     results_count_plural: 'trips found',
     show_own_trips: 'Include my trips',
     hide_own_trips: 'Hide my trips',
+    filter_urgent: 'Accepts urgent',
+    filter_urgent_active: 'Urgent only',
 
   },
 
@@ -604,7 +606,9 @@ export const en = {
   airport_selected: '✓ Selected',
 
   accepts_urgent_label: 'Accept urgent packages',
-  accepts_urgent_desc: 'Packages dropped less than 36h before departure (5€ handling fee instead of 1.50€)',
+  accepts_urgent_desc: 'Packages dropped less than 36h before departure',
+  accepts_urgent_premium: 'Premium feature',
+  accepts_urgent_sender_fee: 'Urgent handling fee: 10€ (instead of 1.50€)',
   trip_published: 'Listing published!',
 
   trip_delete_confirm: 'Delete this listing?',

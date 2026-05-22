@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     SERVICE_FEE_SENDER_PERCENT: float = 0.15     # 15% cote expediteur
     SERVICE_FEE_CARRIER_PERCENT: float = 0.02    # 2% cote transporteur
     BOOKING_FLAT_FEE: float = 1.50               # Forfait dossier a la confirmation
+    URGENT_FLAT_FEE: float = 10.0                # Forfait dossier urgence
+    URGENT_FEE_KIPAR: float = 3.0                # Part KIPAR sur forfait urgence
+    URGENT_FEE_CARRIER: float = 7.0              # Part transporteur sur forfait urgence
     MIN_COMMISSION: float = 2.50                 # Commission minimum absolue
     CARRIER_CANCEL_FEE_PERCENT: float = 0.05     # 5% annulation transporteur non justifiee
     CARRIER_CANCEL_FEE_MIN: float = 5.00         # Plancher annulation transporteur

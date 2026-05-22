@@ -42,6 +42,8 @@ interface AuthStore {
   unreadCount: number
   setUnreadCount: (count: number | ((prev: number) => number)) => void
   setToken: (token: string) => void
+  setRefreshToken: (token: string) => void
+  silentRefresh: () => Promise<boolean>
   setUser: (user: User) => void
   /**
    * Met à jour le user en mergeant des champs partiels.
@@ -64,6 +66,36 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       unreadCount: 0,
       setUnreadCount: (val) => set(state => ({ unreadCount: typeof val === 'function' ? val(state.unreadCount) : val })),
+      setRefreshToken: (refreshToken) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kipar_refresh_token', refreshToken)
+        }
+      },
+      silentRefresh: async () => {
+        if (typeof window === 'undefined') return false
+        const refreshToken = localStorage.getItem('kipar_refresh_token')
+        if (!refreshToken) return false
+        try {
+          const res = await fetch(
+            (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1') + '/auth/refresh',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+            }
+          )
+          if (!res.ok) {
+            localStorage.removeItem('kipar_refresh_token')
+            return false
+          }
+          const data = await res.json()
+          get().setToken(data.access_token)
+          if (data.refresh_token) get().setRefreshToken(data.refresh_token)
+          return true
+        } catch {
+          return false
+        }
+      },
       setToken: (token) => {
         set({ token })
         if (typeof window !== 'undefined') {
@@ -89,6 +121,7 @@ export const useAuthStore = create<AuthStore>()(
       },
       logout: () => {
         const token = get().token
+        if (typeof window !== 'undefined') localStorage.removeItem('kipar_refresh_token')
         // Redirection immediate
         set({ token: null, user: null })
         if (typeof window !== 'undefined') {

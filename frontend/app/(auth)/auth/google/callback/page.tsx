@@ -30,7 +30,7 @@ function Spinner() {
 function GoogleCallbackInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setToken, setUser } = useAuthStore()
+  const { setToken, setUser, setRefreshToken } = useAuthStore()
   const { t } = useTranslation()
   const called = useRef(false)
 
@@ -51,6 +51,7 @@ function GoogleCallbackInner() {
     api.post('/auth/google/code', { code, redirect_uri: redirectUri })
       .then(async (res) => {
         setToken(res.data.access_token)
+        if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
         const me = await api.get('/users/me')
         setUser(me.data)
         if (me.data.language) setLangCookie(me.data.language as SupportedLang)

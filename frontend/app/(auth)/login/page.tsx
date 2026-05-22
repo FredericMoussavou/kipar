@@ -82,7 +82,7 @@ function AnimatedDot() {
 export default function LoginPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { setToken, setUser } = useAuthStore()
+  const { setToken, setUser, setRefreshToken } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -93,6 +93,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', data)
       setToken(res.data.access_token)
+      if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
       const userData = res.data.user
       if (userData) {
         setUser(userData)
@@ -121,6 +122,7 @@ export default function LoginPage() {
     try {
       const res = await api.post(`/auth/${provider}`, { id_token, first_name, last_name })
       setToken(res.data.access_token)
+      if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
       const me = await api.get('/users/me')
       setUser(me.data)
       if (me.data.language) setLangCookie(me.data.language as SupportedLang)

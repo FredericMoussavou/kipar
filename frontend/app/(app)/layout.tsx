@@ -12,19 +12,33 @@ import { useDrawerStore } from '@/stores/drawer.store'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, silentRefresh } = useAuthStore()
   const [hydrated, setHydrated] = useState(false)
   const { isOpen: drawerOpen, close: closeDrawer } = useDrawerStore()
 
 
   useEffect(() => {
-    const unsub = useAuthStore.persist.onFinishHydration(() => {
+    const initAuth = async () => {
+      // Si token present mais potentiellement expire, tenter un silent refresh
+      const token = localStorage.getItem('kipar_token')
+      if (token) {
+        const refreshed = await silentRefresh()
+        if (!refreshed && !useAuthStore.getState().isAuthenticated()) {
+          useAuthStore.getState().logout()
+          return
+        }
+      }
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(async () => {
       setHydrated(true)
+      await initAuth()
       if (!useAuthStore.getState().isAuthenticated()) router.replace('/login')
     })
     if (useAuthStore.persist.hasHydrated()) {
       setHydrated(true)
-      if (!isAuthenticated()) router.replace('/login')
+      initAuth().then(() => {
+        if (!isAuthenticated()) router.replace('/login')
+      })
     }
     return () => unsub()
   }, [])

@@ -103,7 +103,12 @@ export default function BookPage() {
   const pricePerKg = trip?.price_per_kg || 0
   const transport = weight * pricePerKg
   const senderFee = transport * 0.15
-  const bookingFlatFee = transport > 0 ? 1.50 : 0
+  const hoursUntilDep = trip?.departure_date
+    ? (new Date(trip.departure_date).getTime() - Date.now()) / 3600000
+    : Infinity
+  const isUrgentTrip = hoursUntilDep <= 36
+  const canBookUrgent = trip?.accepts_urgent ?? false
+  const bookingFlatFee = transport > 0 ? (isUrgentTrip && canBookUrgent ? 10.0 : 1.50) : 0
   const commission = senderFee + bookingFlatFee
   const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
@@ -356,7 +361,45 @@ export default function BookPage() {
           </div>
         </div>
 
-        <Button type="submit" fullWidth size="lg" loading={mutation.isPending}>
+        {/* Banner urgence */}
+    {isUrgentTrip && canBookUrgent && (
+      <div style={{ background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 12, padding: '12px 14px' }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: '#92400E', margin: '0 0 4px' }}>
+          ⚡ {t.booking.urgent_notice_title ?? 'Colis urgent'}
+        </p>
+        <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
+          {t.booking.urgent_notice_desc ?? 'Frais dossier urgence : 10€ (départ dans moins de 36h)'}
+        </p>
+      </div>
+    )}
+    {/* Banner trip non disponible */}
+    {isUrgentTrip && !canBookUrgent && (
+      <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '12px 14px' }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: '#DC0029', margin: '0 0 4px' }}>
+          {t.booking.urgent_unavailable_title ?? 'Trajet non disponible'}
+        </p>
+        <p style={{ fontSize: 12, color: '#DC0029', margin: 0 }}>
+          {t.booking.urgent_unavailable_desc ?? 'Ce trajet ne peut plus être réservé (départ dans moins de 36h)'}
+        </p>
+      </div>
+    )}
+    {/* Validation kg */}
+    {weight > 0 && trip && weight > trip.remaining_kg && (
+      <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
+          {t.booking.weight_exceeds_available ?? `Seulement ${trip.remaining_kg} kg disponibles`}
+        </p>
+      </div>
+    )}
+    {weight > 0 && trip && weight > trip.max_kg_per_package && (
+      <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
+          {t.booking.weight_exceeds_max ?? `Maximum ${trip.max_kg_per_package} kg par colis`}
+        </p>
+      </div>
+    )}
+    <Button type="submit" fullWidth size="lg" loading={mutation.isPending}
+      disabled={(isUrgentTrip && !canBookUrgent) || (weight > 0 && trip && (weight > trip.remaining_kg || weight > trip.max_kg_per_package))}>
           {t.booking.confirm_btn}
         </Button>
       </form>

@@ -261,6 +261,11 @@ export default function PackagesPage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <StatusBadge status={booking.status} />
+                    {booking.is_urgent && (
+                      <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#FFF3CD', color: '#92400E', fontWeight: 700, border: '1px solid #FFE082', flexShrink: 0 }}>
+                        ⚡ Urgent
+                      </span>
+                    )}
                     {['pending', 'accepted', 'paid'].includes(booking.status) && booking.sender_id === user?.id && (
                       <button onClick={e => { e.stopPropagation(); setToCancel({ id: booking.id, status: booking.status, amount: booking.amount }) }}
                         style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(220,0,41,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>

@@ -210,6 +210,12 @@ export const en = {
     reminder_24h: '24h before',
 
     insurance_line: 'Insurance',
+    urgent_notice_title: 'Urgent package',
+    urgent_notice_desc: 'Urgent handling fee: 10€ (departure in less than 36h)',
+    urgent_unavailable_title: 'Trip unavailable',
+    urgent_unavailable_desc: 'This trip can no longer be booked (departure in less than 36h)',
+    weight_exceeds_available: 'Requested weight exceeds available kg',
+    weight_exceeds_max: 'Maximum weight per package exceeded',
 
   },
 

@@ -210,6 +210,12 @@ export const es = {
     reminder_24h: '24h antes',
 
     insurance_line: 'Seguro',
+    urgent_notice_title: 'Paquete urgente',
+    urgent_notice_desc: 'Tarifa urgente: 10€ (salida en menos de 36h)',
+    urgent_unavailable_title: 'Viaje no disponible',
+    urgent_unavailable_desc: 'Este viaje ya no puede reservarse (salida en menos de 36h)',
+    weight_exceeds_available: 'Peso solicitado superior al disponible',
+    weight_exceeds_max: 'Peso máximo por paquete superado',
 
   },
 

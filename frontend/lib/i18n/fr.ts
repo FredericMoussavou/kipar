@@ -210,6 +210,12 @@ export const fr = {
     reminder_24h: '24h avant',
 
     insurance_line: 'Assurance',
+    urgent_notice_title: 'Colis urgent',
+    urgent_notice_desc: 'Frais dossier urgence : 10€ (départ dans moins de 36h)',
+    urgent_unavailable_title: 'Trajet non disponible',
+    urgent_unavailable_desc: 'Ce trajet ne peut plus être réservé (départ dans moins de 36h)',
+    weight_exceeds_available: 'Poids demandé supérieur au kg disponibles',
+    weight_exceeds_max: 'Poids maximum par colis dépassé',
 
   },
 

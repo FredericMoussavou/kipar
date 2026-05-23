@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Button, Input } from '@/components/ui/kipar'
+import { Button, Input, OtpInput } from '@/components/ui/kipar'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
@@ -84,6 +84,11 @@ export default function LoginPage() {
   const router = useRouter()
   const { setToken, setUser, setRefreshToken } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
+  const [step, setStep] = useState<'credentials' | '2fa'>('credentials')
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [otpValue, setOtpValue] = useState('')
+  const [otpError, setOtpError] = useState<string | undefined>(undefined)
+  const [otpLoading, setOtpLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -92,6 +97,11 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const res = await api.post('/auth/login', data)
+      if (res.data.token_type === '2fa_required') {
+        setSessionId(res.data.user.session_id)
+        setStep('2fa')
+        return
+      }
       setToken(res.data.access_token)
       if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
       const userData = res.data.user
@@ -115,6 +125,40 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t.errors.invalid_credentials)
+    }
+  }
+
+  const onSubmit2fa = async () => {
+    if (otpValue.length < 6) return
+    setOtpLoading(true)
+    setOtpError(undefined)
+    try {
+      const res = await api.post('/auth/2fa/confirm', { session_id: sessionId, code: otpValue })
+      setToken(res.data.access_token)
+      if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
+      const userData = res.data.user
+      if (userData) {
+        setUser(userData)
+        if (userData.language) setLangCookie(userData.language as SupportedLang)
+        router.push(userData.onboarding_completed ? '/dashboard' : '/onboarding')
+      } else {
+        const me = await api.get('/users/me')
+        setUser(me.data)
+        if (me.data.language) setLangCookie(me.data.language as SupportedLang)
+        router.push(me.data.onboarding_completed ? '/dashboard' : '/onboarding')
+      }
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || ''
+      if (detail.includes('expir')) {
+        setOtpError(t.auth.twofa_session_expired)
+        setStep('credentials')
+        setSessionId(null)
+        setOtpValue('')
+      } else {
+        setOtpError(t.auth.twofa_invalid)
+      }
+    } finally {
+      setOtpLoading(false)
     }
   }
 
@@ -178,6 +222,46 @@ export default function LoginPage() {
       script.onload = initApple
       document.head.appendChild(script)
     }
+  }
+
+  if (step === '2fa') {
+    return (
+      <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden', position: 'fixed', inset: 0 }}>
+        <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48 }}>
+          <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
+            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', marginBottom: 32 }}>
+              KIPAR<span style={{ color: RED }}>.</span>
+            </h1>
+            <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, marginBottom: 8 }}>
+              {t.auth.twofa_title}
+            </h2>
+            <p style={{ fontSize: 14, color: TAUPE, marginBottom: 32 }}>{t.auth.twofa_subtitle}</p>
+            <OtpInput
+              value={otpValue}
+              onChange={val => { setOtpValue(val); setOtpError(undefined) }}
+              error={otpError}
+              disabled={otpLoading}
+            />
+            <Button
+              fullWidth
+              size="lg"
+              loading={otpLoading}
+              onClick={onSubmit2fa}
+              style={{ marginTop: 32 }}
+            >
+              {t.auth.twofa_confirm_btn}
+            </Button>
+            <button
+              type="button"
+              onClick={() => { setStep('credentials'); setSessionId(null); setOtpValue(''); setOtpError(undefined) }}
+              style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 16, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: TAUPE }}
+            >
+              {t.auth.twofa_back}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -87,6 +87,12 @@ export const es = {
     stat_rating_value: '4.9★',
 
     apple: 'Continuar con Apple',
+    twofa_title: 'Verificación en dos pasos',
+    twofa_subtitle: 'Introduce el código de 6 dí gitos generado por tu aplicación de autenticación.',
+    twofa_confirm_btn: 'CONFIRMAR',
+    twofa_back: 'Volver al inicio de sesión',
+    twofa_invalid: 'Código incorrecto o caducado',
+    twofa_session_expired: 'Sesión expirada, por favor inicia sesión de nuevo',
     confirm_password: 'Confirmar contrasena',
     password_min_placeholder: 'Minimo 8 caracteres',
     first_name_placeholder: 'Nombre',

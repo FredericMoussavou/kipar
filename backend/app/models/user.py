@@ -81,6 +81,12 @@ class User(Base):
     mobile_money_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
     iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
+    # 2FA
+    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    totp_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    phone_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Soft delete (Phase 2)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

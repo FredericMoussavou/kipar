@@ -102,7 +102,7 @@ async def register(request: Request, payload: RegisterRequest, db: AsyncSession 
         cgu_accepted_at=datetime.now(timezone.utc) if payload.cgu_accepted else None,
     )
     db.add(user)
-    await db.flush()
+    await db.commit()
 
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
@@ -120,6 +120,21 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     if not user or not user.is_active or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
     from app.api.v1.endpoints.users import _serialize_me
+    # Verifier si 2FA est active
+    if user.totp_enabled:
+        import uuid
+        session_id = str(uuid.uuid4())
+        try:
+            r = get_redis()
+            r.setex(f"2fa_pending:{session_id}", 300, str(user.id))
+        except Exception:
+            pass
+        return TokenResponse(
+            access_token="",
+            refresh_token="",
+            token_type="2fa_required",
+            user={"requires_2fa": True, "session_id": session_id},
+        )
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
@@ -136,6 +151,10 @@ async def refresh(request: Request, payload: RefreshRequest, db: AsyncSession = 
             raise HTTPException(status_code=401, detail=t("errors.token_type_invalid", "fr"))
         user_id = data["sub"]
     except JWTError:
+        raise HTTPException(status_code=401, detail=t("errors.invalid_token", "fr"))
+
+    # Verifier que le refresh token n'est pas blackliste
+    if is_token_blacklisted(payload.refresh_token):
         raise HTTPException(status_code=401, detail=t("errors.invalid_token", "fr"))
 
     result = await db.execute(select(User).where(User.id == user_id))
@@ -297,7 +316,11 @@ async def reset_password(
 
     lang = user.language
     user.hashed_password = hash_password(payload.new_password)
+    # Verifier que le nouveau mdp est different de l'ancien
+    if verify_password(payload.new_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail=t("errors.password_same_as_old", lang))
     reset.used = True
+    await db.commit()
 
     return {"message": t("success.password_reset_success", lang)}
 
@@ -317,6 +340,12 @@ async def change_password(
         raise HTTPException(status_code=400, detail=t("errors.password_same_as_old", lang))
 
     current_user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
+    # Invalider tous les tokens actifs via blacklist
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        blacklist_token(token, expire_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
     return {"message": t("success.password_changed", lang)}
 
 
@@ -377,6 +406,7 @@ async def google_code(
         db.add(user)
         await db.flush()
 
+    await db.commit()
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
@@ -393,4 +423,12 @@ async def logout(
     if auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         blacklist_token(token, expire_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    # Blacklister aussi le refresh token si fourni dans le body
+    try:
+        body = await request.json()
+        refresh_token = body.get("refresh_token")
+        if refresh_token:
+            blacklist_token(refresh_token, expire_seconds=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400)
+    except Exception:
+        pass
     return {"status": "logged_out"}

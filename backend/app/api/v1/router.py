@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints.receiver import router as receiver_router
+from app.api.v1.endpoints.auth_2fa import router as auth_2fa_router
 from app.api.v1.endpoints.premium import router as premium_router
 from app.api.v1.endpoints.carrier_finance import router as carrier_finance_router
 from app.api.v1.endpoints import (
@@ -11,6 +12,7 @@ from app.api.v1.endpoints import (
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
+api_router.include_router(auth_2fa_router)
 api_router.include_router(oauth.router)
 api_router.include_router(users.router)
 api_router.include_router(airports.router)

@@ -24,7 +24,8 @@ async def test_kyc_init(client, db_session):
     )
     assert res.status_code == 200
     data = res.json()
-    assert "sdk_token" in data
+    assert "verification_url" in data
+    assert "scan_ref" in data
     assert "applicant_id" in data
 
 

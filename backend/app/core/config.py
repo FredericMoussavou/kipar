@@ -39,7 +39,10 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
 
     # Onfido
-    ONFIDO_API_TOKEN: str = ""
+    ONFIDO_API_TOKEN: str = ""  # Deprecated - conserve pour compatibilite
+    IDENFY_API_KEY: str = ""
+    IDENFY_API_SECRET: str = ""
+    IDENFY_BASE_URL: str = "https://ivs.idenfy.com"
 
     # AviationStack
     RAPIDAPI_KEY: str = ""  # Cle RapidAPI pour AeroDataBox

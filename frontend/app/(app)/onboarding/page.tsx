@@ -51,14 +51,12 @@ export default function OnboardingPage() {
   const [mobileMoneyNumber, setMobileMoneyNumber] = useState(user?.mobile_money_number ?? '')
   const [paymentCountry, setPaymentCountry] = useState(user?.payment_country ?? '')
 
-  // Step 3 — Identity
-  const [idFront, setIdFront] = useState<string | null>(null)
-  const [idBack, setIdBack] = useState<string | null>(null)
-  const [selfie, setSelfie] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const idFrontRef = useRef<HTMLInputElement>(null)
-  const idBackRef = useRef<HTMLInputElement>(null)
-  const selfieRef = useRef<HTMLInputElement>(null)
+  // Step 3 — Identity iDenfy
+  const [kycStarted, setKycStarted] = useState(false)
+  const [kycPolling, setKycPolling] = useState(false)
+  const [kycVerified, setKycVerified] = useState(false)
+  const [kycTimeout, setKycTimeout] = useState(false)
+  const kycPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const progress = (step / (STEPS.length - 1)) * 100
 
@@ -137,27 +135,6 @@ export default function OnboardingPage() {
     address.trim().length >= 5 &&
     phone.trim().length >= 8
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('upload_preset', 'kipar_kyc_docs')
-    const res = await fetch('https://api.cloudinary.com/v1_1/dzlhxae2z/image/upload', { method: 'POST', body: fd })
-    const data = await res.json()
-    if (!data.secure_url) throw new Error('Upload failed')
-    return data.secure_url
-  }
-
-  const handleUpload = async (file: File, setter: (url: string) => void) => {
-    setUploading(true)
-    try {
-      const url = await uploadToCloudinary(file)
-      setter(url)
-    } catch {
-      toast.error(t.errors.generic)
-    } finally {
-      setUploading(false)
-    }
-  }
 
   const saveStep = async () => {
     setSaving(true)
@@ -183,9 +160,36 @@ export default function OnboardingPage() {
         await api.patch('/users/me', fields)
         patchUser(fields)
       } else if (step === 3) {
-        if (idFront || idBack || selfie) {
-          await api.post('/kyc/submit-docs', { id_front: idFront, id_back: idBack, selfie })
+        // iDenfy : generer une session + polling
+        const res = await api.post('/kyc/init')
+        if (res.data.verification_url) {
+          window.open(res.data.verification_url, '_blank')
+          setKycStarted(true)
+          setKycPolling(true)
+          let attempts = 0
+          const maxAttempts = 60 // 5 min (60 x 5s)
+          kycPollRef.current = setInterval(async () => {
+            attempts++
+            try {
+              const me = await api.get('/users/me')
+              if (me.data.kyc_status === 'verified') {
+                clearInterval(kycPollRef.current!)
+                setKycPolling(false)
+                setKycVerified(true)
+                patchUser({ kyc_status: 'verified' })
+                setTimeout(() => {
+                  setStep(s => s + 1)
+                }, 2000)
+              }
+            } catch {}
+            if (attempts >= maxAttempts) {
+              clearInterval(kycPollRef.current!)
+              setKycPolling(false)
+              setKycTimeout(true)
+            }
+          }, 5000)
         }
+        return // Ne pas avancer automatiquement
       }
       if (step === STEPS.length - 2) {
         await api.patch('/users/me', { onboarding_completed: true })
@@ -375,33 +379,49 @@ export default function OnboardingPage() {
           <div style={cardStyle}>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: CHARCOAL, marginBottom: 4 }}>{t.onboarding.identity_title}</h2>
             <p style={{ fontSize: 13, color: TAUPE, marginBottom: 20 }}>{t.onboarding.identity_subtitle}</p>
-            {[
-              { label: t.onboarding.id_front, value: idFront, setter: setIdFront, ref: idFrontRef },
-              { label: t.onboarding.id_back, value: idBack, setter: setIdBack, ref: idBackRef },
-              { label: t.onboarding.selfie, value: selfie, setter: setSelfie, ref: selfieRef },
-            ].map(({ label, value, setter, ref }) => (
-              <div key={label} style={{ marginBottom: 16 }}>
-                <label style={labelStyle}>{label}</label>
-                {value ? (
-                  <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                    <img src={value} style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 10 }} alt="" />
-                    <button type="button" onClick={() => setter(null)}
-                      style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: '50%', background: RED, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <X size={12} color={WHITE} />
-                    </button>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
-                    style={{ width: '100%', padding: '20px', borderRadius: 10, border: `2px dashed ${BORDER}`, background: SAND, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                    <Upload size={20} color={TAUPE} />
-                    <span style={{ fontSize: 12, color: TAUPE }}>{uploading ? '...' : t.onboarding.upload_btn}</span>
-                  </button>
-                )}
-                <input ref={ref} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-                  onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], setter)} />
+            {kycVerified ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <p style={{ fontSize: 40, marginBottom: 12 }}>✅</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#16A34A' }}>{t.onboarding.kyc_verified ?? 'Identité vérifiée !'}</p>
+                <p style={{ fontSize: 13, color: TAUPE, marginTop: 8 }}>{t.onboarding.kyc_verified_sub ?? 'Vous allez être redirigé...'}</p>
               </div>
-            ))}
-
+            ) : kycPolling ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <p style={{ fontSize: 32, marginBottom: 12 }}>🔄</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 8 }}>{t.onboarding.kyc_waiting ?? 'En attente de confirmation...'}</p>
+                <p style={{ fontSize: 12, color: TAUPE, marginBottom: 20 }}>{t.onboarding.kyc_waiting_sub ?? 'Complétez la vérification dans l’onglet ouvert'}</p>
+                <button type='button' onClick={async () => {
+                  try {
+                    const me = await api.get('/users/me')
+                    if (me.data.kyc_status === 'verified') {
+                      clearInterval(kycPollRef.current!)
+                      setKycPolling(false)
+                      setKycVerified(true)
+                      patchUser({ kyc_status: 'verified' })
+                      setTimeout(() => setStep(s => s + 1), 2000)
+                    }
+                  } catch {}
+                }}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: '1px solid ' + BORDER, background: WHITE, color: CHARCOAL, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  {t.onboarding.kyc_check_btn ?? 'J’ai terminé la vérification'}
+                </button>
+              </div>
+            ) : kycTimeout ? (
+              <div style={{ background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#92400E', marginBottom: 8 }}>{t.onboarding.kyc_timeout ?? 'Vérification en cours'}</p>
+                <p style={{ fontSize: 12, color: '#92400E' }}>{t.onboarding.kyc_timeout_sub ?? 'Vous recevrez une notification dès que votre identité sera confirmée.'}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: SAND, borderRadius: 12, padding: 16 }}>
+                  <p style={{ fontSize: 13, color: CHARCOAL, fontWeight: 600, marginBottom: 8 }}>{t.onboarding.kyc_how_title}</p>
+                  <p style={{ fontSize: 12, color: TAUPE, marginBottom: 4 }}>📱 {t.onboarding.kyc_step1}</p>
+                  <p style={{ fontSize: 12, color: TAUPE, marginBottom: 4 }}>📄 {t.onboarding.kyc_step2}</p>
+                  <p style={{ fontSize: 12, color: TAUPE }}>🤳 {t.onboarding.kyc_step3}</p>
+                </div>
+                <p style={{ fontSize: 11, color: TAUPE, textAlign: 'center' }}>{t.onboarding.kyc_mobile_tip}</p>
+              </div>
+            )}
           </div>
         )}
 

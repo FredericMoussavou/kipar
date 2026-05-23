@@ -1414,7 +1414,19 @@ profile_public: {
 
     identity_title: "Verification identite",
 
-    identity_subtitle: "Uploadez vos documents pour etre verifie KYC",
+    identity_subtitle: "Vérifiez votre identité en quelques minutes",
+    kyc_how_title: "Comment ça marche ?",
+    kyc_step1: "1. Cliquez sur Vérifier mon identité",
+    kyc_step2: "2. Photographiez votre pièce d'identité",
+    kyc_step3: "3. Prenez un selfie de vérification",
+    kyc_mobile_tip: "Pour une meilleure expérience, utilisez votre téléphone",
+    kyc_verified: "Identité vérifiée !",
+    kyc_verified_sub: "Vous allez être redirigé...",
+    kyc_waiting: "En attente de confirmation...",
+    kyc_waiting_sub: "Complétez la vérification dans l'onglet ouvert",
+    kyc_check_btn: "J'ai terminé la vérification",
+    kyc_timeout: "Vérification en cours",
+    kyc_timeout_sub: "Vous recevrez une notification dès que votre identité sera confirmée.",
 
     id_front: "Piece identite recto",
 

@@ -1379,7 +1379,19 @@ export const es = {
 
     identity_title: "Verificacion de identidad",
 
-    identity_subtitle: "Sube tus documentos para ser verificado KYC",
+    identity_subtitle: "Verifica tu identidad en pocos minutos",
+    kyc_how_title: "¿Cómo funciona?",
+    kyc_step1: "1. Haz clic en Verificar mi identidad",
+    kyc_step2: "2. Fotografía tu documento de identidad",
+    kyc_step3: "3. Tómate un selfie de verificación",
+    kyc_mobile_tip: "Para una mejor experiencia, usa tu teléfono",
+    kyc_verified: "¡Identidad verificada!",
+    kyc_verified_sub: "Serás redirigido...",
+    kyc_waiting: "Esperando confirmación...",
+    kyc_waiting_sub: "Completa la verificación en la pestaña abierta",
+    kyc_check_btn: "He completado la verificación",
+    kyc_timeout: "Verificación en curso",
+    kyc_timeout_sub: "Recibirás una notificación cuando tu identidad sea confirmada.",
 
     id_front: "Documento identidad anverso",
 

@@ -40,20 +40,42 @@ def verify_totp_code(secret: str, code: str) -> bool:
         return False
 
 
-async def send_sms_code(phone: str, code: str) -> bool:
-    """Envoie un code SMS via Twilio."""
-    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
-        logger.info(f"[SMS SIMULATED] Code {code} envoye au {phone}")
+async def send_sms_verification(phone: str) -> bool:
+    """Envoie un code OTP via Twilio Verify."""
+    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_VERIFY_SERVICE_SID:
+        logger.info(f"[SMS SIMULATED] Code envoye au {phone}")
         return True
     try:
         from twilio.rest import Client
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        client.messages.create(
-            body=f"Votre code KIPAR : {code}",
-            from_=settings.TWILIO_PHONE_NUMBER,
+        client.verify.v2.services(settings.TWILIO_VERIFY_SERVICE_SID).verifications.create(
             to=phone,
+            channel="sms",
         )
         return True
     except Exception as e:
-        logger.error(f"Twilio SMS error: {e}")
+        logger.error(f"Twilio Verify error: {e}")
         return False
+
+
+async def check_sms_verification(phone: str, code: str) -> bool:
+    """Verifie un code OTP via Twilio Verify."""
+    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_VERIFY_SERVICE_SID:
+        logger.info(f"[SMS SIMULATED] Code {code} verifie pour {phone}")
+        return code == "123456"  # code de test en simulation
+    try:
+        from twilio.rest import Client
+        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        result = client.verify.v2.services(settings.TWILIO_VERIFY_SERVICE_SID).verification_checks.create(
+            to=phone,
+            code=code,
+        )
+        return result.status == "approved"
+    except Exception as e:
+        logger.error(f"Twilio Verify check error: {e}")
+        return False
+
+
+async def send_sms_code(phone: str, code: str) -> bool:
+    """Deprecated - utiliser send_sms_verification."""
+    return await send_sms_verification(phone)

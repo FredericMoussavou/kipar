@@ -13,6 +13,7 @@ from app.core.lang import get_lang
 from app.models.user import User
 from app.models.verification_code import VerificationCode
 from app.services.notification_service import send_email, send_sms
+from app.services.totp_service import send_sms_verification, check_sms_verification
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/verify", tags=["verify"])
@@ -112,29 +113,9 @@ async def send_phone_code(
     if current_user.phone_verified:
         raise HTTPException(status_code=400, detail=t("errors.already_verified", lang))
 
-    code = _generate_code()
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=CODE_TTL_MINUTES)
-
-    await db.execute(
-        update(VerificationCode)
-        .where(VerificationCode.user_id == current_user.id)
-        .where(VerificationCode.channel == "phone")
-        .where(VerificationCode.used == False)
-        .values(used=True)
-    )
-
-    vc = VerificationCode(
-        user_id=current_user.id,
-        channel="phone",
-        code=code,
-        expires_at=expires_at,
-    )
-    db.add(vc)
-    await db.commit()
-
-    msg = f"KIPAR. — Code : {code} (valable {CODE_TTL_MINUTES} min)" if lang == "fr" else f"KIPAR. — Code: {code} (valid {CODE_TTL_MINUTES} min)"
-    await send_sms(current_user.phone, msg)
-
+    sent = await send_sms_verification(current_user.phone)
+    if not sent:
+        raise HTTPException(status_code=500, detail=t("errors.sms_send_failed", lang))
     return {"message": t("success.code_sent", lang), "phone": current_user.phone}
 
 
@@ -148,25 +129,11 @@ async def confirm_phone_code(
     if current_user.phone_verified:
         raise HTTPException(status_code=400, detail=t("errors.already_verified", lang))
 
-    result = await db.execute(
-        select(VerificationCode)
-        .where(VerificationCode.user_id == current_user.id)
-        .where(VerificationCode.channel == "phone")
-        .where(VerificationCode.used == False)
-        .where(VerificationCode.code == payload.code)
-        .order_by(VerificationCode.created_at.desc())
-    )
-    vc = result.scalar_one_or_none()
-
-    if not vc:
+    verified = await check_sms_verification(current_user.phone, payload.code)
+    if not verified:
         raise HTTPException(status_code=400, detail=t("errors.invalid_code", lang))
-    if vc.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail=t("errors.code_expired", lang))
-
-    vc.used = True
     current_user.phone_verified = True
     await db.commit()
-
     return {"message": t("success.phone_verified", lang), "phone_verified": True}
 
 

@@ -9,12 +9,14 @@ import { NotificationsProvider } from '@/contexts/notifications.context'
 import TawkButton from '@/components/ui/kipar/TawkButton'
 import Drawer from '@/components/layout/Drawer'
 import { useDrawerStore } from '@/stores/drawer.store'
+import { useInactivityLogout } from '@/hooks/useInactivityLogout'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { isAuthenticated, silentRefresh } = useAuthStore()
   const [hydrated, setHydrated] = useState(false)
   const { isOpen: drawerOpen, close: closeDrawer } = useDrawerStore()
+  useInactivityLogout()
 
 
   useEffect(() => {

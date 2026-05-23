@@ -220,7 +220,7 @@ async def accept_booking(
     # Récupère le poids réel depuis le package
     pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
     pkg = pkg_result.scalar_one_or_none()
-    weight = pkg.weight_kg if pkg else (booking.amount / (trip.price_per_kg * 1.13))
+    weight = pkg.weight_kg if pkg else round(booking.amount / (trip.price_per_kg * (1 + settings.SERVICE_FEE_SENDER_PERCENT)), 3)
     trip.remaining_kg = max(0.0, trip.remaining_kg - weight)
     if trip.remaining_kg <= 0:
         trip.status = "full"

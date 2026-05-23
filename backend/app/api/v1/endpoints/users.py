@@ -572,6 +572,10 @@ def _serialize_me(user: User) -> dict:
         "username": user.username,
         "username_updated_at": user.username_updated_at.isoformat() if user.username_updated_at else None,
         "address": user.address,
+        "totp_enabled": bool(user.totp_enabled),
+        "is_premium": bool(user.is_premium),
+        "premium_expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None,
+        "premium_plan": user.premium_plan,
     }
 
 

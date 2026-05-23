@@ -40,6 +40,7 @@ import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
 import Input from '@/components/ui/kipar/Input'
 import { Button } from '@/components/ui/kipar'
+import TwoFASection from '@/components/ui/kipar/TwoFASection'
 import {
   uploadAvatar,
   removeAvatar,
@@ -735,6 +736,14 @@ export default function ProfilePage() {
           {t.profile_edit.logout}
         </button>
       </div>
+
+      {/* 2FA */}
+      <SectionTitle title={t.auth.twofa_section_title} />
+      <TwoFASection
+        totpEnabled={!!user.totp_enabled}
+        onSuccess={(msg) => showToast(msg, 'success')}
+        onError={(msg) => showToast(msg, 'error')}
+      />
 
       {/* Zone dangereuse */}
       <SectionTitle title={t.profile_edit.section_danger} variant="danger" />

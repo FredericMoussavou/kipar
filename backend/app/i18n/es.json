@@ -98,7 +98,8 @@
     "totp_required_first": "Activa primero el TOTP 2FA",
     "session_expired": "Sesión expirada, por favor inicia sesión de nuevo",
     "phone_required": "Número de teléfono requerido para 2FA SMS",
-    "sms_send_failed": "Error al enviar el SMS"
+    "sms_send_failed": "Error al enviar el SMS",
+    "receiver_required_for_transit": "Se debe identificar un destinatario antes de marcar en tránsito"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

@@ -99,7 +99,8 @@
     "totp_required_first": "Please enable TOTP 2FA first",
     "session_expired": "Session expired, please log in again",
     "phone_required": "Phone number required for SMS 2FA",
-    "sms_send_failed": "Error sending SMS"
+    "sms_send_failed": "Error sending SMS",
+    "receiver_required_for_transit": "A receiver must be identified before marking in transit"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

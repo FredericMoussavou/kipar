@@ -576,15 +576,16 @@ async def cancel_booking(
     carrier_amount = 0.0
 
     if is_sender:
+        original_status = booking.status
         booking.status = "cancelled_by_sender"
-        if booking.status in ("pending", "awaiting_receiver") or not booking.escrow_ref:
+        if original_status in ("pending", "awaiting_receiver") or not booking.escrow_ref:
             # Pas encore paye - rien a rembourser
             refund_amount = 0.0
         elif booking.cancellation_justified:
             # Force majeure (flag admin) -> remboursement 100%
             refund_amount = booking.amount
         elif booking.accepted_at and trip and trip.departure_date:
-            if booking.status in ("paid",):
+            if original_status in ("paid",):
                 # Statut paid -> remboursement 100% toujours
                 refund_amount = booking.amount
             elif booking.is_urgent:
@@ -713,6 +714,8 @@ async def mark_in_transit(
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.status not in ("accepted", "paid"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    if not booking.receiver_id:
+        raise HTTPException(status_code=400, detail=t("errors.receiver_required_for_transit", lang))
 
     trip_result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
     trip = trip_result.scalar_one_or_none()

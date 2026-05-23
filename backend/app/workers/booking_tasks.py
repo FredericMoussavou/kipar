@@ -30,9 +30,20 @@ def expire_pending_bookings():
             for booking in bookings:
                 booking.status = "refused"
                 logger.info(f"Booking {booking.id} expired after 12h")
+            cutoff_48h = datetime.now(timezone.utc) - timedelta(hours=48)
+            result_ar = await db.execute(
+                select(Booking).where(
+                    Booking.status == "awaiting_receiver",
+                    Booking.created_at < cutoff_48h,
+                )
+            )
+            bookings_ar = result_ar.scalars().all()
+            for booking in bookings_ar:
+                booking.status = "refused"
+                logger.info(f"Booking {booking.id} awaiting_receiver expired after 48h")
 
             await db.commit()
-            logger.info(f"Expired {len(bookings)} pending bookings")
+            logger.info(f"Expired {len(bookings)} pending + {len(bookings_ar)} awaiting_receiver bookings")
 
     asyncio.run(_run())
 

@@ -1017,6 +1017,9 @@ export const es = {
 
     server_unreachable: 'No se puede conectar con el servidor',
 
+    trip_too_close_normal: 'Un viaje estÃ¡ndar debe crearse al menos 7 dÃ­as antes de la salida',
+    trip_too_close_urgent: 'Un viaje urgente debe crearse al menos 72 horas antes de la salida',
+    trip_departure_past: 'La fecha de salida ya ha pasado',
     invalid_credentials: 'Credenciales incorrectas',
 
     generic: 'Ha ocurrido un error',

@@ -1048,6 +1048,9 @@ profile_public: {
 
     server_unreachable: 'Impossible de contacter le serveur',
 
+    trip_departure_past: 'La date de dÃ©part est dÃ©jÃ  passÃ©e',
+    trip_too_close_normal: 'Un trajet standard doit Ãªtre crÃ©Ã© au moins 7 jours avant le dÃ©part',
+    trip_too_close_urgent: 'Un trajet urgent doit Ãªtre crÃ©Ã© au moins 72h avant le dÃ©part',
     invalid_credentials: 'Identifiants incorrects',
 
     generic: 'Une erreur est survenue',

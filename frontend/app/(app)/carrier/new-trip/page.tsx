@@ -125,6 +125,26 @@ export default function NewTripPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    // Validation delai minimum avant depart
+    if (data.departure_date) {
+      const depTime = departureTime || '00:00'
+      const [h, m] = depTime.split(':').map(Number)
+      const depDt = new Date(data.departure_date + 'T00:00:00Z')
+      depDt.setUTCHours(h, m, 0, 0)
+      const hoursUntil = (depDt.getTime() - Date.now()) / 3600000
+      if (hoursUntil <= 0) {
+        toast.error(t.errors.trip_departure_past)
+        return
+      }
+      if (acceptsUrgent && hoursUntil < 72) {
+        toast.error(t.errors.trip_too_close_urgent)
+        return
+      }
+      if (!acceptsUrgent && hoursUntil < 7 * 24) {
+        toast.error(t.errors.trip_too_close_normal)
+        return
+      }
+    }
     try {
       await api.post('/trips', {
         ...data,

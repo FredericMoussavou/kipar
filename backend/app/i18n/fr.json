@@ -99,7 +99,11 @@
     "session_expired": "Session expirée, veuillez vous reconnecter",
     "phone_required": "Numéro de téléphone requis pour la 2FA SMS",
     "sms_send_failed": "Erreur lors de l'envoi du SMS",
-    "receiver_required_for_transit": "Un destinataire doit être identifié avant la mise en transit"
+    "receiver_required_for_transit": "Un destinataire doit être identifié avant la mise en transit",
+    "trip_departure_past": "La date de départ est déjà passée",
+    "trip_too_close_normal": "Un trajet standard doit être créé au moins 7 jours avant le départ",
+    "trip_too_close_urgent": "Un trajet urgent doit être créé au moins 72h avant le départ",
+    "premium_required_urgent": "L'option urgent est réservée aux transporteurs Premium"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

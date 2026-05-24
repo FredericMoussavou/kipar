@@ -66,6 +66,27 @@ async def create_trip(
     if dup_result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail=t("errors.trip_duplicate", lang))
 
+    # Validation delai minimum avant depart
+    from datetime import date as dclass2, time as tclass2, datetime as dtclass2, timezone as tz2
+    dep_time2 = payload.departure_time if payload.departure_time else tclass2(0, 0)
+    if isinstance(dep_time2, str):
+        h2, m2 = dep_time2.split(':')[:2]
+        dep_time2 = tclass2(int(h2), int(m2))
+    dep_dt2 = dtclass2.combine(payload.departure_date, dep_time2).replace(tzinfo=tz2.utc)
+    hours_until2 = (dep_dt2 - dtclass2.now(tz2.utc)).total_seconds() / 3600
+    if hours_until2 <= 0:
+        raise HTTPException(status_code=400, detail=t("errors.trip_departure_past", lang))
+    accepts_urgent2 = payload.accepts_urgent if hasattr(payload, "accepts_urgent") else False
+    if accepts_urgent2:
+        from app.api.v1.endpoints.premium import is_premium_active
+        if not is_premium_active(current_user):
+            raise HTTPException(status_code=403, detail=t("errors.premium_required_urgent", lang))
+        if hours_until2 < 72:
+            raise HTTPException(status_code=400, detail=t("errors.trip_too_close_urgent", lang))
+    else:
+        if hours_until2 < 7 * 24:
+            raise HTTPException(status_code=400, detail=t("errors.trip_too_close_normal", lang))
+
     trip = Trip(
         carrier_id=current_user.id,
         origin_city=payload.origin_city,

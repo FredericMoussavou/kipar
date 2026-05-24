@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [showOwnTrips, setShowOwnTrips] = useState(false)
+  const [showUrgentOnly, setShowUrgentOnly] = useState(false)
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
   const { unreadCount } = useNotifications()
@@ -136,9 +137,14 @@ export default function DashboardPage() {
           <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             {t.dashboard.available_trips}
           </p>
-          <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-            {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
-          </button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showUrgentOnly ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+              \u26a1 {t.search.filter_urgent ?? 'Urgents'}
+            </button>
+            <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+              {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+            </button>
+          </div>
         </div>
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -156,7 +162,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
-            {trips.filter((trip: any) => showOwnTrips || String(trip.carrier_id) !== String(user?.id)).map((trip: any) => (
+            {trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent)).map((trip: any) => (
               <TripCard key={trip.id} trip={trip} onClick={() => handleTripClick(trip)} />
             ))}
           </div>

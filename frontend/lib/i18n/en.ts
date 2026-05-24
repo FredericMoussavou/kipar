@@ -1048,6 +1048,9 @@ profile_public: {
 
     server_unreachable: 'Unable to reach server',
 
+    trip_departure_past: 'The departure date has already passed',
+    trip_too_close_normal: 'A standard trip must be created at least 7 days before departure',
+    trip_too_close_urgent: 'An urgent trip must be created at least 72 hours before departure',
     invalid_credentials: 'Invalid credentials',
 
     generic: 'An error occurred',

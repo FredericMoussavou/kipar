@@ -315,10 +315,10 @@ async def reset_password(
         raise HTTPException(status_code=400, detail=t("errors.reset_token_invalid", "fr"))
 
     lang = user.language
-    user.hashed_password = hash_password(payload.new_password)
-    # Verifier que le nouveau mdp est different de l'ancien
+    # Verifier que le nouveau mdp est different de l'ancien (avant d'ecraser)
     if verify_password(payload.new_password, user.hashed_password):
         raise HTTPException(status_code=400, detail=t("errors.password_same_as_old", lang))
+    user.hashed_password = hash_password(payload.new_password)
     reset.used = True
     await db.commit()
 
@@ -328,6 +328,7 @@ async def reset_password(
 @router.post("/change-password", response_model=dict)
 async def change_password(
     payload: ChangePasswordRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),

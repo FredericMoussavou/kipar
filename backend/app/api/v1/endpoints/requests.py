@@ -78,14 +78,21 @@ async def list_requests(
     query = query.order_by(PackageRequest.deadline_date.asc())
     result = await db.execute(query)
     requests = result.scalars().all()
+    if not requests:
+        return []
+    sender_ids = list({r.sender_id for r in requests})
+    req_ids = [r.id for r in requests]
+    senders_res = await db.execute(select(User).where(User.id.in_(sender_ids)))
+    senders = {u.id: u for u in senders_res.scalars().all()}
+    apps_res = await db.execute(select(Application).where(Application.package_request_id.in_(req_ids)))
+    all_apps = apps_res.scalars().all()
+    apps_by_req: dict = {}
+    for a in all_apps:
+        apps_by_req.setdefault(a.package_request_id, []).append(a)
     enriched = []
     for req in requests:
-        sender_result = await db.execute(select(User).where(User.id == req.sender_id))
-        sender = sender_result.scalar_one_or_none()
-        apps_result = await db.execute(
-            select(Application).where(Application.package_request_id == req.id)
-        )
-        apps = apps_result.scalars().all()
+        sender = senders.get(req.sender_id)
+        apps = apps_by_req.get(req.id, [])
         apps_count = len(apps)
         has_applied = any(a.carrier_id == current_user.id for a in apps) if current_user else False
         enriched.append(_enrich_request(req, sender, apps_count, has_applied))
@@ -103,13 +110,16 @@ async def list_my_requests(
         .order_by(PackageRequest.created_at.desc())
     )
     requests = result.scalars().all()
+    if not requests:
+        return []
+    req_ids = [r.id for r in requests]
+    apps_res = await db.execute(select(Application).where(Application.package_request_id.in_(req_ids)))
+    apps_count_map = {}
+    for a in apps_res.scalars().all():
+        apps_count_map[a.package_request_id] = apps_count_map.get(a.package_request_id, 0) + 1
     enriched = []
     for req in requests:
-        apps_result = await db.execute(
-            select(Application).where(Application.package_request_id == req.id)
-        )
-        apps_count = len(apps_result.scalars().all())
-        enriched.append(_enrich_request(req, current_user, apps_count))
+        enriched.append(_enrich_request(req, current_user, apps_count_map.get(req.id, 0)))
     return enriched
 
 
@@ -275,12 +285,18 @@ async def list_applications(
         .order_by(Application.created_at.asc())
     )
     apps = apps_result.scalars().all()
+    if not apps:
+        return []
+    carrier_ids = list({a.carrier_id for a in apps})
+    trip_ids = list({a.trip_id for a in apps if a.trip_id})
+    carriers_res = await db.execute(select(User).where(User.id.in_(carrier_ids)))
+    carriers = {u.id: u for u in carriers_res.scalars().all()}
+    trips_res = await db.execute(select(Trip).where(Trip.id.in_(trip_ids)))
+    trips_map = {t.id: t for t in trips_res.scalars().all()}
     enriched = []
     for app in apps:
-        carrier_result = await db.execute(select(User).where(User.id == app.carrier_id))
-        carrier = carrier_result.scalar_one_or_none()
-        trip_result = await db.execute(select(Trip).where(Trip.id == app.trip_id))
-        trip = trip_result.scalar_one_or_none()
+        carrier = carriers.get(app.carrier_id)
+        trip = trips_map.get(app.trip_id)
         enriched.append(_enrich_application(app, carrier, trip))
     return enriched
 

@@ -143,10 +143,14 @@ async def search_trips(
             query = query.order_by(Trip.departure_date.asc())
     result = await db.execute(query)
     trips = result.scalars().all()
+    if not trips:
+        return []
+    carrier_ids = list({t.carrier_id for t in trips})
+    carriers_result = await db.execute(select(User).where(User.id.in_(carrier_ids)))
+    carriers = {u.id: u for u in carriers_result.scalars().all()}
     enriched = []
     for trip in trips:
-        carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
-        carrier = carrier_result.scalar_one_or_none()
+        carrier = carriers.get(trip.carrier_id)
         trip_dict = {
             "id": trip.id,
             "carrier_id": trip.carrier_id,

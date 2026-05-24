@@ -79,11 +79,13 @@ async def get_carrier_finance(
 
     # Historique detaille
     trip_map = {t.id: t for t in all_trips}
+    pkg_ids = [b.package_id for b in bookings]
+    pkgs_res = await db.execute(select(Package).where(Package.id.in_(pkg_ids)))
+    pkg_map = {p.id: p for p in pkgs_res.scalars().all()}
     transactions = []
     for b in sorted(bookings, key=lambda x: x.created_at, reverse=True):
         trip = trip_map.get(b.trip_id)
-        pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
-        pkg = pkg_result.scalar_one_or_none()
+        pkg = pkg_map.get(b.package_id)
 
         # Calcul remboursement annulation
         refund_type = None

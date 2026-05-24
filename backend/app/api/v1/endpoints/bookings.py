@@ -386,10 +386,14 @@ async def list_carrier_bookings(
         .order_by(Booking.created_at.desc())
     )
     bookings = bookings_result.scalars().all()
+    if not bookings:
+        return []
+    pkg_ids = [b.package_id for b in bookings]
+    pkgs_result = await db.execute(select(Package).where(Package.id.in_(pkg_ids)))
+    pkgs = {p.id: p for p in pkgs_result.scalars().all()}
     responses = []
     for b in bookings:
-        pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
-        pkg = pkg_result.scalar_one_or_none()
+        pkg = pkgs.get(b.package_id)
         responses.append(BookingResponse(
             id=b.id,
             trip_id=b.trip_id,
@@ -426,11 +430,15 @@ async def list_my_bookings_detailed(
         .order_by(Booking.created_at.desc())
     )
     bookings = result.scalars().all()
+    if not bookings:
+        return []
+    pkg_ids = [b.package_id for b in bookings]
+    pkgs_result = await db.execute(select(Package).where(Package.id.in_(pkg_ids)))
+    pkgs = {p.id: p for p in pkgs_result.scalars().all()}
     responses = []
     for b in bookings:
-        pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
-        pkg = pkg_result.scalar_one_or_none()
-        resp = BookingResponse(
+        pkg = pkgs.get(b.package_id)
+        responses.append(BookingResponse(
             id=b.id,
             trip_id=b.trip_id,
             package_id=b.package_id,
@@ -445,8 +453,7 @@ async def list_my_bookings_detailed(
             declared_value=pkg.declared_value if pkg else None,
             is_urgent=b.is_urgent,
             booking_flat_fee_amount=b.booking_flat_fee_amount,
-        )
-        responses.append(resp)
+        ))
     return responses
 
 

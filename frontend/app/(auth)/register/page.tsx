@@ -13,6 +13,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
 import { setLangCookie, getLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
@@ -82,6 +83,7 @@ function AnimatedDot() {
 export default function RegisterPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const { paddingV } = useResponsive()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [cguAccepted, setCguAccepted] = useState(false)
@@ -116,7 +118,7 @@ export default function RegisterPage() {
     <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden' }}>
 
       {/* Colonne gauche — Formulaire */}
-      <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, overflowY: 'auto', height: '100vh' }}>
+      <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: paddingV, overflowY: 'auto', height: '100vh' }}>
         <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
 
           {/* Logo */}

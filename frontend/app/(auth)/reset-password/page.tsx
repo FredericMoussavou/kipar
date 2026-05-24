@@ -7,6 +7,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import api from '@/lib/api'
 import { useTranslation } from '@/hooks/useTranslation'
 import { RED, CHARCOAL, TAUPE, WHITE, BORDER, BG } from '@/lib/theme'
+import { useResponsive } from '@/hooks/useResponsive'
 
 function ResetPasswordForm() {
   const router = useRouter()
@@ -15,6 +16,7 @@ function ResetPasswordForm() {
   const token = searchParams.get('token')
 
   const [password, setPassword] = useState('')
+  const { paddingH, paddingV } = useResponsive()
   const [confirm, setConfirm] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -49,8 +51,8 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 400, background: WHITE, borderRadius: 20, padding: 40, boxShadow: '0 4px 32px rgba(0,0,0,0.06)' }}>
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: paddingH }}>
+      <div style={{ width: '100%', maxWidth: 400, background: WHITE, borderRadius: 20, padding: paddingV, boxShadow: '0 4px 32px rgba(0,0,0,0.06)' }}>
 
         <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 24, fontWeight: 900, color: CHARCOAL, marginBottom: 32, letterSpacing: '-0.02em' }}>
           KIPAR<span style={{ color: RED }}>.</span>

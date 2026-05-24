@@ -14,6 +14,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
 import { setLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const schema = z.object({
   email: z.string().min(1, 'Email requis'),
@@ -83,6 +84,7 @@ export default function LoginPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { setToken, setUser, setRefreshToken } = useAuthStore()
+  const { paddingH, paddingV } = useResponsive()
   const [showPassword, setShowPassword] = useState(false)
   const [step, setStep] = useState<'credentials' | '2fa'>('credentials')
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -227,7 +229,7 @@ export default function LoginPage() {
   if (step === '2fa') {
     return (
       <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden', position: 'fixed', inset: 0 }}>
-        <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48 }}>
+        <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: paddingV }}>
           <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
             <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 28, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', marginBottom: 32 }}>
               KIPAR<span style={{ color: RED }}>.</span>
@@ -268,7 +270,7 @@ export default function LoginPage() {
     <div style={{ height: '100vh', display: 'flex', background: BG, overflow: 'hidden', position: 'fixed', inset: 0 }}>
 
       {/* Colonne gauche — Formulaire */}
-      <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48, overflowY: 'auto', height: '100vh' }}>
+      <div style={{ flex: 1, background: WHITE, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: paddingV, overflowY: 'auto', height: '100vh' }}>
         <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>
 
           {/* Logo */}

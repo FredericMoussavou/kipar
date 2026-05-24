@@ -15,8 +15,10 @@ function AnimatedDot() {
   }, [])
   return <span style={{ color: colors[idx], transition: 'color 0.4s ease', display: 'inline-block' }}>.</span>
 }
+import { useResponsive } from '@/hooks/useResponsive'
 
 export default function SplashPage() {
+  const { fontSizeHero } = useResponsive()
   const router = useRouter()
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter')
 
@@ -50,7 +52,7 @@ export default function SplashPage() {
       }}>
         <h1 style={{
           fontFamily: 'var(--font-syne,Syne)',
-          fontSize: 80, fontWeight: 900,
+          fontSize: fontSizeHero, fontWeight: 900,
           color: WHITE, letterSpacing: '-0.04em',
           margin: 0, lineHeight: 1,
         }}>

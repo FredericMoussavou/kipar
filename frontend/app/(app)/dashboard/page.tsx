@@ -139,7 +139,7 @@ export default function DashboardPage() {
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showUrgentOnly ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
-              \u26a1 {t.search.filter_urgent ?? 'Urgents'}
+              ⚡ {t.search.filter_urgent ?? 'Urgents'}
             </button>
             <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
               {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}

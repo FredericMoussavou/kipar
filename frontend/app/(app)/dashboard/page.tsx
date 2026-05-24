@@ -7,6 +7,7 @@ import { Search, Bell, Package2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useResponsive } from '@/hooks/useResponsive'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useNotifications } from '@/contexts/notifications.context'
 import { useBookingStore } from '@/stores/booking.store'
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [activeCorr, setActiveCorr] = useState(0)
   const [corridors, setCorridors] = useState<Corridor[]>(DEFAULT_CORRIDORS)
   const isMobile = useIsMobile()
+  const { paddingH, fontSizeH1, gap, gridCols } = useResponsive()
   const { open: openDrawer } = useDrawerStore()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -72,7 +74,7 @@ export default function DashboardPage() {
         onMenuOpen={openDrawer}
       >
 
-        <div style={{ padding: isMobile ? '16px 16px 24px' : '20px 20px 24px' }} className="md:p-8">
+        <div style={{ padding: `${paddingH}px ${paddingH}px 24px` }} className="md:p-8">
           {/* div 0 — colonne principale */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
@@ -97,7 +99,7 @@ export default function DashboardPage() {
             {/* div 2 — greeting + prenom + sous-titre, aligné à gauche */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{t.dashboard.greeting} 👋</p>
-              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 28 : 40, fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.15 }}>
+              <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: fontSizeH1, fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.15 }}>
                 {user?.first_name}
               </h1>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: 0 }}>{t.dashboard.hero_sub}</p>

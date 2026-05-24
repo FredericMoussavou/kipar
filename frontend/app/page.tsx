@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Shield, Zap, Globe, Star, ChevronDown, Package, Plane, Users, CheckCircle } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useResponsive } from '@/hooks/useResponsive'
 import { useLanguage } from '@/hooks/useLanguage'
 import { getT } from '@/lib/i18n'
 
@@ -130,6 +131,7 @@ function LaptopMockup({ t }: { t: any }) {
 export default function LandingPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const isMobile = useIsMobile()
+  const { paddingH, fontSizeHero, paddingBtn } = useResponsive()
   const { currentLang: lang, setLanguage: setLang } = useLanguage()
   const t = getT(lang)
   const [scrolled, setScrolled] = useState(false)
@@ -154,7 +156,7 @@ export default function LandingPage() {
       .catch(() => {})
   }, [])
 
-  const px = isMobile ? 20 : 48
+  const px = paddingH
 
   return (
     <div style={{ fontFamily: 'var(--font-sans,DM Sans)', background: WHITE, overflowX: 'hidden' }}>
@@ -197,20 +199,20 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', top: -200, right: -200, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(220,0,41,0.15) 0%,transparent 70%)' }} />
         <div style={{ position: 'absolute', bottom: -100, left: -100, width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle,rgba(220,0,41,0.08) 0%,transparent 70%)' }} />
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '90px 20px 160px' : '100px 48px 120px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? 40 : 80, width: '100%' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? `90px ${paddingH}px 160px` : '100px 48px 120px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? 40 : 80, width: '100%' }}>
           {/* Texte */}
           <div style={{ flex: 1 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(220,0,41,0.15)', border: '1px solid rgba(220,0,41,0.3)', borderRadius: 99, padding: '5px 12px', marginBottom: 24 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: R, animation: 'pulse 2s infinite' }} />
               <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{t.landing.hero_badge}</span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 42 : 64, fontWeight: 900, color: WHITE, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 12 }}>
+            <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: fontSizeHero, fontWeight: 900, color: WHITE, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 12 }}>
               {t.landing.hero_title_1}<br /><span style={{ color: R }}>{t.landing.hero_title_2}</span> {t.landing.hero_title_3}<br />{t.landing.hero_title_4}
             </h1>
             <p style={{ fontSize: isMobile ? 16 : 18, color: 'rgba(255,255,255,0.6)', marginBottom: 8, fontWeight: 400, lineHeight: 1.6, maxWidth: 480 }}>{t.landing.hero_tagline}</p>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 36, lineHeight: 1.7, maxWidth: 480 }}>{t.landing.hero_desc}</p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '13px 22px' : '14px 28px', borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>
+              <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: paddingBtn, borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>
                 {t.landing.hero_cta_primary} <ArrowRight size={16} />
               </Link>
               {!isMobile && (

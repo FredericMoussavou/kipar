@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { useResponsive } from '@/hooks/useResponsive'
 import { useBookingStore } from '@/stores/booking.store'
 import { useAuthStore } from '@/stores/auth.store'
 import TripCard from '@/components/trips/TripCard'
@@ -81,22 +83,13 @@ function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeho
   )
 }
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(true)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-  return isMobile
-}
 
 export default function SearchPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
   const isMobile = useIsMobile()
+  const { paddingH, fontSizeH2 } = useResponsive()
 
   const [origin, setOrigin] = useState('')
   const [dest, setDest] = useState('')
@@ -169,8 +162,8 @@ export default function SearchPage() {
         imageUrl="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200&q=80"
         minHeight={isMobile ? 280 : 220}
       >
-        <div style={{ padding: isMobile ? '48px 20px 24px' : '32px' }}>
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 22 : 28, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
+        <div style={{ padding: isMobile ? `48px ${paddingH}px 24px` : '32px' }}>
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: fontSizeH2, fontWeight: 800, color: '#fff', marginBottom: 20 }}>
             {t.search.title}
           </h1>
 

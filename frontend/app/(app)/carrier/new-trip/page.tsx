@@ -19,6 +19,7 @@ import { RED, TAUPE, BORDER, CHARCOAL, SAND, BG, GREEN, WHITE } from '@/lib/them
 import { useLimits } from '@/hooks/useLimits'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useResponsive } from '@/hooks/useResponsive'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
 const schema = z.object({
@@ -44,6 +45,7 @@ export default function NewTripPage() {
   const { tripsBlocked, limits } = useLimits()
   const { user } = useAuthStore()
   const isMobile = useIsMobile()
+  const { gridCols } = useResponsive()
   const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
   const [tripCurrency, setTripCurrency] = useState(user?.currency ?? 'EUR')
 
@@ -196,7 +198,7 @@ export default function NewTripPage() {
       <form onSubmit={handleSubmit(onSubmit)} style={{ padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', gap: 16 }} className="md:max-w-3xl md:mx-auto">
 
         {/* Départ + Destination */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 12 }}>
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_departure}</p>
             <div style={{ position: 'relative' }}>
@@ -247,7 +249,7 @@ export default function NewTripPage() {
         {/* Vol */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <DatePicker label={t.carrier.date_label} value={departureDate}
               onChange={v => { setDepartureDate(v); setValue('departure_date', v) }}
               error={errors.departure_date?.message}
@@ -265,7 +267,7 @@ export default function NewTripPage() {
               {flightValid === false && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>{'\u26a0'} {t.carrier.flight_not_found_advisory}</p>}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10 }}>
             <TimePicker label={t.carrier.departure_time_label} value={departureTime}
               onChange={v => { setDepartureTime(v); setValue('departure_time', v) }} />
             <TimePicker label={t.carrier.arrival_time_label} value={arrivalTime}
@@ -277,7 +279,7 @@ export default function NewTripPage() {
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_capacity}</p>
           {/* Selecteurs unite et devise par trip */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
               <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.weight_unit_label ?? 'Unité de poids'}</p>
               <Select value={weightUnit} onChange={e => setWeightUnit(e.target.value as WeightUnit)}>
@@ -294,7 +296,7 @@ export default function NewTripPage() {
               </Select>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : gridCols === 2 ? '1fr 1fr' : '1fr 1fr 1fr', gap: 10 }}>
             <Input label={`Capacite disponible (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
             <Input label={`Max par colis (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
             <div>

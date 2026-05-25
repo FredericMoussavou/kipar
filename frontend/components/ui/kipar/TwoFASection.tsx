@@ -28,6 +28,8 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
   const [copied, setCopied] = useState(false)
   const [backupCodes, setBackupCodes] = useState<string[]>([])
   const [backupCopied, setBackupCopied] = useState(false)
+  const [useBackupDisable, setUseBackupDisable] = useState(false)
+  const [backupCodeDisable, setBackupCodeDisable] = useState('')
 
   const reset = () => {
     setStep('idle')
@@ -35,6 +37,8 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
     setSecret(null)
     setOtp('')
     setOtpError(undefined)
+    setUseBackupDisable(false)
+    setBackupCodeDisable('')
   }
 
   const handleSetup = async () => {
@@ -116,7 +120,7 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
           </Button>
         )}
         {step === 'idle' && totpEnabled && (
-          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button variant='ghost' size='sm' loading={loading} onClick={async () => {
               setLoading(true)
               try {
@@ -161,10 +165,35 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
       {step === 'disable' && (
         <div>
           <p style={{ fontSize: 13, color: TAUPE, marginBottom: 16, lineHeight: 1.5 }}>{t.auth.twofa_disable_instructions}</p>
-          <OtpInput value={otp} onChange={val => { setOtp(val); setOtpError(undefined) }} error={otpError} disabled={loading} />
-          <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+          {!useBackupDisable ? (
+            <OtpInput value={otp} onChange={val => { setOtp(val); setOtpError(undefined) }} error={otpError} disabled={loading} />
+          ) : (
+            <input
+              type="text"
+              placeholder={t.auth.twofa_backup_placeholder}
+              value={backupCodeDisable}
+              onChange={e => { setBackupCodeDisable(e.target.value.toUpperCase()); setOtpError(undefined) }}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #ccc', fontFamily: 'monospace', fontSize: 15, letterSpacing: 2, boxSizing: 'border-box' }}
+            />
+          )}
+          {otpError && <p style={{ textAlign: 'center', color: '#DC0029', fontSize: 12, marginTop: 8 }}>{otpError}</p>}
+          <button type="button" onClick={() => { setUseBackupDisable(!useBackupDisable); setOtp(''); setBackupCodeDisable(''); setOtpError(undefined) }}
+            style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#888' }}>
+            {useBackupDisable ? t.auth.twofa_enter_code : t.auth.twofa_use_backup}
+          </button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
             <Button variant="ghost" size="sm" onClick={reset} style={{ flex: 1 }}>{t.auth.twofa_cancel}</Button>
-            <Button variant="danger" size="sm" loading={loading} onClick={handleDisable} style={{ flex: 2 }}>{t.auth.twofa_confirm_disable_btn}</Button>
+            <Button variant="danger" size="sm" loading={loading} onClick={async () => {
+              if (useBackupDisable) {
+                if (backupCodeDisable.length < 11) return
+                setLoading(true); setOtpError(undefined)
+                try {
+                  await api.post('/auth/2fa/disable', { code: backupCodeDisable })
+                  await refreshUser(); onSuccess(t.auth.twofa_disabled_success); reset()
+                } catch { setOtpError(t.auth.twofa_backup_invalid) }
+                finally { setLoading(false) }
+              } else { handleDisable() }
+            }} style={{ flex: 2 }}>{t.auth.twofa_confirm_disable_btn}</Button>
           </div>
         </div>
       )}

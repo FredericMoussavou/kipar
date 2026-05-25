@@ -16,6 +16,8 @@ import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 import { useLimits } from '@/hooks/useLimits'
 import { useInsuranceConfig, calculateInsurancePremium } from '@/hooks/useInsuranceConfig'
+import { useAuthStore } from '@/stores/auth.store'
+import { useKyc } from '@/hooks/useKyc'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),
@@ -30,6 +32,8 @@ export default function BookPage() {
   const { id } = useParams()
   const router = useRouter()
   const { bookingsBlocked, limits } = useLimits()
+  const { user } = useAuthStore()
+  const kyc = useKyc()
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const insuranceConfig = useInsuranceConfig()
@@ -138,6 +142,71 @@ export default function BookPage() {
       toast.error(msg)
     },
   })
+
+  if (user && user.kyc_status !== 'approved') {
+    return (
+      <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ background: '#FFFFFF', border: '1px solid #E5E1DC', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
+          <p style={{ fontSize: 36, marginBottom: 12 }}>🪪</p>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1A1A1A', marginBottom: 8 }}>
+            {t.onboarding.identity_title}
+          </h2>
+          <p style={{ fontSize: 13, color: '#7A736B', marginBottom: 20 }}>
+            {t.onboarding.identity_subtitle}
+          </p>
+
+          {(kyc.isIdle || kyc.isError) && (
+            <>
+              <div style={{ textAlign: 'left', background: 'rgba(240,237,232,0.5)', borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A1A1A', marginBottom: 8 }}>{t.onboarding.kyc_how_title}</p>
+                {[t.onboarding.kyc_step1, t.onboarding.kyc_step2, t.onboarding.kyc_step3].map((step, i) => (
+                  <p key={i} style={{ fontSize: 12, color: '#7A736B', marginBottom: 4 }}>{step}</p>
+                ))}
+                <p style={{ fontSize: 11, color: '#DC0029', marginTop: 8 }}>{t.onboarding.kyc_mobile_tip}</p>
+              </div>
+              {kyc.isError && (
+                <p style={{ fontSize: 12, color: '#DC0029', marginBottom: 12 }}>{kyc.error}</p>
+              )}
+              <button
+                onClick={kyc.startKyc}
+                style={{ background: '#DC0029', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%' }}>
+                {t.profile_edit.kyc_action_verify}
+              </button>
+            </>
+          )}
+
+          {(kyc.isStarted || kyc.isPolling) && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ width: 40, height: 40, border: '3px solid #DC0029', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A', marginBottom: 4 }}>{t.onboarding.kyc_waiting}</p>
+              <p style={{ fontSize: 12, color: '#7A736B' }}>{t.onboarding.kyc_waiting_sub}</p>
+            </div>
+          )}
+
+          {kyc.isApproved && (
+            <div style={{ marginTop: 8 }}>
+              <p style={{ fontSize: 32, marginBottom: 8 }}>✅</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#16A34A', marginBottom: 4 }}>{t.onboarding.kyc_verified}</p>
+              <p style={{ fontSize: 12, color: '#7A736B' }}>{t.onboarding.kyc_verified_sub}</p>
+            </div>
+          )}
+
+          {kyc.isTimeout && (
+            <div style={{ marginTop: 8 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#92400E', marginBottom: 4 }}>{t.onboarding.kyc_timeout}</p>
+              <p style={{ fontSize: 12, color: '#7A736B', marginBottom: 16 }}>{t.onboarding.kyc_timeout_sub}</p>
+              <button
+                onClick={kyc.reset}
+                style={{ background: '#F5F2EE', color: '#1A1A1A', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {t.onboarding.kyc_check_btn}
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    )
+  }
 
   if (bookingsBlocked) {
     return (

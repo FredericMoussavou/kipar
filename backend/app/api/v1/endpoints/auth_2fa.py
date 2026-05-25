@@ -40,10 +40,13 @@ async def setup_totp(
     if current_user.totp_enabled:
         raise HTTPException(status_code=400, detail=t("errors.totp_already_enabled", lang))
 
-    secret = generate_totp_secret()
-    current_user.totp_secret = secret
-    current_user.totp_verified = False
-    await db.commit()
+    if current_user.totp_secret and not current_user.totp_verified:
+        secret = current_user.totp_secret
+    else:
+        secret = generate_totp_secret()
+        current_user.totp_secret = secret
+        current_user.totp_verified = False
+        await db.commit()
 
     qr = generate_qr_code_base64(secret, current_user.email)
     return TOTPSetupResponse(qr_code=qr, secret=secret)

@@ -17,10 +17,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   const base = 'inline-flex items-center justify-center gap-2 font-sans font-semibold rounded-[10px] transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]'
 
   const variants = {
-    primary: 'text-white shadow-red',
+    primary: 'shadow-red',
     outline: 'border-2 text-k-red bg-k-white hover:bg-k-red-light',
     ghost:   'text-k-red bg-transparent hover:bg-k-red-light',
-    danger:  'bg-red-600 text-white hover:bg-red-700',
+    danger:  'hover:opacity-90',
   }
 
   const sizes = {
@@ -34,7 +34,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
       ref={ref}
       disabled={disabled || loading}
       style={{
-        ...(variant === 'primary' ? { backgroundColor: RED } : variant === 'outline' ? { backgroundColor: 'var(--k-white)', borderColor: RED } : {}),
+        ...(variant === 'primary' ? { backgroundColor: RED, color: '#FFFFFF' } : variant === 'outline' ? { backgroundColor: 'var(--k-white)', borderColor: RED, color: RED } : variant === 'danger' ? { backgroundColor: '#dc2626', color: '#FFFFFF' } : {}),
         ...(props.style ?? {}),
       }}
       className={cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}

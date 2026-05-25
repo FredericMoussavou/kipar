@@ -97,8 +97,8 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
   return (
     <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 20, marginBottom: 12 }}>
       {/* En-tete */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: step === 'idle' ? 0 : 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ marginBottom: step === 'idle' ? 0 : 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           {totpEnabled
             ? <ShieldCheck size={18} color={GREEN} />
             : <ShieldOff size={18} color={TAUPE} />}
@@ -114,9 +114,8 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
             {t.auth.twofa_enable_btn}
           </Button>
         )}
-        {step === 'idle' && (totpEnabled === false) && (<span/>)}
         {step === 'idle' && totpEnabled && (
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
             <Button variant='danger' size='sm' loading={loading} onClick={() => setStep('disable')} style={{ backgroundColor: '#DC0029', color: '#FFFFFF' }}>
               {t.auth.twofa_disable_btn}
             </Button>

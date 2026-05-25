@@ -63,7 +63,10 @@ async def stream_notifications(
     db: AsyncSession = Depends(get_db),
 ):
     """SSE — connexion persistante. Token via query param (SSE ne supporte pas les headers)."""
-    payload = decode_token(token)
+    try:
+        payload = decode_token(token)
+    except Exception:
+        payload = None
     if not payload:
         from fastapi import HTTPException
         raise HTTPException(status_code=401, detail="Invalid token")

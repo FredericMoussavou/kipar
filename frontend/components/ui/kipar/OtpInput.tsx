@@ -14,7 +14,7 @@ interface OtpInputProps {
 export default function OtpInput({ length = 6, value, onChange, error, disabled }: OtpInputProps) {
   const refs = useRef<(HTMLInputElement | null)[]>([])
 
-  const digits = value.padEnd(length, '').split('').slice(0, length)
+  const digits = Array.from({ length }, (_, i) => value[i] ?? '')
 
   const focus = (i: number) => {
     refs.current[Math.max(0, Math.min(length - 1, i))]?.focus()
@@ -24,7 +24,7 @@ export default function OtpInput({ length = 6, value, onChange, error, disabled 
     const d = char.replace(/\D/g, '').slice(-1)
     if (!d) return
     const next = digits.map((v, idx) => (idx === i ? d : v))
-    onChange(next.join('').replace(/ /g, ''))
+    onChange(next.join(''))
     if (i < length - 1) focus(i + 1)
   }
 
@@ -32,11 +32,11 @@ export default function OtpInput({ length = 6, value, onChange, error, disabled 
     if (e.key === 'Backspace') {
       e.preventDefault()
       if (digits[i] && digits[i] !== ' ') {
-        const next = digits.map((v, idx) => (idx === i ? ' ' : v))
-        onChange(next.join('').replace(/ /g, ''))
+        const next = digits.map((v, idx) => (idx === i ? '' : v))
+        onChange(next.join(''))
       } else if (i > 0) {
-        const next = digits.map((v, idx) => (idx === i - 1 ? ' ' : v))
-        onChange(next.join('').replace(/ /g, ''))
+        const next = digits.map((v, idx) => (idx === i - 1 ? '' : v))
+        onChange(next.join(''))
         focus(i - 1)
       }
     } else if (e.key === 'ArrowLeft') {
@@ -67,7 +67,7 @@ export default function OtpInput({ length = 6, value, onChange, error, disabled 
             inputMode="numeric"
             pattern="[0-9]*"
             maxLength={1}
-            value={digits[i] === ' ' || !digits[i] ? '' : digits[i]}
+            value={digits[i] ?? ''}
             disabled={disabled}
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}

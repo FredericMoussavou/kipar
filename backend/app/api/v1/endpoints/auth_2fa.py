@@ -68,6 +68,8 @@ async def verify_totp_setup(
         raise HTTPException(status_code=400, detail=t("errors.totp_not_setup", lang))
     if current_user.totp_enabled:
         raise HTTPException(status_code=400, detail=t("errors.totp_already_enabled", lang))
+    import logging as _log
+    _log.getLogger("kipar.2fa").warning(f"verify-setup: secret={current_user.totp_secret} code={payload.code} result={verify_totp_code(current_user.totp_secret, payload.code)}")
     if not verify_totp_code(current_user.totp_secret, payload.code):
         raise HTTPException(status_code=400, detail=t("errors.totp_invalid_code", lang))
 

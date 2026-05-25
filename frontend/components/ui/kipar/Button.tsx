@@ -33,7 +33,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     <button
       ref={ref}
       disabled={disabled || loading}
-      style={variant === 'primary' ? { backgroundColor: RED } : variant === 'outline' ? { backgroundColor: 'var(--k-white)', borderColor: RED } : undefined}
+      style={{
+        ...(variant === 'primary' ? { backgroundColor: RED } : variant === 'outline' ? { backgroundColor: 'var(--k-white)', borderColor: RED } : {}),
+        ...(props.style ?? {}),
+      }}
       className={cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}
       {...props}
     >

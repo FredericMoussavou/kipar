@@ -14,6 +14,7 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 import { useDrawerStore } from '@/stores/drawer.store'
+import { useKyc } from '@/hooks/useKyc'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80'
 
@@ -30,6 +31,7 @@ export default function CarrierPage() {
   const [delivering, setDelivering] = useState(false)
   const [deliverError, setDeliverError] = useState('')
   const [deletingTrip, setDeletingTrip] = useState(false)
+  const kyc = useKyc()
 
   const { data: myTrips = [], isLoading: loadingTrips } = useQuery({
     queryKey: ['my-trips'],
@@ -123,14 +125,26 @@ export default function CarrierPage() {
             { num: '2', label: t.carrier.step2 },
             { num: '3', label: t.carrier.step3 },
           ].map(step => (
-            <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', maxWidth: 360, marginBottom: 12, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 14, padding: '14px 16px' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: RED, display: 'flex', alignItems: 'center', justifyContent: 'center', color: WHITE, fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
-                {step.num}
+            <div key={step.num}
+              onClick={step.num === '1' && user?.kyc_status !== 'approved' ? kyc.startKyc : undefined}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', maxWidth: 360, marginBottom: 12, background: WHITE, border: `1px solid ${step.num === '1' && user?.kyc_status !== 'approved' ? 'rgba(220,0,41,0.3)' : BORDER}`, borderRadius: 14, padding: '14px 16px', cursor: step.num === '1' && user?.kyc_status !== 'approved' ? 'pointer' : 'default' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: step.num === '1' && user?.kyc_status === 'approved' ? '#16A34A' : RED, display: 'flex', alignItems: 'center', justifyContent: 'center', color: WHITE, fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                {step.num === '1' && user?.kyc_status === 'approved' ? '✓' : step.num}
               </div>
-              <span style={{ fontSize: 14, color: CHARCOAL, fontWeight: 500 }}>{step.label}</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 14, color: CHARCOAL, fontWeight: 500 }}>{step.label}</span>
+                {step.num === '1' && user?.kyc_status !== 'approved' && (
+                  <p style={{ fontSize: 11, color: RED, marginTop: 2, fontWeight: 600 }}>
+                    {kyc.isLoading ? t.onboarding.kyc_waiting : t.profile_edit.kyc_action_verify}
+                  </p>
+                )}
+                {step.num === '1' && user?.kyc_status === 'approved' && (
+                  <p style={{ fontSize: 11, color: '#16A34A', marginTop: 2, fontWeight: 600 }}>{t.onboarding.kyc_verified}</p>
+                )}
+              </div>
             </div>
           ))}
-          {user?.kyc_status !== 'verified' && (
+          {user?.kyc_status !== 'approved' && (
             <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 12, padding: '10px 16px', margin: '8px 0 16px', maxWidth: 360, width: '100%' }}>
               <p style={{ fontSize: 13, color: '#F59E0B', fontWeight: 500 }}>{t.carrier.onboarding_kyc}</p>
             </div>
@@ -138,7 +152,7 @@ export default function CarrierPage() {
           <div style={{ width: '100%', maxWidth: 360, marginTop: 8 }}>
             <Button fullWidth size="lg" loading={activateMutation.isPending}
               onClick={() => activateMutation.mutate()}
-              disabled={user?.kyc_status !== 'verified'}>
+              disabled={user?.kyc_status !== 'approved'}>
               {t.carrier.onboarding_btn}
             </Button>
           </div>

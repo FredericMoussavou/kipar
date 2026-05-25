@@ -116,11 +116,11 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
         )}
         {step === 'idle' && (totpEnabled === false) && (<span/>)}
         {step === 'idle' && totpEnabled && (
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Button variant='danger' size='sm' loading={loading} onClick={() => setStep('disable')} style={{ width: '100%' }}>
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant='danger' size='sm' loading={loading} onClick={() => setStep('disable')} style={{ backgroundColor: '#DC0029', color: '#FFFFFF' }}>
               {t.auth.twofa_disable_btn}
             </Button>
-            <Button variant='ghost' size='sm' loading={loading} style={{ width: '100%', backgroundColor: '#F5F2EE', color: '#1A1A1A' }} onClick={async () => {
+            <Button variant='ghost' size='sm' loading={loading} style={{ backgroundColor: '#F5F2EE', color: '#1A1A1A' }} onClick={async () => {
               setLoading(true)
               try {
                 const res = await api.post('/auth/2fa/backup-codes/generate')

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import pytest
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=3))
+TOMORROW = str(date.today() + timedelta(days=8))
 
 
 async def register_and_login(client, email: str) -> dict:
@@ -27,7 +27,7 @@ async def create_verified_carrier(client, db_session, email: str) -> dict:
 
     data = await register_and_login(client, email)
     await db_session.execute(
-        update(User).where(User.email == email).values(kyc_status="verified")
+        update(User).where(User.email == email).values(kyc_status="approved")
     )
     await db_session.flush()
     login = await client.post("/api/v1/auth/login", json={

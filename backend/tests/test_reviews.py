@@ -4,7 +4,7 @@ from app.models.user import User
 from app.models.booking import Booking
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=3))
+TOMORROW = str(date.today() + timedelta(days=8))
 
 CRITERIA_SENDER_TO_CARRIER = {
     "ponctualite": 4,
@@ -32,15 +32,20 @@ async def register_and_login(client, email: str) -> str:
 
 async def make_verified_carrier(client, db_session, email: str) -> str:
     await register_and_login(client, email)
-    await db_session.execute(update(User).where(User.email == email).values(kyc_status="verified"))
-    await db_session.flush()
+    await db_session.execute(update(User).where(User.email == email).values(kyc_status="approved", is_carrier=True))
+    await db_session.commit()
     res = await client.post("/api/v1/auth/login", json={"email": email, "password": VALID_PASSWORD})
     return res.json()["access_token"]
 
 
 async def setup_delivered_booking(client, db_session, suffix: str) -> tuple:
     carrier_token = await make_verified_carrier(client, db_session, f"carrier_rv{suffix}@kipar.com")
-    sender_token = await register_and_login(client, f"sender_rv{suffix}@kipar.com")
+    sender_email = f"sender_rv{suffix}@kipar.com"
+    sender_token = await register_and_login(client, sender_email)
+    await db_session.execute(update(User).where(User.email == sender_email).values(kyc_status="approved"))
+    await db_session.commit()
+    res_s = await client.post("/api/v1/auth/login", json={"email": sender_email, "password": VALID_PASSWORD})
+    sender_token = res_s.json()["access_token"]
 
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",

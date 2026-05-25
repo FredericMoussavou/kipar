@@ -137,7 +137,7 @@ export const en = {
 
     popular_corridors: 'Popular corridors',
 
-    available_trips: 'Available trips',
+    available_trips: 'Available',
 
     no_trips: 'No trips available on this corridor',
 
@@ -537,7 +537,7 @@ export const en = {
     results_count_plural: 'trips found',
     show_own_trips: 'Include my trips',
     hide_own_trips: 'Hide my trips',
-    filter_urgent: 'Accepts urgent',
+    filter_urgent: 'Urgent',
     filter_urgent_active: 'Urgent only',
 
   },

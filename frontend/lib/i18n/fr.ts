@@ -137,7 +137,7 @@ export const fr = {
 
     popular_corridors: 'Corridors populaires',
 
-    available_trips: 'Trajets disponibles',
+    available_trips: 'Disponibles',
 
     no_trips: 'Aucun trajet disponible sur ce corridor',
 
@@ -537,7 +537,7 @@ export const fr = {
     results_count_plural: 'trajets trouvés',
     show_own_trips: 'Inclure mes trajets',
     hide_own_trips: 'Masquer mes trajets',
-    filter_urgent: 'Accepte urgents',
+    filter_urgent: 'Urgents',
     filter_urgent_active: 'Urgents uniquement',
 
   },
@@ -594,9 +594,9 @@ export const fr = {
 
   price_label: 'Prix par kg (€)',
 
-  step1: 'Activez le mode transporteur',
+  step1: 'Complétez votre vérification KYC',
 
-  step2: 'Complétez votre vérification KYC',
+  step2: 'Activez le mode transporteur',
 
   step3: 'Postez vos annonces de trajet',
 
@@ -1048,9 +1048,9 @@ profile_public: {
 
     server_unreachable: 'Impossible de contacter le serveur',
 
-    trip_departure_past: 'La date de dÃ©part est dÃ©jÃ  passÃ©e',
-    trip_too_close_normal: 'Un trajet standard doit Ãªtre crÃ©Ã© au moins 7 jours avant le dÃ©part',
-    trip_too_close_urgent: 'Un trajet urgent doit Ãªtre crÃ©Ã© au moins 72h avant le dÃ©part',
+    trip_departure_past: 'La date de départ est déjà passée',
+    trip_too_close_normal: 'Un trajet standard doit être créé au moins 7 jours avant le départ',
+    trip_too_close_urgent: 'Un trajet urgent doit être créé au moins 72h avant le départ',
     invalid_credentials: 'Identifiants incorrects',
 
     generic: 'Une erreur est survenue',

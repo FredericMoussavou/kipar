@@ -9,6 +9,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import Select from '@/components/ui/kipar/Select'
 import PhoneInputField from '@/components/ui/kipar/PhoneInputField'
 import api from '@/lib/api'
+import { useKyc } from '@/hooks/useKyc'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 
 const STEPS = ['personal', 'preferences', 'payment', 'identity', 'done']
@@ -52,11 +53,9 @@ export default function OnboardingPage() {
   const [paymentCountry, setPaymentCountry] = useState(user?.payment_country ?? '')
 
   // Step 3 — Identity iDenfy
-  const [kycStarted, setKycStarted] = useState(false)
-  const [kycPolling, setKycPolling] = useState(false)
-  const [kycVerified, setKycVerified] = useState(false)
-  const [kycTimeout, setKycTimeout] = useState(false)
-  const kycPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { startKyc, isLoading: kycLoading, isApproved: kycVerified, isPolling: kycPolling, isTimeout: kycTimeout } = useKyc({
+    onApproved: () => setTimeout(() => setStep(s => s + 1), 2000)
+  })
 
   const progress = (step / (STEPS.length - 1)) * 100
 
@@ -161,34 +160,7 @@ export default function OnboardingPage() {
         patchUser(fields)
       } else if (step === 3) {
         // iDenfy : generer une session + polling
-        const res = await api.post('/kyc/init')
-        if (res.data.verification_url) {
-          window.open(res.data.verification_url, '_blank')
-          setKycStarted(true)
-          setKycPolling(true)
-          let attempts = 0
-          const maxAttempts = 60 // 5 min (60 x 5s)
-          kycPollRef.current = setInterval(async () => {
-            attempts++
-            try {
-              const me = await api.get('/users/me')
-              if (me.data.kyc_status === 'verified') {
-                clearInterval(kycPollRef.current!)
-                setKycPolling(false)
-                setKycVerified(true)
-                patchUser({ kyc_status: 'verified' })
-                setTimeout(() => {
-                  setStep(s => s + 1)
-                }, 2000)
-              }
-            } catch {}
-            if (attempts >= maxAttempts) {
-              clearInterval(kycPollRef.current!)
-              setKycPolling(false)
-              setKycTimeout(true)
-            }
-          }, 5000)
-        }
+        await startKyc()
         return // Ne pas avancer automatiquement
       }
       if (step === STEPS.length - 2) {
@@ -393,11 +365,8 @@ export default function OnboardingPage() {
                 <button type='button' onClick={async () => {
                   try {
                     const me = await api.get('/users/me')
-                    if (me.data.kyc_status === 'verified') {
-                      clearInterval(kycPollRef.current!)
-                      setKycPolling(false)
-                      setKycVerified(true)
-                      patchUser({ kyc_status: 'verified' })
+                    if (me.data.kyc_status === 'approved') {
+                      patchUser({ kyc_status: 'approved' })
                       setTimeout(() => setStep(s => s + 1), 2000)
                     }
                   } catch {}

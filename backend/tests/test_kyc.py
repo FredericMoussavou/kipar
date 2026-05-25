@@ -34,7 +34,7 @@ async def test_kyc_already_verified(client, db_session):
     token = await register_and_login(client, "kyc2@kipar.com")
     await db_session.execute(
         update(User).where(User.email == "kyc2@kipar.com")
-        .values(kyc_status="verified")
+        .values(kyc_status="approved")
     )
     await db_session.flush()
     res = await client.post(

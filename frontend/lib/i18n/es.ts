@@ -137,7 +137,7 @@ export const es = {
 
     popular_corridors: 'Rutas populares',
 
-    available_trips: 'Viajes disponibles',
+    available_trips: 'Disponibles',
 
     no_trips: 'No hay viajes disponibles en esta ruta',
 
@@ -537,7 +537,7 @@ export const es = {
     results_count_plural: 'viajes encontrados',
     show_own_trips: 'Incluir mis viajes',
     hide_own_trips: 'Ocultar mis viajes',
-    filter_urgent: 'Acepta urgentes',
+    filter_urgent: 'Urgentes',
     filter_urgent_active: 'Solo urgentes',
 
   },

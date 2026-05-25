@@ -5,7 +5,7 @@ from app.models.booking import Booking
 from app.models.trip import Trip
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=3))
+TOMORROW = str(date.today() + timedelta(days=8))
 
 
 async def register_and_login(client, email: str) -> str:
@@ -22,7 +22,7 @@ async def register_and_login(client, email: str) -> str:
 async def make_verified_carrier(client, db_session, email: str) -> str:
     await register_and_login(client, email)
     await db_session.execute(
-        update(User).where(User.email == email).values(kyc_status="verified")
+        update(User).where(User.email == email).values(kyc_status="approved")
     )
     await db_session.flush()
     res = await client.post("/api/v1/auth/login", json={

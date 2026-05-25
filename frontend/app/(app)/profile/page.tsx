@@ -29,6 +29,7 @@ import {
   TrendingUp,
   Plane,
   Crown,
+  Loader,
 } from 'lucide-react'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -50,6 +51,7 @@ import {
   CloudinaryErrorCode,
 } from '@/lib/cloudinary'
 import api from '@/lib/api'
+import { useKyc } from '@/hooks/useKyc'
 import { WeightUnit } from '@/lib/weight'
 import { isValidIBAN } from 'ibantools'
 import PhoneInputField, { isValidPhoneNumber } from '@/components/ui/kipar/PhoneInputField'
@@ -391,7 +393,8 @@ export default function ProfilePage() {
   const fullName = `${user.first_name} ${user.last_name}`
   const initials = `${user.first_name[0] || ''}${user.last_name[0] || ''}`
   const avatarUrl = getAvatarUrl(user.avatar_url, 200)
-  const isKycVerified = user.kyc_status === 'verified'
+  const isKycVerified = user.kyc_status === 'approved'
+  const { startKyc, isLoading: kycLoading } = useKyc({ onApproved: () => refreshUser() })
   const isEmailVerified = user.email_verified ?? false
   const isPhoneVerified = user.phone_verified ?? false
 
@@ -640,27 +643,23 @@ export default function ProfilePage() {
               verifiedLabel: t.verify.phone_verified,
             }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}` }}>
-            <div style={{ color: TAUPE, display: 'flex' }}>
+          <div
+            onClick={!isKycVerified ? startKyc : undefined}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}`, cursor: !isKycVerified ? 'pointer' : 'default' }}
+          >
+            <div style={{ color: isKycVerified ? GREEN : TAUPE, display: 'flex' }}>
               <Lock size={16} />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>
                 {t.profile_edit.kyc_title}
               </p>
-              <p
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: isKycVerified ? GREEN : TAUPE,
-                  margin: 0,
-                }}
-              >
-                {isKycVerified
-                  ? `✓ ${t.profile_edit.kyc_status_verified}`
-                  : t.profile_edit.kyc_status_pending}
+              <p style={{ fontSize: 13, fontWeight: 500, color: isKycVerified ? GREEN : TAUPE, margin: 0 }}>
+                {kycLoading ? 'Vérification en cours...' : isKycVerified ? `✓ ${t.profile_edit.kyc_status_verified}` : (t.profile_edit.kyc_status_pending ?? 'Cliquer pour vérifier')}
               </p>
             </div>
+            {!isKycVerified && !kycLoading && <ChevronRight size={16} color={TAUPE} />}
+            {kycLoading && <Loader size={14} color={TAUPE} style={{ animation: 'spin 1s linear infinite' }} />}
           </div>
         </Card>
 

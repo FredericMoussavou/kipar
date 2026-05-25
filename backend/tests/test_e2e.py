@@ -82,7 +82,7 @@ async def setup_carrier(client, db_session, token):
     await db_session.execute(
         update(User)
         .where(User.id == user_id)
-        .values(is_carrier=True, kyc_status="verified")
+        .values(is_carrier=True, kyc_status="approved")
     )
     await db_session.commit()
     return user_id

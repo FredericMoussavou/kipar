@@ -2,7 +2,7 @@ import pytest
 from datetime import date, timedelta
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=3))
+TOMORROW = str(date.today() + timedelta(days=8))
 
 
 async def register_and_login(client, email: str) -> str:
@@ -68,7 +68,7 @@ async def test_create_trip_past_date_rejected(client, db_session):
     from sqlalchemy import update
     from app.models.user import User as UserModel
     carrier = await register_and_login(client, "carrier_past@kipar.com")
-    await db_session.execute(update(UserModel).where(UserModel.email == "carrier_past@kipar.com").values(kyc_status="verified"))
+    await db_session.execute(update(UserModel).where(UserModel.email == "carrier_past@kipar.com").values(kyc_status="approved"))
     await db_session.commit()
     yesterday = str(date.today() - timedelta(days=1))
     payload = {**TRIP_PAYLOAD, "departure_date": yesterday}

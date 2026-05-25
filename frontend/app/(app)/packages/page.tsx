@@ -133,8 +133,8 @@ export default function PackagesPage() {
         imageUrl="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80"
         minHeight={160}
       >
-        <div style={{ padding: '48px 24px 28px' }} className="md:p-8">
-          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}
+        <div style={{ padding: '48px 24px 28px', textAlign:'center' }} className="md:p-8">
+          <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4}}
             className="md:text-3xl">
             {t.packages.title}
           </h1>

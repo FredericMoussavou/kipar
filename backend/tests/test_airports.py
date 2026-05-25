@@ -66,7 +66,7 @@ async def test_trip_invalid_iata(client, db_session):
     })
     await db_session.execute(
         update(User).where(User.email == "carrier_iata@kipar.com")
-        .values(kyc_status="verified")
+        .values(kyc_status="approved")
     )
     await db_session.flush()
     res = await client.post("/api/v1/auth/login", json={
@@ -78,7 +78,7 @@ async def test_trip_invalid_iata(client, db_session):
     res = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "XXX",
         "destination_city": "Dakar", "destination_airport_code": "DSS",
-        "departure_date": str(date.today() + timedelta(days=3)),
+        "departure_date": str(date.today() + timedelta(days=8)),
         "total_kg": 15.0, "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {token}"})
 
@@ -100,7 +100,7 @@ async def test_trip_valid_iata(client, db_session):
     })
     await db_session.execute(
         update(User).where(User.email == "carrier_lbv@kipar.com")
-        .values(kyc_status="verified")
+        .values(kyc_status="approved")
     )
     await db_session.flush()
     res = await client.post("/api/v1/auth/login", json={
@@ -111,7 +111,7 @@ async def test_trip_valid_iata(client, db_session):
     res = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
         "destination_city": "Libreville", "destination_airport_code": "LBV",
-        "departure_date": str(date.today() + timedelta(days=3)),
+        "departure_date": str(date.today() + timedelta(days=8)),
         "total_kg": 15.0, "max_kg_per_package": 5.0, "price_per_kg": 2.0
     }, headers={"Authorization": f"Bearer {token}"})
 

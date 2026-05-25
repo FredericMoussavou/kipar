@@ -4,7 +4,7 @@ from sqlalchemy import update
 from app.models.user import User
 
 VALID_PASSWORD = "Kipar@2025"
-TOMORROW = str(date.today() + timedelta(days=3))
+TOMORROW = str(date.today() + timedelta(days=8))
 IN_3_DAYS = str(date.today() + timedelta(days=3))
 
 REQUEST_PAYLOAD = {
@@ -45,7 +45,7 @@ async def register_and_login(client, email: str) -> str:
 
 async def make_verified_carrier(client, db_session, email: str) -> dict:
     token = await register_and_login(client, email)
-    await db_session.execute(update(User).where(User.email == email).values(kyc_status="verified", is_carrier=True))
+    await db_session.execute(update(User).where(User.email == email).values(kyc_status="approved", is_carrier=True))
     await db_session.commit()
     res = await client.post("/api/v1/trips", json=TRIP_PAYLOAD, headers={"Authorization": f"Bearer {token}"})
     return {"token": token, "trip_id": res.json()["id"]}

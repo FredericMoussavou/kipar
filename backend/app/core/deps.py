@@ -45,7 +45,7 @@ async def get_verified_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Exige que le KYC soit vérifié."""
-    if current_user.kyc_status != "verified":
+    if current_user.kyc_status != "approved":
         raise HTTPException(
             status_code=403,
             detail="Vérification KYC requise pour effectuer cette action"

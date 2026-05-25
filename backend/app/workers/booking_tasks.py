@@ -130,7 +130,7 @@ def release_payment_after_delivery(booking_id: str):
                         await send_push(
                             carrier.fcm_token,
                             "KIPAR.",
-                            t("notifications.payment_released", carrier.language, amount=booking.amount)
+                            t("notifications.payment_released", carrier.language, amount=booking.amount, currency=getattr(booking, "currency", "EUR"))
                         )
                 else:
                     logger.error(f"Payment release failed for booking {booking_id}")

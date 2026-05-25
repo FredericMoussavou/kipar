@@ -39,6 +39,8 @@ async def create_trip(
     current_user: User = Depends(get_verified_user),
     lang: str = Depends(get_lang),
 ):
+    if current_user.kyc_status != "approved":
+        raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
     from app.api.v1.endpoints.premium import is_premium_active
     from sqlalchemy import func
     if not is_premium_active(current_user):

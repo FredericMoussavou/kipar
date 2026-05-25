@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.core.lang import get_lang
+from app.core.lang import get_lang, get_lang_optional
 from app.models.user import User
 from app.services.totp_service import (
     generate_totp_secret, generate_qr_code_base64, verify_totp_code, send_sms_code
@@ -106,7 +106,7 @@ class TwoFAConfirmRequest(BaseModel):
 async def confirm_2fa(
     payload: TwoFAConfirmRequest,
     db: AsyncSession = Depends(get_db),
-    lang: str = Depends(get_lang),
+    lang: str = Depends(get_lang_optional),
 ):
     from sqlalchemy import select
     r = get_redis()

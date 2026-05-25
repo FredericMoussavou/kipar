@@ -106,6 +106,7 @@ class User(Base):
     )
 
     notifications = relationship("Notification", back_populates="user", lazy="dynamic")
+    backup_codes = relationship("TOTPBackupCode", back_populates="user", lazy="dynamic")  # v2
 
     @property
     def full_name(self) -> str:

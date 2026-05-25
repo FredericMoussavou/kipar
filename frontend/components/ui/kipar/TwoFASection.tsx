@@ -109,19 +109,18 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
             </p>
           </div>
         </div>
-        {step === 'idle' && (
-          <Button
-            variant={totpEnabled ? 'ghost' : 'primary'}
-            size="sm"
-            loading={loading}
-            onClick={totpEnabled ? () => setStep('disable') : handleSetup}
-          >
-            {totpEnabled ? t.auth.twofa_disable_btn : t.auth.twofa_enable_btn}
+        {step === 'idle' && (totpEnabled === false) && (
+          <Button variant='primary' size='sm' loading={loading} onClick={handleSetup}>
+            {t.auth.twofa_enable_btn}
           </Button>
         )}
+        {step === 'idle' && (totpEnabled === false) && (<span/>)}
         {step === 'idle' && totpEnabled && (
-          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button variant='ghost' size='sm' loading={loading} onClick={async () => {
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Button variant='danger' size='sm' loading={loading} onClick={() => setStep('disable')} style={{ width: '100%' }}>
+              {t.auth.twofa_disable_btn}
+            </Button>
+            <Button variant='ghost' size='sm' loading={loading} style={{ width: '100%', backgroundColor: '#F5F2EE', color: '#1A1A1A' }} onClick={async () => {
               setLoading(true)
               try {
                 const res = await api.post('/auth/2fa/backup-codes/generate')

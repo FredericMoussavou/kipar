@@ -115,6 +115,23 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
             {totpEnabled ? t.auth.twofa_disable_btn : t.auth.twofa_enable_btn}
           </Button>
         )}
+        {step === 'idle' && totpEnabled && (
+          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant='ghost' size='sm' loading={loading} onClick={async () => {
+              setLoading(true)
+              try {
+                const res = await api.post('/auth/2fa/backup-codes/generate')
+                setBackupCodes(res.data.backup_codes)
+              } catch (err: any) {
+                onError(err.response?.data?.detail || t.errors.generic)
+              } finally {
+                setLoading(false)
+              }
+            }}>
+              {t.auth.twofa_regen_btn}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Setup : QR code + secret */}

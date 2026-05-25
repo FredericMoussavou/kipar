@@ -115,6 +115,8 @@ export const es = {
     twofa_use_backup: 'Usar un código de respaldo',
     twofa_backup_placeholder: 'XXXXX-XXXXX',
     twofa_backup_invalid: 'Código de respaldo inválido o ya utilizado',
+    twofa_regen_btn: 'Nuevos códigos de respaldo',
+    twofa_regen_confirm: 'Generar nuevos códigos invalidará los anteriores. ¿Continuar?',
     confirm_password: 'Confirmar contrasena',
     password_min_placeholder: 'Minimo 8 caracteres',
     first_name_placeholder: 'Nombre',

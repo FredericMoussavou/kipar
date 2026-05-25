@@ -115,6 +115,8 @@ export const en = {
     twofa_use_backup: 'Use a backup code',
     twofa_backup_placeholder: 'XXXXX-XXXXX',
     twofa_backup_invalid: 'Invalid or already used backup code',
+    twofa_regen_btn: 'New backup codes',
+    twofa_regen_confirm: 'Generating new codes will invalidate the old ones. Continue?',
     confirm_password: 'Confirm password',
     password_min_placeholder: 'At least 8 characters',
     first_name_placeholder: 'First name',

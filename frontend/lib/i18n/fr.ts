@@ -115,6 +115,8 @@ export const fr = {
     twofa_use_backup: 'Utiliser un code de secours',
     twofa_backup_placeholder: 'XXXXX-XXXXX',
     twofa_backup_invalid: 'Code de secours invalide ou déjà utilisé',
+    twofa_regen_btn: 'Nouveaux codes de secours',
+    twofa_regen_confirm: 'Générer de nouveaux codes invalidera les anciens. Continuer ?',
     confirm_password: 'Confirmer le mot de passe',
     password_min_placeholder: '8 caractères minimum',
     first_name_placeholder: 'Prénom',

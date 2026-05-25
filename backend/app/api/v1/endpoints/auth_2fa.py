@@ -68,8 +68,6 @@ async def verify_totp_setup(
         raise HTTPException(status_code=400, detail=t("errors.totp_not_setup", lang))
     if current_user.totp_enabled:
         raise HTTPException(status_code=400, detail=t("errors.totp_already_enabled", lang))
-    import logging as _log
-    _log.getLogger("kipar.2fa").warning(f"verify-setup: secret={current_user.totp_secret} code={payload.code} result={verify_totp_code(current_user.totp_secret, payload.code)}")
     if not verify_totp_code(current_user.totp_secret, payload.code):
         raise HTTPException(status_code=400, detail=t("errors.totp_invalid_code", lang))
 
@@ -90,8 +88,12 @@ async def disable_totp(
 ):
     if not current_user.totp_enabled:
         raise HTTPException(status_code=400, detail=t("errors.totp_not_enabled", lang))
-    if not verify_totp_code(current_user.totp_secret, payload.code):
-        raise HTTPException(status_code=400, detail=t("errors.totp_invalid_code", lang))
+    totp_valid = verify_totp_code(current_user.totp_secret, payload.code)
+    if not totp_valid:
+        from app.services.backup_code_service import verify_backup_code
+        backup_valid = await verify_backup_code(db, current_user.id, payload.code)
+        if not backup_valid:
+            raise HTTPException(status_code=400, detail=t("errors.totp_invalid_code", lang))
 
     current_user.totp_enabled = False
     current_user.totp_verified = False

@@ -74,7 +74,9 @@ async def verify_totp_setup(
     current_user.totp_enabled = True
     current_user.totp_verified = True
     await db.commit()
-    return {"status": "enabled", "message": t("success.totp_enabled", lang)}
+    from app.services.backup_code_service import generate_backup_codes as _gen
+    backup_codes = await _gen(db, current_user.id)
+    return {"status": "enabled", "message": t("success.totp_enabled", lang), "backup_codes": backup_codes}
 
 
 @router.post("/disable")
@@ -180,3 +182,56 @@ async def verify_sms_enable(
     current_user.phone_2fa_enabled = True
     await db.commit()
     return {"status": "sms_enabled", "message": t("success.sms_2fa_enabled", lang)}
+
+
+# backup codes
+
+@router.post("/backup-codes/generate")
+async def generate_backup_codes(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    if not current_user.totp_enabled:
+        raise HTTPException(status_code=400, detail=t("errors.totp_not_enabled", lang))
+    from app.services.backup_code_service import generate_backup_codes as _gen
+    codes = await _gen(db, current_user.id)
+    return {"backup_codes": codes}
+
+
+class BackupCodeRequest(BaseModel):
+    session_id: str
+    code: str
+
+
+@router.post("/backup-codes/use")
+async def use_backup_code(
+    payload: BackupCodeRequest,
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_lang_optional),
+):
+    from sqlalchemy import select as sa_select
+    r = get_redis()
+    user_id = r.get(f"{REDIS_2FA_PREFIX}{payload.session_id}")
+    if not user_id:
+        raise HTTPException(status_code=401, detail=t("errors.session_expired", lang))
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=401, detail=t("errors.session_expired", lang))
+    result = await db.execute(sa_select(User).where(User.id == user_uuid))
+    user = result.scalar_one_or_none()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail=t("errors.user_not_found", lang))
+    from app.services.backup_code_service import verify_backup_code
+    if not await verify_backup_code(db, user_uuid, payload.code):
+        raise HTTPException(status_code=400, detail=t("errors.totp_invalid_code", lang))
+    r.delete(f"{REDIS_2FA_PREFIX}{payload.session_id}")
+    from app.core.security import create_access_token, create_refresh_token
+    from app.api.v1.endpoints.users import _serialize_me
+    return {
+        "access_token": create_access_token(str(user.id)),
+        "refresh_token": create_refresh_token(str(user.id)),
+        "token_type": "bearer",
+        "user": _serialize_me(user),
+    }

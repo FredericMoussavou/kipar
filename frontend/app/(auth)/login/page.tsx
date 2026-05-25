@@ -91,6 +91,8 @@ export default function LoginPage() {
   const [otpValue, setOtpValue] = useState('')
   const [otpError, setOtpError] = useState<string | undefined>(undefined)
   const [otpLoading, setOtpLoading] = useState(false)
+  const [useBackup, setUseBackup] = useState(false)
+  const [backupCode, setBackupCode] = useState('')
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -260,6 +262,42 @@ export default function LoginPage() {
             >
               {t.auth.twofa_back}
             </button>
+            {!useBackup ? (
+              <button type="button" onClick={() => setUseBackup(true)} style={{ display: "block", width: "100%", textAlign: "center", marginTop: 8, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: TAUPE }}>
+                {t.auth.twofa_use_backup}
+              </button>
+            ) : (
+              <div style={{ marginTop: 12 }}>
+                <input
+                  type="text"
+                  placeholder={t.auth.twofa_backup_placeholder}
+                  value={backupCode}
+                  onChange={e => setBackupCode(e.target.value.toUpperCase())}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #ccc", fontFamily: "monospace", fontSize: 15, letterSpacing: 2, boxSizing: "border-box" }}
+                />
+                <Button fullWidth size="lg" loading={otpLoading} onClick={async () => {
+                  if (backupCode.length < 11) return
+                  setOtpLoading(true)
+                  setOtpError(undefined)
+                  try {
+                    const res = await api.post('/auth/2fa/backup-codes/use', { session_id: sessionId, code: backupCode })
+                    setToken(res.data.access_token)
+                    if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
+                    const userData = res.data.user
+                    if (userData) {
+                      setUser(userData)
+                      router.push(userData.onboarding_completed ? '/dashboard' : '/onboarding')
+                    }
+                  } catch {
+                    setOtpError(t.auth.twofa_backup_invalid)
+                  } finally {
+                    setOtpLoading(false)
+                  }
+                }} style={{ marginTop: 8 }}>
+                  {t.auth.twofa_confirm_btn}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

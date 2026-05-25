@@ -26,6 +26,8 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
   const [otpError, setOtpError] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [backupCopied, setBackupCopied] = useState(false)
 
   const reset = () => {
     setStep('idle')
@@ -54,10 +56,10 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
     setLoading(true)
     setOtpError(undefined)
     try {
-      await api.post('/auth/2fa/verify-setup', { code: otp })
+      const res = await api.post('/auth/2fa/verify-setup', { code: otp })
       await refreshUser()
+      if (res.data.backup_codes) setBackupCodes(res.data.backup_codes)
       onSuccess(t.auth.twofa_enabled_success)
-      reset()
     } catch (err: any) {
       setOtpError(t.auth.twofa_invalid)
     } finally {
@@ -146,6 +148,29 @@ export default function TwoFASection({ totpEnabled, onSuccess, onError }: TwoFAS
           <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
             <Button variant="ghost" size="sm" onClick={reset} style={{ flex: 1 }}>{t.auth.twofa_cancel}</Button>
             <Button variant="danger" size="sm" loading={loading} onClick={handleDisable} style={{ flex: 2 }}>{t.auth.twofa_confirm_disable_btn}</Button>
+          </div>
+        </div>
+      )}
+      {/* Backup codes modal */}
+      {backupCodes.length > 0 && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: WHITE, borderRadius: 16, padding: 24, maxWidth: 420, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+            <p style={{ fontWeight: 700, fontSize: 16, color: CHARCOAL, marginBottom: 4 }}>{t.auth.twofa_backup_codes_title}</p>
+            <p style={{ fontSize: 13, color: TAUPE, marginBottom: 12 }}>{t.auth.twofa_backup_codes_subtitle}</p>
+            <div style={{ background: SAND, borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              {backupCodes.map((c, i) => (
+                <p key={i} style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 700, color: CHARCOAL, margin: '4px 0', letterSpacing: 2 }}>{c}</p>
+              ))}
+            </div>
+            <p style={{ fontSize: 11, color: RED, fontWeight: 600, marginBottom: 16 }}>{t.auth.twofa_backup_codes_warning}</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button variant='ghost' size='sm' onClick={() => { navigator.clipboard.writeText(backupCodes.join('\n')); setBackupCopied(true); setTimeout(() => setBackupCopied(false), 2000) }} style={{ flex: 1 }}>
+                {backupCopied ? t.auth.twofa_backup_codes_copied : t.auth.twofa_backup_codes_copy}
+              </Button>
+              <Button size='sm' onClick={() => { setBackupCodes([]); reset() }} style={{ flex: 1 }}>
+                {t.auth.twofa_backup_codes_close}
+              </Button>
+            </div>
           </div>
         </div>
       )}

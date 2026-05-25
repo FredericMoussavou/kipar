@@ -1,5 +1,6 @@
 import random
 import string
+import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -113,7 +114,11 @@ async def confirm_2fa(
     if not user_id:
         raise HTTPException(status_code=401, detail=t("errors.session_expired", lang))
 
-    result = await db.execute(select(User).where(User.id == user_id))
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=401, detail=t("errors.session_expired", lang))
+    result = await db.execute(select(User).where(User.id == user_uuid))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail=t("errors.user_not_found", lang))

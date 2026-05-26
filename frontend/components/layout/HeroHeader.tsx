@@ -36,21 +36,21 @@ export default function HeroHeader({ imageUrl, children, minHeight = 180, gradie
         '--k-border': '#EEEBE6',
       } as React.CSSProperties}>
         {onMenuOpen && (
-          <button
-            onClick={onMenuOpen}
-            className="md:hidden"
-            style={{
-              position: 'absolute', top: 16, left: 16, zIndex: 60,
-              width: 40, height: 40, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            aria-label="Menu"
-          >
-            <Menu size={20} color="#fff" />
-          </button>
+          <div className="md:hidden" style={{ position: 'absolute', top: 16, left: 16, zIndex: 60 }}>
+            <button
+              onClick={onMenuOpen}
+              style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              aria-label="Menu"
+            >
+              <Menu size={20} color="#fff" />
+            </button>
+          </div>
         )}
         {children}
       </div>

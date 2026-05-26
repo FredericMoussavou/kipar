@@ -34,12 +34,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const unsub = useAuthStore.persist.onFinishHydration(async () => {
       setHydrated(true)
       await initAuth()
-      if (!useAuthStore.getState().isAuthenticated()) router.replace('/login')
+      if (!useAuthStore.getState().isAuthenticated() && window.location.pathname !== '/login') router.replace('/login')
     })
     if (useAuthStore.persist.hasHydrated()) {
       setHydrated(true)
       initAuth().then(() => {
-        if (!isAuthenticated()) router.replace('/login')
+        if (!isAuthenticated() && window.location.pathname !== '/login') router.replace('/login')
       })
     }
     return () => unsub()

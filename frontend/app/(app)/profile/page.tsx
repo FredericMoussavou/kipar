@@ -448,7 +448,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout()
-    router.push('/login')
+    setTimeout(() => router.push('/login'), 0)
   }
 
   return (

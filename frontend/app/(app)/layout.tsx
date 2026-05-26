@@ -19,18 +19,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useInactivityLogout()
 
   useEffect(() => {
-    if (!hydrated) return
-    const unsub = useAuthStore.subscribe(
-      (state) => {
-        if (!state.token && window.location.pathname !== '/login') {
-          router.replace('/login')
-        }
-      }
-    )
-    return () => unsub()
-  }, [hydrated])
-
-  useEffect(() => {
     const initAuth = async () => {
       // Si token present mais potentiellement expire, tenter un silent refresh
       const token = localStorage.getItem('kipar_token')

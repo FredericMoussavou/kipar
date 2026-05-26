@@ -232,6 +232,16 @@ export default function SearchPage() {
 
       {/* Résultats */}
       <div style={{ padding: '20px 20px 80px' }}>
+        {searched && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+            <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+              {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+            </button>
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? '#92400E' : TAUPE, background: showUrgentOnly ? '#FFF3CD' : 'transparent', border: '1px solid ' + (showUrgentOnly ? '#FFE082' : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+              ⚡ {showUrgentOnly ? (t.search.filter_urgent_active ?? 'Urgents uniquement') : (t.search.filter_urgent ?? 'Accepte urgents')}
+            </button>
+          </div>
+        )}
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[1, 2, 3].map(i => (
@@ -251,14 +261,6 @@ export default function SearchPage() {
           </div>
         ) : trips.length > 0 ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-            <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-              {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
-            </button>
-            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? '#92400E' : TAUPE, background: showUrgentOnly ? '#FFF3CD' : 'transparent', border: '1px solid ' + (showUrgentOnly ? '#FFE082' : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-              ⚡ {showUrgentOnly ? (t.search.filter_urgent_active ?? 'Urgents uniquement') : (t.search.filter_urgent ?? 'Accepte urgents')}
-            </button>
-          </div>
           {(() => {
               const filtered = trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent))
               return <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{filtered.length} {filtered.length > 1 ? t.search.results_count_plural : t.search.results_count}</p>

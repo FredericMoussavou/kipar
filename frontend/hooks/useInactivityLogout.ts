@@ -18,7 +18,6 @@ export function useInactivityLogout() {
       if (Date.now() - parseInt(last, 10) >= TIMEOUT_MS) {
         localStorage.removeItem(INACTIVITY_KEY)
         logout()
-        window.location.href = '/login'
       }
     }
 

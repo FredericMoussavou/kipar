@@ -750,14 +750,6 @@ export default function ProfilePage() {
         onError={(msg) => showToast(msg, 'error')}
       />
 
-      {/* Déconnexion */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
-        <button onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <LogOut size={15} />
-          {t.profile_edit.logout}
-        </button>
-      </div>
-
       {/* Zone dangereuse */}
       <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
       <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 32 }}>

@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [])
 
 
-  if (!hydrated) return null
+  if (!hydrated) return <div style={{ minHeight: '100vh', background: '#F5F2EE' }} />
 
   return (
     <NotificationsProvider>

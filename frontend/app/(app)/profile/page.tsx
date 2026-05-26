@@ -454,7 +454,6 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout()
-    router.replace('/login')
   }
 
   return (
@@ -813,7 +812,6 @@ export default function ProfilePage() {
           showToast(t.profile_edit.success_account_deleted, 'success')
           setTimeout(() => {
             logout()
-            router.replace('/login')
           }, 1500)
         }}
         onError={(msg) => showToast(msg, 'error')}

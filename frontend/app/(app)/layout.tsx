@@ -19,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useInactivityLogout()
 
   useEffect(() => {
+    if (!hydrated) return
     const unsub = useAuthStore.subscribe(
       (state) => {
         if (!state.token && window.location.pathname !== '/login') {
@@ -27,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     )
     return () => unsub()
-  }, [])
+  }, [hydrated])
 
   useEffect(() => {
     const initAuth = async () => {

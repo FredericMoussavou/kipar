@@ -15,8 +15,6 @@ from app.models.trip import Trip
 from app.models.review import Review
 from app.models.package_request import PackageRequest
 from app.models.package import Package
-from app.models.package import Package
-from app.models.package import Package
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -363,8 +361,8 @@ async def update_kyc(
 ):
     """Approuve ou rejette le KYC d un utilisateur."""
     decision = payload.get("decision", "").strip()
-    if decision not in ("verified", "rejected"):
-        raise HTTPException(status_code=400, detail="decision must be verified or rejected")
+    if decision not in ("approved", "rejected"):
+        raise HTTPException(status_code=400, detail="decision must be approved or rejected")
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -372,7 +370,8 @@ async def update_kyc(
         raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
 
     user.kyc_status = decision
-    if decision == "verified":
+    await db.commit()
+    if decision == "approved":
         user.trust_score = min(100.0, user.trust_score + 20.0)
 
     return {"user_id": user_id, "kyc_status": decision}

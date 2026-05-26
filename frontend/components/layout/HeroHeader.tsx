@@ -38,6 +38,7 @@ export default function HeroHeader({ imageUrl, children, minHeight = 180, gradie
         {onMenuOpen && (
           <button
             onClick={onMenuOpen}
+            className="md:hidden"
             style={{
               position: 'absolute', top: 16, left: 16, zIndex: 60,
               width: 40, height: 40, borderRadius: '50%',

@@ -259,7 +259,7 @@ export default function PublicProfilePage() {
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
       {/* Hero */}
-      <HeroHeader onMenuOpen={openDrawer} imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
+      <HeroHeader imageUrl={HERO_IMG} minHeight={200} gradient="vertical">
         <div style={{ padding: '48px 20px 24px', position: 'relative', textAlign: 'center' }}>
           <button
             onClick={() => router.back()}

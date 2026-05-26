@@ -49,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <NotificationsProvider>
-    <Drawer isOpen={drawerOpen} onClose={closeDrawer} />
+    <div className="md:hidden"><Drawer isOpen={drawerOpen} onClose={closeDrawer} /></div>
     <div style={{ minHeight: '100vh', background: BG }}>
       {/* Desktop top nav */}
       <div className="hidden md:block">

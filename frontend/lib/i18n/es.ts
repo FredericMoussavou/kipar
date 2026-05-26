@@ -784,6 +784,11 @@ export const es = {
     field_confirm_password: 'Confirmar nueva contraseña',
 
     password_requirements: 'Mín. 8 caracteres, 1 mayúscula, 1 minúscula, 1 número, 1 carácter especial',
+    pwd_hint_length: 'Mín. 8 caracteres',
+    pwd_hint_upper: '1 letra mayúscula',
+    pwd_hint_lower: '1 letra minúscula',
+    pwd_hint_digit: '1 número',
+    pwd_hint_special: '1 carácter especial (!@#$...)',
 
     error_password_old_invalid: 'Contraseña actual incorrecta',
 

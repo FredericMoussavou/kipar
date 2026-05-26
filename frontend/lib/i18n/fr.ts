@@ -795,6 +795,11 @@ profile_public: {
     field_confirm_password: 'Confirmer le nouveau mot de passe',
 
     password_requirements: '8 caractères min., 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial',
+    pwd_hint_length: '8 caractères minimum',
+    pwd_hint_upper: '1 lettre majuscule',
+    pwd_hint_lower: '1 lettre minuscule',
+    pwd_hint_digit: '1 chiffre',
+    pwd_hint_special: '1 caractère spécial (!@#$...)',
 
     error_password_old_invalid: 'Mot de passe actuel incorrect',
 

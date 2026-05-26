@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Button, Input } from '@/components/ui/kipar'
+import { Button, Input, PasswordStrengthHints } from '@/components/ui/kipar'
 import { useTranslation } from '@/hooks/useTranslation'
 import api from '@/lib/api'
 import { setLangCookie, getLangCookie, SupportedLang } from '@/lib/langCookie'
@@ -88,9 +88,11 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [cguAccepted, setCguAccepted] = useState(false)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+
+  const watchedPassword = watch('password') ?? ''
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -173,6 +175,7 @@ export default function RegisterPage() {
               error={errors.password?.message}
               {...register('password')}
             />
+            <PasswordStrengthHints password={watchedPassword} />
 
             <Input
               label={t.auth.confirm_password}

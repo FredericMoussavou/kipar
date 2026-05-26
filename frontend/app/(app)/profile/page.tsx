@@ -40,7 +40,7 @@ import KiparTrustGauge from '@/components/ui/kipar/KiparTrustGauge'
 import Toggle from '@/components/ui/kipar/Toggle'
 import Modal from '@/components/ui/kipar/Modal'
 import Input from '@/components/ui/kipar/Input'
-import { Button } from '@/components/ui/kipar'
+import { Button, PasswordStrengthHints } from '@/components/ui/kipar'
 import TwoFASection from '@/components/ui/kipar/TwoFASection'
 import {
   uploadAvatar,
@@ -727,6 +727,15 @@ export default function ProfilePage() {
         </Link>
       </Card>
 
+      {/* Changer mot de passe */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+        <button
+          onClick={() => setPasswordModalOpen(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          {t.profile_edit.modal_password_title}
+        </button>
+      </div>
+
       {/* Déconnexion */}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
         <button onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -1289,6 +1298,7 @@ function PasswordModal({
         show={showNew}
         toggleShow={() => setShowNew(!showNew)}
       />
+      <PasswordStrengthHints password={newPwd} />
       <PasswordField
         label={t.profile_edit.field_confirm_password}
         value={confirmPwd}
@@ -1297,9 +1307,6 @@ function PasswordModal({
         toggleShow={() => setShowNew(!showNew)}
         hideToggle
       />
-      <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 16px', lineHeight: 1.5 }}>
-        {t.profile_edit.password_requirements}
-      </p>
       <ModalActions
         onCancel={onClose}
         onConfirm={handleSubmit}

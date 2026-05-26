@@ -795,6 +795,11 @@ profile_public: {
     field_confirm_password: 'Confirm new password',
 
     password_requirements: 'Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character',
+    pwd_hint_length: 'Minimum 8 characters',
+    pwd_hint_upper: '1 uppercase letter',
+    pwd_hint_lower: '1 lowercase letter',
+    pwd_hint_digit: '1 number',
+    pwd_hint_special: '1 special character (!@#$...)',
 
     error_password_old_invalid: 'Current password is incorrect',
 

@@ -382,13 +382,7 @@ export default function ProfilePage() {
     setToast({ message, type })
   }
 
-  if (!user) {
-    return (
-      <div style={{ padding: 40, textAlign: 'center', color: TAUPE }}>
-        {t.profile_edit.saving}
-      </div>
-    )
-  }
+  if (!user) return null
 
   const fullName = `${user.first_name} ${user.last_name}`
   const initials = `${user.first_name[0] || ''}${user.last_name[0] || ''}`

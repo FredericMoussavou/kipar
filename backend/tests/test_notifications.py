@@ -86,7 +86,7 @@ async def test_booking_triggers_notification(client, db_session):
     carrier_token = await make_verified_carrier(
         client, db_session, "carrier_n1@kipar.com"
     )
-    sender_token = await register_and_login(client, "sender_n1@kipar.com")
+    sender_token = await make_verified_carrier(client, db_session, "sender_n1@kipar.com")
 
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",
@@ -113,7 +113,7 @@ async def test_accept_booking_triggers_notification(client, db_session):
     carrier_token = await make_verified_carrier(
         client, db_session, "carrier_n2@kipar.com"
     )
-    sender_token = await register_and_login(client, "sender_n2@kipar.com")
+    sender_token = await make_verified_carrier(client, db_session, "sender_n2@kipar.com")
 
     trip = await client.post("/api/v1/trips", json={
         "origin_city": "Paris", "origin_airport_code": "CDG",

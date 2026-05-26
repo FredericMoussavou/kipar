@@ -115,6 +115,22 @@ async def list_notifications(
     }
 
 
+@router.patch("/read-all")
+async def mark_all_read(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Marque toutes les notifs comme lues."""
+    await db.execute(
+        update(Notification)
+        .where(Notification.user_id == current_user.id)
+        .where(Notification.is_read == False)
+        .values(is_read=True)
+    )
+    await db.commit()
+    return {"ok": True}
+
+
 @router.patch("/{notif_id}/read")
 async def mark_as_read(
     notif_id: uuid.UUID,
@@ -132,17 +148,17 @@ async def mark_as_read(
     return {"ok": True}
 
 
-@router.patch("/read-all")
-async def mark_all_read(
+@router.delete('/read')
+async def delete_read_notifications(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Marque toutes les notifs comme lues."""
+    """Supprime toutes les notifications lues."""
+    from sqlalchemy import delete
     await db.execute(
-        update(Notification)
+        delete(Notification)
         .where(Notification.user_id == current_user.id)
-        .where(Notification.is_read == False)
-        .values(is_read=True)
+        .where(Notification.is_read == True)
     )
     await db.commit()
     return {"ok": True}
@@ -160,22 +176,6 @@ async def delete_notification(
         delete(Notification)
         .where(Notification.id == notif_id)
         .where(Notification.user_id == current_user.id)
-    )
-    await db.commit()
-    return {"ok": True}
-
-
-@router.delete('/read')
-async def delete_read_notifications(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Supprime toutes les notifications lues."""
-    from sqlalchemy import delete
-    await db.execute(
-        delete(Notification)
-        .where(Notification.user_id == current_user.id)
-        .where(Notification.is_read == True)
     )
     await db.commit()
     return {"ok": True}

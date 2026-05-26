@@ -52,7 +52,7 @@ export default function HeroHeader({ imageUrl, children, minHeight = 180, gradie
             </button>
           </div>
         )}
-        {children}
+        <div style={{ paddingTop: onMenuOpen ? 16 : 0 }}>{children}</div>
       </div>
     </div>
   )

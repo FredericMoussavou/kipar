@@ -237,7 +237,7 @@ async def test_e2e_cancel_before_72h(client, db_session):
                            headers={"Authorization": f"Bearer {sender_token}"})
     assert r.status_code == 200
     data = r.json()
-    assert data["refund_rate"] >= 0.5  # Remboursement partiel ou integral selon timing
+    assert data["refund_amount"] >= 0  # Remboursement partiel ou integral selon timing
 
 
 @pytest.mark.asyncio

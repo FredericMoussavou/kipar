@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Globe, Scale, CreditCard, Sun, Moon, Monitor,
-  Bell, Lock, ChevronLeft, ChevronRight, Headphones,
+  Bell, ChevronLeft, ChevronRight, Headphones,
   ExternalLink, LogOut, Trash2,
 } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
+import { getT } from '@/lib/i18n'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTheme } from 'next-themes'
 import Toggle from '@/components/ui/kipar/Toggle'
@@ -73,46 +74,6 @@ function NotificationToggleRow({ label, description, checked, onChange, isLast }
   )
 }
 
-// ─── PasswordModal ─────────────────────────────────────────────────────────────
-
-function PasswordModal({ isOpen, onClose, onSuccess, onError }: {
-  isOpen: boolean; onClose: () => void; onSuccess: () => void; onError: (msg: string) => void
-}) {
-  const { t } = useTranslation()
-  const [oldPwd, setOldPwd] = useState('')
-  const [newPwd, setNewPwd] = useState('')
-  const [confirmPwd, setConfirmPwd] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showOld, setShowOld] = useState(false)
-  const [showNew, setShowNew] = useState(false)
-
-  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
-  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6, display: 'block' as const }
-
-  const handleSubmit = async () => {
-    if (newPwd !== confirmPwd) { onError(t.profile_edit.error_password_mismatch); return }
-    setLoading(true)
-    try {
-      await api.post('/auth/change-password', { old_password: oldPwd, new_password: newPwd })
-      onSuccess(); onClose()
-    } catch (err: any) {
-      onError(err?.response?.data?.detail || t.errors.generic)
-    } finally { setLoading(false) }
-  }
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.modal_password_title} closeDisabled={loading}>
-      <Input type={showOld ? 'text' : 'password'} label={t.profile_edit.field_old_password} value={oldPwd} onChange={e => setOldPwd(e.target.value)} style={{ marginBottom: 12 }} />
-      <Input type={showNew ? 'text' : 'password'} label={t.profile_edit.field_new_password} value={newPwd} onChange={e => setNewPwd(e.target.value)} style={{ marginBottom: 12 }} />
-      <Input type="password" label={t.profile_edit.field_confirm_password} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} style={{ marginBottom: 16 }} />
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <Button variant="outline" size="sm" onClick={onClose}>{t.profile_edit.cancel}</Button>
-        <Button size="sm" loading={loading} onClick={handleSubmit}>{t.profile_edit.save}</Button>
-      </div>
-    </Modal>
-  )
-}
-
 // ─── DeleteModal ───────────────────────────────────────────────────────────────
 
 function DeleteModal({ isOpen, onClose, onSuccess, onError }: {
@@ -155,7 +116,6 @@ export default function PreferencesPage() {
   const { theme, setTheme } = useTheme()
 
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [ibanInput, setIbanInput] = useState(user?.iban ?? '')
   const [ibanError, setIbanError] = useState('')
@@ -172,7 +132,7 @@ export default function PreferencesPage() {
     try {
       await api.patch('/users/me/language', { language: lang })
       patchUser({ language: lang })
-      showToast(t.profile_edit.success_language_updated)
+      showToast(getT(lang).profile_edit.success_language_updated)
     } catch { showToast(t.errors.generic, 'error') }
   }
 
@@ -363,24 +323,7 @@ export default function PreferencesPage() {
         </div>
       </Card>
 
-      {/* Sécurité */}
-      <SectionTitle title={t.profile_edit.section_security} />
-      <Card>
-        <button type="button" onClick={() => setPasswordModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-          <Lock size={16} color={TAUPE} />
-          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: CHARCOAL }}>{t.profile_edit.modal_password_title}</span>
-          <ChevronRight size={16} color={TAUPE} />
-        </button>
-      </Card>
-
       {/* Modales */}
-      <PasswordModal
-        isOpen={passwordModalOpen}
-        onClose={() => setPasswordModalOpen(false)}
-        onSuccess={() => showToast(t.profile_edit.success_password_changed)}
-        onError={(msg) => showToast(msg, 'error')}
-      />
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

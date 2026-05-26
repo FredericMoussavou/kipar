@@ -135,7 +135,6 @@ export const useAuthStore = create<AuthStore>()(
               headers: { Authorization: 'Bearer ' + token },
             }).catch(() => {})
           }
-          window.location.href = '/login'
         }
       },
       isAuthenticated: () => !!get().token,

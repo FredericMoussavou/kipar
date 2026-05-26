@@ -159,7 +159,7 @@ function UsernameModal({
   }
 
   const handleChange = (value: string) => {
-    const clean = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+    const clean = value.replace(/[^a-zA-Z0-9_]/g, '')
     setUsername(clean)
     checkUsername(clean)
   }
@@ -628,12 +628,12 @@ export default function ProfilePage() {
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_username} value={user.username || t.profile_edit.add_btn} onClick={() => setUsernameModalOpen(true)} />
           <InfoRow icon={<UserIcon size={16} />} label={t.profile_edit.field_address} value={user.address || t.profile_edit.add_btn} onClick={() => setAddressModalOpen(true)} />
           {/* Telephone — affichage + verification + modification fusionnes */}
+          <div onClick={() => setPhoneModalOpen(true)} style={{ cursor: 'pointer' }}>
           <PhoneRow
             phone={user.phone}
             isVerified={isPhoneVerified}
             emptyLabel={t.profile_edit.field_phone_empty}
             onVerify={() => { setVerifyPhoneOpen(true); setVerifyStep('send') }}
-            onEdit={() => setPhoneModalOpen(true)}
             labels={{
               phoneLabel: t.profile_edit.field_phone,
               verifyBtn: t.verify.verify_btn,
@@ -642,6 +642,24 @@ export default function ProfilePage() {
               verifiedLabel: t.verify.phone_verified,
             }}
           />
+          </div>
+          <div
+            onClick={() => setPasswordModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}`, cursor: 'pointer' }}
+          >
+            <div style={{ color: TAUPE, display: 'flex' }}>
+              <Lock size={16} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: 0, marginBottom: 2 }}>
+                {t.profile_edit.modal_password_title}
+              </p>
+              <p style={{ fontSize: 13, fontWeight: 500, color: TAUPE, margin: 0 }}>
+                {t.profile_edit.modal_password_desc}
+              </p>
+            </div>
+            <ChevronRight size={16} color={TAUPE} />
+          </div>
           <div
             onClick={!isKycVerified ? startKyc : undefined}
             style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${SAND}`, cursor: !isKycVerified ? 'pointer' : 'default' }}
@@ -727,22 +745,7 @@ export default function ProfilePage() {
         </Link>
       </Card>
 
-      {/* Changer mot de passe */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-        <button
-          onClick={() => setPasswordModalOpen(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          {t.profile_edit.modal_password_title}
-        </button>
-      </div>
 
-      {/* Déconnexion */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
-        <button onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <LogOut size={15} />
-          {t.profile_edit.logout}
-        </button>
-      </div>
 
       {/* 2FA */}
       <SectionTitle title={t.auth.twofa_section_title} />
@@ -751,6 +754,14 @@ export default function ProfilePage() {
         onSuccess={(msg) => showToast(msg, 'success')}
         onError={(msg) => showToast(msg, 'error')}
       />
+
+      {/* Déconnexion */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 16 }}>
+        <button onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 99, border: '1px solid var(--k-sand)', background: 'transparent', color: 'var(--k-taupe)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <LogOut size={15} />
+          {t.profile_edit.logout}
+        </button>
+      </div>
 
       {/* Zone dangereuse */}
       <SectionTitle title={t.profile_edit.section_danger} variant="danger" />
@@ -930,7 +941,7 @@ function PhoneRow({
   isVerified: boolean
   emptyLabel: string
   onVerify: () => void
-  onEdit: () => void
+  onEdit?: () => void
   labels: { phoneLabel: string; verifyBtn: string; editBtn: string; addBtn: string; verifiedLabel: string }
 }) {
   const displayPhone = phone ? (formatPhoneNumberIntl(phone) || phone) : null
@@ -946,6 +957,7 @@ function PhoneRow({
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {!displayPhone ? (
+          onEdit ? (
           <button
             type="button"
             onClick={onEdit}
@@ -957,6 +969,7 @@ function PhoneRow({
           >
             {labels.addBtn}
           </button>
+          ) : <ChevronRight size={16} color={TAUPE} />
         ) : isVerified ? (
           <>
             <span style={{
@@ -967,6 +980,7 @@ function PhoneRow({
             }}>
               <Check size={11} /> {labels.verifiedLabel}
             </span>
+            {onEdit && (
             <button
               type="button"
               onClick={onEdit}
@@ -978,6 +992,7 @@ function PhoneRow({
             >
               {labels.editBtn}
             </button>
+            )}
           </>
         ) : (
           <>
@@ -992,6 +1007,7 @@ function PhoneRow({
             >
               {labels.verifyBtn}
             </button>
+            {onEdit && (
             <button
               type="button"
               onClick={onEdit}
@@ -1003,6 +1019,7 @@ function PhoneRow({
             >
               {labels.editBtn}
             </button>
+            )}
           </>
         )}
       </div>

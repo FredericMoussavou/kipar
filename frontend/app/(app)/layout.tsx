@@ -18,6 +18,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isOpen: drawerOpen, close: closeDrawer } = useDrawerStore()
   useInactivityLogout()
 
+  useEffect(() => {
+    const unsub = useAuthStore.subscribe(
+      (state) => {
+        if (!state.token && window.location.pathname !== '/login') {
+          router.replace('/login')
+        }
+      }
+    )
+    return () => unsub()
+  }, [])
 
   useEffect(() => {
     const initAuth = async () => {

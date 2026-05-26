@@ -275,8 +275,12 @@ async def list_users(
             "email": u.email,
             "kyc_status": u.kyc_status,
             "is_admin": u.is_admin,
+            "is_active": u.is_active,
             "trust_score": u.trust_score,
             "created_at": u.created_at.isoformat(),
+            # Prepare pour future fonctionnalite recompenses clients actifs
+            "total_bookings_as_sender": 0,
+            "total_bookings_as_carrier": 0,
         }
         for u in users
     ]
@@ -302,22 +306,69 @@ async def toggle_admin(
 async def get_stats(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin),
+    period: str = "month",
 ):
-    """Statistiques globales — admin uniquement."""
-    users_q = await db.execute(select(func.count(User.id)).where(User.deleted_at.is_(None)))
-    bookings_q = await db.execute(select(func.count(Booking.id)))
+    """Statistiques globales avec filtre periode — admin uniquement."""
+    now = datetime.now(timezone.utc)
+    if period == "day":
+        since = now - timedelta(days=1)
+    elif period == "week":
+        since = now - timedelta(days=7)
+    elif period == "year":
+        since = now - timedelta(days=365)
+    else:
+        since = now - timedelta(days=30)
+
+    # Totaux globaux
+    users_q = await db.execute(select(func.count(User.id)).where(User.deleted_at.is_(None), User.is_active.is_(True)))
+    users_banned_q = await db.execute(select(func.count(User.id)).where(User.is_active.is_(False), User.deleted_at.is_(None)))
+    users_deleted_q = await db.execute(select(func.count(User.id)).where(User.deleted_at.isnot(None)))
     disputes_q = await db.execute(select(func.count(Dispute.id)).where(Dispute.status == "open"))
     kyc_pending_q = await db.execute(select(func.count(User.id)).where(User.kyc_status == "pending", User.deleted_at.is_(None)))
     trips_q = await db.execute(select(func.count(Trip.id)).where(Trip.deleted_at.is_(None)))
-    revenue_q = await db.execute(select(func.sum(Booking.amount)).where(Booking.status == "delivered"))
+
+    # Nouveaux KYC approuves sur la periode (approximation via updated_at)
+    new_kyc_q = await db.execute(
+        select(func.count(User.id)).where(
+            User.kyc_status == "approved",
+            User.updated_at >= since,
+            User.deleted_at.is_(None),
+        )
+    )
+
+    # Bookings sur la periode
+    bookings_result = await db.execute(select(Booking).where(Booking.created_at >= since))
+    bookings_period = bookings_result.scalars().all()
+
+    bookings_actifs = [b for b in bookings_period if b.status in ("paid", "accepted", "in_transit")]
+    bookings_livres = [b for b in bookings_period if b.status == "delivered"]
+    bookings_litige = [b for b in bookings_period if b.status in ("disputed", "in_review")]
+    bookings_validation = [b for b in bookings_period if b.status == "pending_admin_validation"]
+    bookings_annules = [b for b in bookings_period if b.status in ("cancelled", "cancelled_by_sender", "cancelled_by_carrier", "refused")]
 
     return {
+        "period": period,
+        "since": since.isoformat(),
+        # Utilisateurs
         "total_users": users_q.scalar() or 0,
-        "total_bookings": bookings_q.scalar() or 0,
+        "users_banned": users_banned_q.scalar() or 0,
+        "users_deleted": users_deleted_q.scalar() or 0,
+        "new_kyc_approved": new_kyc_q.scalar() or 0,
+        # Trajets
+        "total_trips": trips_q.scalar() or 0,
+        # Alertes (globales, hors periode)
         "open_disputes": disputes_q.scalar() or 0,
         "kyc_pending": kyc_pending_q.scalar() or 0,
-        "total_trips": trips_q.scalar() or 0,
-        "total_revenue": float(revenue_q.scalar() or 0),
+        # Bookings periode
+        "bookings_actifs": len(bookings_actifs),
+        "bookings_livres": len(bookings_livres),
+        "bookings_litige": len(bookings_litige),
+        "bookings_validation": len(bookings_validation),
+        "bookings_annules": len(bookings_annules),
+        "total_bookings_period": len(bookings_period),
+        # Legacy (compatibilite dashboard stats cards)
+        "total_bookings": len(bookings_period),
+        "total_revenue": float(sum(b.amount for b in bookings_livres)),
     }
 
 
@@ -505,7 +556,11 @@ async def get_finance(
     # ── Revenue breakdown ──────────────────────────────────────────────────
     commissions_sender = sum(b.amount * settings.SERVICE_FEE_SENDER_PERCENT for b in delivered)
     commissions_carrier = sum(b.amount * settings.SERVICE_FEE_CARRIER_PERCENT for b in delivered)
-    flat_fees = sum(settings.BOOKING_FLAT_FEE for b in bookings if b.booking_fee_collected)
+    # Frais dossier : urgent -> part Kipar = URGENT_FEE_KIPAR, normal -> booking_flat_fee_amount
+    flat_fees = sum(
+        settings.URGENT_FEE_KIPAR if b.is_urgent else b.booking_flat_fee_amount
+        for b in bookings if b.booking_fee_collected
+    )
 
     # Frais annulation transporteur non justifiee
     carrier_cancels = [b for b in bookings if b.status == "cancelled_by_carrier" and not b.cancellation_justified]
@@ -587,6 +642,18 @@ async def get_finance(
             "declared_value": pkg.declared_value if pkg else None,
         })
 
+    # Revenus urgence (part Kipar uniquement)
+    urgent_fees = sum(
+        settings.URGENT_FEE_KIPAR for b in bookings
+        if b.is_urgent and b.booking_fee_collected
+    )
+    normal_fees = sum(
+        b.booking_flat_fee_amount for b in bookings
+        if not b.is_urgent and b.booking_fee_collected
+    )
+    flat_fees_count_normal = len([b for b in bookings if b.booking_fee_collected and not b.is_urgent])
+    flat_fees_count_urgent = len([b for b in bookings if b.booking_fee_collected and b.is_urgent])
+
     return {
         "period": period,
         "since": since.isoformat(),
@@ -603,6 +670,8 @@ async def get_finance(
             "booking_flat_fee": settings.BOOKING_FLAT_FEE,
             "flat_fee_revenue": round(flat_fees, 2),
             "flat_fee_count": len([b for b in bookings if b.booking_fee_collected]),
+            "flat_fee_count_normal": flat_fees_count_normal,
+            "flat_fee_count_urgent": flat_fees_count_urgent,
             "cancelled_by_sender": len([b for b in bookings if b.status == "cancelled_by_sender"]),
             "cancelled_by_carrier": len([b for b in bookings if b.status == "cancelled_by_carrier"]),
             "disputed_count": len([b for b in bookings if b.status == "disputed"]),
@@ -611,11 +680,20 @@ async def get_finance(
             "justified_cancellations": len([b for b in bookings if b.cancellation_justified]),
         },
         "revenue_breakdown": {
+            # Ordinaires — acquis des la confirmation
+            "flat_fees_normal": round(normal_fees, 2),
+            "flat_fees_normal_count": flat_fees_count_normal,
+            "flat_fees_urgent": round(urgent_fees, 2),
+            "flat_fees_urgent_count": flat_fees_count_urgent,
             "commissions_sender": round(commissions_sender, 2),
             "commissions_carrier": round(commissions_carrier, 2),
-            "flat_fees": round(flat_fees, 2),
+            "total_ordinaire": round(normal_fees + urgent_fees + commissions_sender + commissions_carrier, 2),
+            # Extraordinaires — evenements exceptionnels
             "dispute_fees": round(dispute_fees, 2),
             "cancel_fees": round(cancel_fees, 2),
+            "total_extraordinaire": round(dispute_fees + cancel_fees, 2),
+            # Total
+            "flat_fees": round(flat_fees, 2),
             "total": total_kipar_revenue,
         },
         "escrow": {

@@ -25,6 +25,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
   const pick = (h: number, m: number) => {
     setSelH(h); setSelM(m)
     onChange(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
+    setOpen(false)
   }
 
   const hours = Array.from({ length: 24 }, (_, i) => i)

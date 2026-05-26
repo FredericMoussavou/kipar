@@ -135,7 +135,7 @@ export const useAuthStore = create<AuthStore>()(
               headers: { Authorization: 'Bearer ' + token },
             }).catch(() => {})
           }
-          window.dispatchEvent(new Event('kipar:logout'))
+          window.location.href = '/login'
         }
       },
       isAuthenticated: () => !!get().token,

@@ -19,12 +19,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useInactivityLogout()
 
   useEffect(() => {
-    const handleLogout = () => router.replace('/login')
-    window.addEventListener('kipar:logout', handleLogout)
-    return () => window.removeEventListener('kipar:logout', handleLogout)
-  }, [])
-
-  useEffect(() => {
     const initAuth = async () => {
       // Si token present mais potentiellement expire, tenter un silent refresh
       const token = localStorage.getItem('kipar_token')

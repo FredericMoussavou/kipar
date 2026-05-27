@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ChevronDown, ChevronUp, Search, MessageCircle } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -25,6 +25,30 @@ export default function FaqPage() {
 
   const allLabel = lang === 'fr' ? 'Toutes' : lang === 'es' ? 'Todas' : 'All'
 
+  // Drag-to-scroll refs
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollLeftRef = useRef(0)
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return
+    isDragging.current = true
+    startX.current = e.pageX - scrollRef.current.offsetLeft
+    scrollLeftRef.current = scrollRef.current.scrollLeft
+    scrollRef.current.style.cursor = 'grabbing'
+  }
+  const onMouseUp = () => {
+    isDragging.current = false
+    if (scrollRef.current) scrollRef.current.style.cursor = 'grab'
+  }
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - scrollRef.current.offsetLeft
+    scrollRef.current.scrollLeft = scrollLeftRef.current - (x - startX.current)
+  }
+
   const categories: { key: CategoryKey | 'all'; label: string }[] = [
     { key: 'all',          label: allLabel },
     { key: 'general',      label: f.categories.general },
@@ -39,36 +63,36 @@ export default function FaqPage() {
   ]
 
   const items: FaqItem[] = [
-    { category: 'general',      q: f.q_what_is_kipar,       a: f.a_what_is_kipar },
-    { category: 'general',      q: f.q_how_works,           a: f.a_how_works },
-    { category: 'general',      q: f.q_countries,           a: f.a_countries },
-    { category: 'general',      q: f.q_legal,               a: f.a_legal },
-    { category: 'inscription',  q: f.q_kyc_why,             a: f.a_kyc_why },
-    { category: 'inscription',  q: f.q_kyc_docs,            a: f.a_kyc_docs },
-    { category: 'inscription',  q: f.q_kyc_time,            a: f.a_kyc_time },
-    { category: 'inscription',  q: f.q_kyc_rejected,        a: f.a_kyc_rejected },
-    { category: 'expediteur',   q: f.q_sender_how,          a: f.a_sender_how },
-    { category: 'expediteur',   q: f.q_sender_handover,     a: f.a_sender_handover },
-    { category: 'expediteur',   q: f.q_sender_lost,         a: f.a_sender_lost },
-    { category: 'expediteur',   q: f.q_sender_cancel,       a: f.a_sender_cancel },
-    { category: 'transporteur', q: f.q_carrier_publish,     a: f.a_carrier_publish },
-    { category: 'transporteur', q: f.q_carrier_payment,     a: f.a_carrier_payment },
-    { category: 'transporteur', q: f.q_carrier_refuse,      a: f.a_carrier_refuse },
-    { category: 'transporteur', q: f.q_carrier_prohibited,  a: f.a_carrier_prohibited },
-    { category: 'recepteur',    q: f.q_receiver_how,        a: f.a_receiver_how },
-    { category: 'recepteur',    q: f.q_receiver_noshow,     a: f.a_receiver_noshow },
-    { category: 'paiements',    q: f.q_payment_methods,     a: f.a_payment_methods },
-    { category: 'paiements',    q: f.q_escrow,              a: f.a_escrow },
-    { category: 'paiements',    q: f.q_fees,                a: f.a_fees },
-    { category: 'securite',     q: f.q_trust,               a: f.a_trust },
-    { category: 'securite',     q: f.q_kiparscore,          a: f.a_kiparscore },
-    { category: 'securite',     q: f.q_dispute,             a: f.a_dispute },
-    { category: 'colis',        q: f.q_allowed,             a: f.a_allowed },
-    { category: 'colis',        q: f.q_weight,              a: f.a_weight },
-    { category: 'colis',        q: f.q_insurance,           a: f.a_insurance },
-    { category: 'compte',       q: f.q_profile,             a: f.a_profile },
-    { category: 'compte',       q: f.q_delete,              a: f.a_delete },
-    { category: 'compte',       q: f.q_contact,             a: f.a_contact },
+    { category: 'general',      q: f.q_what_is_kipar,      a: f.a_what_is_kipar },
+    { category: 'general',      q: f.q_how_works,          a: f.a_how_works },
+    { category: 'general',      q: f.q_countries,          a: f.a_countries },
+    { category: 'general',      q: f.q_legal,              a: f.a_legal },
+    { category: 'inscription',  q: f.q_kyc_why,            a: f.a_kyc_why },
+    { category: 'inscription',  q: f.q_kyc_docs,           a: f.a_kyc_docs },
+    { category: 'inscription',  q: f.q_kyc_time,           a: f.a_kyc_time },
+    { category: 'inscription',  q: f.q_kyc_rejected,       a: f.a_kyc_rejected },
+    { category: 'expediteur',   q: f.q_sender_how,         a: f.a_sender_how },
+    { category: 'expediteur',   q: f.q_sender_handover,    a: f.a_sender_handover },
+    { category: 'expediteur',   q: f.q_sender_lost,        a: f.a_sender_lost },
+    { category: 'expediteur',   q: f.q_sender_cancel,      a: f.a_sender_cancel },
+    { category: 'transporteur', q: f.q_carrier_publish,    a: f.a_carrier_publish },
+    { category: 'transporteur', q: f.q_carrier_payment,    a: f.a_carrier_payment },
+    { category: 'transporteur', q: f.q_carrier_refuse,     a: f.a_carrier_refuse },
+    { category: 'transporteur', q: f.q_carrier_prohibited, a: f.a_carrier_prohibited },
+    { category: 'recepteur',    q: f.q_receiver_how,       a: f.a_receiver_how },
+    { category: 'recepteur',    q: f.q_receiver_noshow,    a: f.a_receiver_noshow },
+    { category: 'paiements',    q: f.q_payment_methods,    a: f.a_payment_methods },
+    { category: 'paiements',    q: f.q_escrow,             a: f.a_escrow },
+    { category: 'paiements',    q: f.q_fees,               a: f.a_fees },
+    { category: 'securite',     q: f.q_trust,              a: f.a_trust },
+    { category: 'securite',     q: f.q_kiparscore,         a: f.a_kiparscore },
+    { category: 'securite',     q: f.q_dispute,            a: f.a_dispute },
+    { category: 'colis',        q: f.q_allowed,            a: f.a_allowed },
+    { category: 'colis',        q: f.q_weight,             a: f.a_weight },
+    { category: 'colis',        q: f.q_insurance,          a: f.a_insurance },
+    { category: 'compte',       q: f.q_profile,            a: f.a_profile },
+    { category: 'compte',       q: f.q_delete,             a: f.a_delete },
+    { category: 'compte',       q: f.q_contact,            a: f.a_contact },
   ]
 
   const filtered = useMemo(() => {
@@ -115,11 +139,29 @@ export default function FaqPage() {
           />
         </div>
 
-        {/* Filtres categories */}
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 24, scrollbarWidth: 'none' as const }}>
+        {/* Filtres categories — drag-to-scroll */}
+        <div
+          ref={scrollRef}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          onMouseMove={onMouseMove}
+          style={{
+            display: 'flex', gap: 8, overflowX: 'auto',
+            paddingBottom: 4, marginBottom: 24,
+            scrollbarWidth: 'none' as const,
+            cursor: 'grab', userSelect: 'none',
+          }}
+        >
           {categories.map(cat => (
             <button key={cat.key} type="button"
-              onClick={() => { setActiveCategory(cat.key); setOpenIndex(null) }}
+              onClick={e => {
+                setActiveCategory(cat.key)
+                setOpenIndex(null)
+                ;(e.currentTarget as HTMLButtonElement).scrollIntoView(
+                  { behavior: 'smooth', block: 'nearest', inline: 'center' }
+                )
+              }}
               style={{
                 padding: '7px 14px', borderRadius: 99,
                 border: `1px solid ${activeCategory === cat.key ? RED : BORDER}`,

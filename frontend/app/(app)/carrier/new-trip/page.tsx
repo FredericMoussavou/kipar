@@ -64,6 +64,7 @@ export default function NewTripPage() {
   const [destSelected, setDestSelected] = useState(false)
   const [priceSuggestion, setPriceSuggestion] = useState<{ price_low: number | null; price_high: number | null; is_corridor_data: boolean } | null>(null)
   const [acceptsUrgent, setAcceptsUrgent] = useState(false)
+  const [dateTouched, setDateTouched] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -137,11 +138,9 @@ export default function NewTripPage() {
         return
       }
       if (acceptsUrgent && hoursUntil < 72) {
-        toast.error(t.errors.trip_too_close_urgent)
         return
       }
       if (!acceptsUrgent && hoursUntil < 7 * 24) {
-        toast.error(t.errors.trip_too_close_normal)
         return
       }
     }
@@ -266,14 +265,45 @@ export default function NewTripPage() {
           </div>
         </div>
 
+        {/* Toggle colis urgents */}
+        <div style={{ background: 'var(--k-white,#fff)', borderRadius: 16, padding: 16, border: '1px solid var(--k-border,#E8E3DD)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--k-charcoal,#1A1A1A)', margin: 0 }}>{t.carrier.accepts_urgent_label}</p>
+            <p style={{ fontSize: 12, color: 'var(--k-taupe,#8C7B6B)', marginTop: 4 }}>{t.carrier.accepts_urgent_desc}</p>
+          </div>
+          <button type="button"
+            onClick={() => user?.is_premium ? setAcceptsUrgent(v => !v) : router.push('/premium')}
+            title={user?.is_premium ? '' : (t.carrier.accepts_urgent_premium ?? 'Fonctionnalité Premium')}
+            style={{ width: 48, height: 28, borderRadius: 14, background: acceptsUrgent && user?.is_premium ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: user?.is_premium ? 'pointer' : 'not-allowed', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: user?.is_premium ? 1 : 0.5 }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsUrgent && user?.is_premium ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+          </button>
+          {!user?.is_premium && (
+            <span style={{ fontSize: 10, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', fontWeight: 700, marginLeft: 4, alignSelf: 'center' }}>
+              Premium
+            </span>
+          )}
+        </div>
+
         {/* Vol */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <DatePicker label={t.carrier.date_label} value={departureDate}
-              onChange={v => { setDepartureDate(v); setValue('departure_date', v) }}
-              error={errors.departure_date?.message}
-              min={new Date().toISOString().slice(0,10)} />
+            <div>
+              <DatePicker label={t.carrier.date_label} value={departureDate}
+                onChange={v => { setDepartureDate(v); setValue('departure_date', v); setDateTouched(true) }}
+                error={errors.departure_date?.message}
+                min={(() => {
+                  const d = new Date()
+                  d.setHours(d.getHours() + (acceptsUrgent ? 72 : 7 * 24))
+                  return d.toISOString().slice(0, 10)
+                })()} />
+              {dateTouched && (
+                <p style={{ fontSize: 11, color: '#2563EB', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span>&#9432;</span>
+                  {acceptsUrgent ? t.errors.trip_too_close_urgent : t.errors.trip_too_close_normal}
+                </p>
+              )}
+            </div>
             <DatePicker label={t.carrier.arrival_date_label || 'Date d\'arrivée'} value={arrivalDate}
               onChange={v => { setArrivalDate(v); setValue('arrival_date', v) }}
               min={departureDate || new Date().toISOString().slice(0,10)} />
@@ -338,25 +368,6 @@ export default function NewTripPage() {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Toggle colis urgents */}
-        <div style={{ background: 'var(--k-white,#fff)', borderRadius: 16, padding: 16, border: '1px solid var(--k-border,#E8E3DD)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--k-charcoal,#1A1A1A)', margin: 0 }}>{t.carrier.accepts_urgent_label}</p>
-            <p style={{ fontSize: 12, color: 'var(--k-taupe,#8C7B6B)', marginTop: 4 }}>{t.carrier.accepts_urgent_desc}</p>
-          </div>
-          <button type="button"
-            onClick={() => user?.is_premium ? setAcceptsUrgent(v => !v) : router.push('/premium')}
-            title={user?.is_premium ? '' : (t.carrier.accepts_urgent_premium ?? 'Fonctionnalité Premium')}
-            style={{ width: 48, height: 28, borderRadius: 14, background: acceptsUrgent && user?.is_premium ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: user?.is_premium ? 'pointer' : 'not-allowed', position: 'relative', transition: 'background 0.2s', flexShrink: 0, opacity: user?.is_premium ? 1 : 0.5 }}>
-            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsUrgent && user?.is_premium ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
-          </button>
-          {!user?.is_premium && (
-            <span style={{ fontSize: 10, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', fontWeight: 700, marginLeft: 4, alignSelf: 'center' }}>
-              Premium
-            </span>
-          )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>

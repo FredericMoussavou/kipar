@@ -296,14 +296,14 @@ export default function BookPage() {
             </button>
             <input ref={scanRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
               onChange={e => handleKiparScan(e.target.files)} />
-            {scanQuota !== null && !user?.is_premium && (
-              <p style={{ fontSize: 11, color: scanQuota.free_remaining === 0 ? RED : TAUPE, marginTop: 4 }}>
-                {scanQuota.free_remaining === 0
-                  ? t.premium.upgrade_kiparscan
-                  : `${scanQuota.free_remaining} scan${scanQuota.free_remaining > 1 ? 's' : ''} restant ce mois`}
-              </p>
-            )}
           </div>
+          {scanQuota !== null && !user?.is_premium && (
+            <p style={{ fontSize: 11, color: scanQuota.free_remaining === 0 ? RED : TAUPE, marginTop: 6 }}>
+              {scanQuota.free_remaining === 0
+                ? t.premium.upgrade_kiparscan
+                : `${scanQuota.free_remaining} scan${scanQuota.free_remaining > 1 ? 's' : ''} restant ce mois`}
+            </p>
+          )}
           {scanResult && (
             <div style={{ background: scanResult.prohibited_flag ? '#FEF2F2' : '#F0FDF4', border: `1px solid ${scanResult.prohibited_flag ? '#FCA5A5' : '#86EFAC'}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -414,9 +414,9 @@ export default function BookPage() {
         {/* Rappel livraison -- Premium only */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER, position: 'relative', overflow: 'hidden' }}>
           {!user?.is_premium && (
-            <div style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.75)', borderRadius: 16, cursor: 'pointer' }}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'rgba(255,255,255,0.75)', borderRadius: 16, cursor: 'pointer' }}
               onClick={() => router.push('/premium')}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '4px 12px' }}>Premium</span>
+              <span style={{ position: 'absolute', top: 10, right: 10, fontSize: 11, fontWeight: 700, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '3px 10px' }}>Premium</span>
             </div>
           )}
           <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 4 }}>{t.booking.reminder_label}</p>

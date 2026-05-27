@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { X, User, Settings, Bell, LogOut } from 'lucide-react'
+import { X, User, Settings, Bell, LogOut, Shield, Headphones } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
 import { getAvatarUrl } from '@/lib/cloudinary'
@@ -36,10 +36,12 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
   const avatarUrl = user ? getAvatarUrl(user.avatar_url, 56) : null
 
+  const adminItems = user?.is_admin ? [{ href: '/admin', icon: Shield, label: 'Administration', red: true }] : []
   const items = [
-    { href: '/profile', icon: User, label: t.nav.profile },
-    { href: '/preferences', icon: Settings, label: t.profile_edit.section_preferences },
-    { href: '/notifications', icon: Bell, label: t.nav.messages },
+    { href: '/profile', icon: User, label: t.nav.profile, red: false },
+    { href: '/preferences', icon: Settings, label: t.profile_edit.section_preferences, red: false },
+    ...adminItems,
+    { href: '/notifications', icon: Bell, label: t.nav.messages, red: false },
   ]
 
   return (
@@ -97,10 +99,10 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '12px 0' }}>
-          {items.map(({ href, icon: Icon, label }) => (
+          {items.map(({ href, icon: Icon, label, red }) => (
             <Link key={href} href={href} onClick={onClose}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', textDecoration: 'none', color: CHARCOAL, fontSize: 14, fontWeight: 500, borderBottom: `1px solid ${SAND}` }}>
-              <Icon size={18} color={TAUPE} />
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', textDecoration: 'none', color: red ? RED : CHARCOAL, fontSize: 14, fontWeight: red ? 700 : 500, borderBottom: `1px solid ${SAND}` }}>
+              <Icon size={18} color={red ? RED : TAUPE} />
               {label}
             </Link>
           ))}

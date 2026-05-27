@@ -1,4 +1,5 @@
-from fastapi import UploadFile, File, APIRouter, Depends, HTTPException
+from app.core.rate_limit import limiter
+from fastapi import UploadFile, File, APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -78,7 +79,9 @@ async def find_or_invite_receiver(
 
 
 @router.post("", response_model=BookingResponse, status_code=201)
+@limiter.limit("5/minute")
 async def create_booking(
+    request: Request,
     payload: BookingCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),

@@ -73,7 +73,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if not settings.is_production else settings.CORS_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -81,7 +81,7 @@ app.add_middleware(
 if settings.is_production:
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["kipar.app", "*.kipar.app", "*.railway.app", "healthcheck.railway.app", "localhost", "127.0.0.1"]
+        allowed_hosts=["kipar.app", "*.kipar.app", "localhost", "127.0.0.1"]
     )
 
 app.include_router(api_router, prefix="/api/v1")

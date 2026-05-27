@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from app.core.rate_limit import limiter
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -33,7 +34,9 @@ async def verify_flight(
     return {"valid": is_valid, "flight_number": flight_number.upper(), "advisory": not is_valid}
 
 @router.post("", response_model=TripResponse, status_code=201)
+@limiter.limit("5/minute")
 async def create_trip(
+    request: Request,
     payload: TripCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_verified_user),

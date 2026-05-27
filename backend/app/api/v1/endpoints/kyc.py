@@ -1,3 +1,4 @@
+from app.core.rate_limit import limiter
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,7 +22,9 @@ class KYCInitResponse(BaseModel):
 
 
 @router.post("/init", response_model=KYCInitResponse)
+@limiter.limit("3/minute")
 async def init_kyc(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),

@@ -31,8 +31,13 @@ async def get_current_user(
             raise HTTPException(status_code=401, detail="Token révoqué")
     except HTTPException:
         raise
-    except Exception:
-        pass  # Si Redis indisponible, on continue
+    except HTTPException:
+        raise
+    except Exception as redis_err:
+        import logging
+        logging.getLogger("kipar").warning(
+            f"[SECURITY] Redis indisponible - token blacklist non verifiee: {redis_err}"
+        )
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -45,8 +50,8 @@ async def get_verified_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Exige que le KYC soit vérifié."""
-    import os
-    if os.environ.get("ENVIRONMENT") == "test":
+    from app.core.config import settings as _s
+    if _s.ENVIRONMENT == "test":
         return current_user
     if current_user.kyc_status != "approved":
         raise HTTPException(

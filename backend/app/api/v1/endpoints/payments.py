@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from app.core.rate_limit import limiter
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
@@ -18,7 +19,9 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 
 
 @router.post("/{booking_id}/stripe", response_model=PaymentIntentResponse)
+@limiter.limit("3/minute")
 async def initiate_stripe_payment(
+    request: Request,
     booking_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -59,7 +62,9 @@ async def initiate_stripe_payment(
 
 
 @router.post("/{booking_id}/pawapay", response_model=PawapayPaymentResponse)
+@limiter.limit("3/minute")
 async def initiate_pawapay_payment(
+    request: Request,
     booking_id: str,
     phone: str,
     provider: str,

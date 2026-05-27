@@ -1,7 +1,8 @@
 import random
 import string
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from app.core.rate_limit import limiter
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
@@ -109,7 +110,9 @@ class TwoFAConfirmRequest(BaseModel):
 
 
 @router.post("/confirm")
+@limiter.limit("5/minute")
 async def confirm_2fa(
+    request: Request,
     payload: TwoFAConfirmRequest,
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_lang_optional),
@@ -209,7 +212,9 @@ class BackupCodeRequest(BaseModel):
 
 
 @router.post("/backup-codes/use")
+@limiter.limit("3/minute")
 async def use_backup_code(
+    request: Request,
     payload: BackupCodeRequest,
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_lang_optional),

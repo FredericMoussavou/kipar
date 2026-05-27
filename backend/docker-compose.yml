@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: ghcr.io/fredericmoussavou/kipar-backend:latest
@@ -11,10 +9,14 @@ services:
       - .env
     depends_on:
       - redis
-
+    networks:
+      - kipar-net
   redis:
     image: redis:7-alpine
     container_name: kipar-redis
     restart: always
-    ports:
-      - "6379:6379"
+    networks:
+      - kipar-net
+networks:
+  kipar-net:
+    driver: bridge

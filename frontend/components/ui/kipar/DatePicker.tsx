@@ -12,9 +12,10 @@ interface DatePickerProps {
   min?: string
   max?: string
   locale?: string
+  defaultView?: string
 }
 
-export default function DatePicker({ label, value, onChange, error, min, max, locale = 'fr-FR' }: DatePickerProps) {
+export default function DatePicker({ label, value, onChange, error, min, max, locale = 'fr-FR', defaultView }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   
@@ -23,7 +24,11 @@ export default function DatePicker({ label, value, onChange, error, min, max, lo
   today.setHours(0, 0, 0, 0)
 
   const parsed = value ? new Date(value) : null
-  const [view, setView] = useState({ year: parsed?.getFullYear() ?? today.getFullYear(), month: parsed?.getMonth() ?? today.getMonth() })
+  const defaultViewDate = defaultView ? new Date(defaultView) : null
+  const [view, setView] = useState({
+    year: parsed?.getFullYear() ?? defaultViewDate?.getFullYear() ?? today.getFullYear(),
+    month: parsed?.getMonth() ?? defaultViewDate?.getMonth() ?? today.getMonth()
+  })
 
   // Génération dynamique et localisée des mois et des jours
   const MONTHS = useMemo(() => Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2000, i, 1)).replace(/^\w/, c => c.toUpperCase())), [locale])
@@ -34,6 +39,14 @@ export default function DatePicker({ label, value, onChange, error, min, max, lo
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Mettre a jour la vue quand defaultView change et que value est vide
+  useEffect(() => {
+    if (!value && defaultView) {
+      const d = new Date(defaultView)
+      setView({ year: d.getFullYear(), month: d.getMonth() })
+    }
+  }, [defaultView, value])
 
   const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
   const firstDay = (new Date(view.year, view.month, 1).getDay() + 6) % 7

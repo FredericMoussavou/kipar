@@ -306,7 +306,8 @@ export default function NewTripPage() {
             </div>
             <DatePicker label={t.carrier.arrival_date_label || 'Date d\'arrivée'} value={arrivalDate}
               onChange={v => { setArrivalDate(v); setValue('arrival_date', v) }}
-              min={departureDate || new Date().toISOString().slice(0,10)} />
+              min={departureDate || new Date().toISOString().slice(0,10)}
+              defaultView={departureDate || undefined} />
             <div>
               <Input label={t.carrier.flight_label} placeholder="AF502"
                 {...register('flight_number')}

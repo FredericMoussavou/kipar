@@ -56,6 +56,7 @@ export default function BookPage() {
   const scanRef = useRef<HTMLInputElement>(null)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanning, setScanning] = useState(false)
+  const [scanQuota, setScanQuota] = useState<{ free_remaining: number } | null>(null)
 
   const handleKiparScan = async (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -74,6 +75,14 @@ export default function BookPage() {
       setScanning(false)
     }
   }
+
+  const loadScanQuota = async () => {
+    try {
+      const res = await api.get('/kiparscan/quota')
+      setScanQuota({ free_remaining: res.data.free_remaining })
+    } catch { /* silencieux */ }
+  }
+  if (typeof window !== 'undefined' && scanQuota === null) { loadScanQuota() }
 
   const handlePhotoUpload = async (files: FileList | null) => {
     if (!files) return
@@ -287,6 +296,13 @@ export default function BookPage() {
             </button>
             <input ref={scanRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
               onChange={e => handleKiparScan(e.target.files)} />
+            {scanQuota !== null && !user?.is_premium && (
+              <p style={{ fontSize: 11, color: scanQuota.free_remaining === 0 ? RED : TAUPE, marginTop: 4 }}>
+                {scanQuota.free_remaining === 0
+                  ? t.premium.upgrade_kiparscan
+                  : `${scanQuota.free_remaining} scan${scanQuota.free_remaining > 1 ? 's' : ''} restant ce mois`}
+              </p>
+            )}
           </div>
           {scanResult && (
             <div style={{ background: scanResult.prohibited_flag ? '#FEF2F2' : '#F0FDF4', border: `1px solid ${scanResult.prohibited_flag ? '#FCA5A5' : '#86EFAC'}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
@@ -395,14 +411,21 @@ export default function BookPage() {
         </div>
         )}
 
-        {/* Rappel livraison */}
-        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+        {/* Rappel livraison -- Premium only */}
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER, position: 'relative', overflow: 'hidden' }}>
+          {!user?.is_premium && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.75)', borderRadius: 16, cursor: 'pointer' }}
+              onClick={() => router.push('/premium')}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '4px 12px' }}>Premium</span>
+            </div>
+          )}
           <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL, marginBottom: 4 }}>{t.booking.reminder_label}</p>
           <p style={{ fontSize: 12, color: TAUPE, marginBottom: 12 }}>{t.booking.reminder_desc}</p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {([null, 2, 6, 12, 24] as (number | null)[]).map(h => (
-              <button key={String(h)} type="button" onClick={() => setReminderHours(h)}
-                style={{ padding: '7px 14px', borderRadius: 99, border: '1px solid ' + (reminderHours === h ? RED : BORDER), background: reminderHours === h ? 'rgba(220,0,41,0.06)' : WHITE, color: reminderHours === h ? RED : CHARCOAL, fontSize: 12, fontWeight: reminderHours === h ? 700 : 400, cursor: 'pointer' }}>
+              <button key={String(h)} type="button"
+                onClick={() => user?.is_premium ? setReminderHours(h) : router.push('/premium')}
+                style={{ padding: '7px 14px', borderRadius: 99, border: '1px solid ' + (reminderHours === h ? RED : BORDER), background: reminderHours === h ? 'rgba(220,0,41,0.06)' : WHITE, color: reminderHours === h ? RED : CHARCOAL, fontSize: 12, fontWeight: reminderHours === h ? 700 : 400, cursor: user?.is_premium ? 'pointer' : 'not-allowed' }}>
                 {h === null ? t.booking.reminder_none : h === 2 ? t.booking.reminder_2h : h === 6 ? t.booking.reminder_6h : h === 12 ? t.booking.reminder_12h : t.booking.reminder_24h}
               </button>
             ))}

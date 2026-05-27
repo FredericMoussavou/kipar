@@ -58,7 +58,7 @@ async def analyze_only(
     )
 
 
-FREE_SCANS_PER_MONTH = 3
+FREE_SCANS_PER_MONTH = 1
 
 
 async def get_or_create_scan_credit(db, user_id):

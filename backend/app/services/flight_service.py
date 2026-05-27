@@ -65,7 +65,9 @@ async def validate_flight_number(flight_number: str) -> bool:
     Retourne True si le vol est trouve, False sinon.
     En dev (pas de cle), retourne toujours True.
     """
-    if not settings.RAPIDAPI_KEY:
+    if not settings.RAPIDAPI_KEY or settings.RAPIDAPI_KEY.startswith(b"test"):
+        import logging
+        logging.getLogger("kipar").warning("[FLIGHT] Cle RAPIDAPI absente ou placeholder")
         return True
     result = await fetch_flight_status(flight_number)
     return result is not None

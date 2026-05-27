@@ -53,6 +53,7 @@ export default function NewRequestPage() {
   const scanRef = useRef<HTMLInputElement>(null)
   const [scanResult, setScanResult] = useState<any>(null)
   const [scanning, setScanning] = useState(false)
+  const [scanQuota, setScanQuota] = useState<{ free_remaining: number } | null>(null)
   const [deadlineDate, setDeadlineDate] = useState('')
 
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -259,6 +260,11 @@ export default function NewRequestPage() {
             </button>
             <input ref={scanRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
               onChange={e => handleKiparScan(e.target.files)} />
+            {scanQuota !== null && !user?.is_premium && (
+              <p style={{ fontSize: 11, color: scanQuota.free_remaining === 0 ? "#DC0029" : "#B5AFAB", marginTop: 4 }}>
+                {scanQuota.free_remaining === 0 ? t.premium.upgrade_kiparscan : scanQuota.free_remaining + " scan restant ce mois"}
+              </p>
+            )}
           </div>
           {scanResult && (
             <div style={{ background: scanResult.prohibited_flag ? '#FEF2F2' : '#F0FDF4', border: `1px solid ${scanResult.prohibited_flag ? '#FCA5A5' : '#86EFAC'}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>

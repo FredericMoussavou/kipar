@@ -662,6 +662,17 @@ const handleCancel = () => {
 
         {/* ── BLOC SUIVI VOL ───────────────────────────────────────────────────── */}
         {['in_transit', 'delivery_reported'].includes(booking.status) && booking.flight_number && (
+          !user?.is_premium ? (
+            <Section title={t.packages.flight_tracking_title}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
+                <p style={{ fontSize: 13, color: '#6B6560', margin: 0 }}>{t.premium.upgrade_tracking}</p>
+                <button type='button' onClick={() => router.push('/premium')}
+                  style={{ fontSize: 11, fontWeight: 700, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '4px 12px', cursor: 'pointer' }}>
+                  Premium
+                </button>
+              </div>
+            </Section>
+          ) : (
           <Section title={t.packages.flight_tracking_title}>
             {(() => {
               const fmt = (d: string | null) => d ? new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
@@ -741,6 +752,7 @@ const handleCancel = () => {
               )
             })()}
           </Section>
+          )
         )}
 
         {/* ── BLOC LIVRAISON (in_transit / delivery_reported) ───────────────── */}

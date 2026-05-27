@@ -426,7 +426,8 @@ export default function LandingPage() {
         <div style={{ display: 'flex', gap: 20 }}>
           <a href="/privacy" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_privacy}</a>
           <a href="/cgu" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_terms}</a>
-          <a href="/mentions-legales" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{t.landing.footer_contact}</a>
+          <a href="/mentions-legales" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Mentions</a>
+          <a href="/faq" style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>FAQ</a>
         </div>
       </footer>
 

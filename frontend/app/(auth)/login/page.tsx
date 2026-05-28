@@ -128,7 +128,14 @@ export default function LoginPage() {
         }
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t.errors.invalid_credentials)
+      const status = err?.response?.status
+      const detail = err?.response?.data?.detail || ''
+      if (status === 403 && detail === 'compte_supprime') {
+        // Compte soft-deleted - proposer reactivation
+        router.push('/reactivate?email=' + encodeURIComponent(data.email))
+        return
+      }
+      toast.error(detail || t.errors.invalid_credentials)
     }
   }
 

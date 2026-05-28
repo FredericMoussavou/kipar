@@ -1058,6 +1058,21 @@ profile_public: {
     modal_delete_password_placeholder: 'Current password',
 
     delete_confirm: 'Delete permanently',
+    pause_account: 'Pause account',
+    modal_delete_choice_title: 'What would you like to do?',
+    modal_delete_choice_pause_title: 'Pause account',
+    modal_delete_choice_pause_desc: 'Your account will be temporarily deactivated. You can reactivate it at any time.',
+    modal_delete_choice_hard_title: 'Delete permanently',
+    modal_delete_choice_hard_desc: 'Your personal data will be erased. This action is irreversible.',
+    success_account_paused: 'Account paused',
+    reactivate_title: 'Reactivate my account',
+    reactivate_desc: 'Enter your email to receive a reactivation code.',
+    reactivate_code_desc: 'Enter the code received by email (valid for 15 minutes).',
+    reactivate_send_code: 'Send code',
+    reactivate_confirm: 'Reactivate my account',
+    reactivate_success: 'Account successfully reactivated',
+    reactivate_permanently_deleted: 'This account has been permanently deleted. Contact support.',
+    reactivate_banned: 'This account has been banned. Contact support.',
 
     error_delete_password_invalid: 'Incorrect password',
 

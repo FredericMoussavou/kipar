@@ -396,11 +396,33 @@ async def delete_my_account(
     current_user.stripe_account_id = None
     current_user.flutterwave_account_id = None
 
-    # Désactivation + timestamp
+    # Hard delete — anonymisation RGPD complete + flag permanent
     current_user.is_active = False
+    current_user.is_permanently_deleted = True
     current_user.deleted_at = datetime.now(timezone.utc)
 
     return {"message": t("success.account_deleted", lang)}
+
+
+@router.delete("/me/pause")
+async def pause_my_account(
+    payload: DeleteAccountRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """
+    Soft delete — mise en pause du compte.
+    Donnees conservees, compte reactivable par l'utilisateur.
+    """
+    if not payload.password:
+        raise HTTPException(status_code=400, detail=t("errors.password_required", lang))
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(status_code=403, detail=t("errors.password_invalid", lang))
+    current_user.is_active = False
+    current_user.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"message": t("success.account_paused", lang)}
 
 
 # ─── GET endpoints ──────────────────────────────────────────────────────────

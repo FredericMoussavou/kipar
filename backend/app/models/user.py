@@ -98,6 +98,7 @@ class User(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    is_permanently_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     cgu_accepted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

@@ -74,39 +74,6 @@ function NotificationToggleRow({ label, description, checked, onChange, isLast }
   )
 }
 
-// ─── DeleteModal ───────────────────────────────────────────────────────────────
-
-function DeleteModal({ isOpen, onClose, onSuccess, onError }: {
-  isOpen: boolean; onClose: () => void; onSuccess: () => void; onError: (msg: string) => void
-}) {
-  const { t } = useTranslation()
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 13, color: CHARCOAL, background: WHITE, outline: 'none', boxSizing: 'border-box' as const }
-  const labelStyle = { fontSize: 11, fontWeight: 600 as const, color: TAUPE, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6, display: 'block' as const }
-
-  const handleSubmit = async () => {
-    setLoading(true)
-    try {
-      await api.delete('/users/me', { data: { password } })
-      onSuccess()
-    } catch (err: any) {
-      onError(err?.response?.data?.detail || t.errors.generic)
-    } finally { setLoading(false) }
-  }
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.delete_account} closeDisabled={loading}>
-      <p style={{ fontSize: 13, color: TAUPE, marginBottom: 16 }}>{t.profile_edit.danger_desc}</p>
-      <Input type="password" label={t.profile_edit.field_old_password} value={password} onChange={e => setPassword(e.target.value)} style={{ marginBottom: 16 }} />
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <Button variant="outline" size="sm" onClick={onClose}>{t.profile_edit.cancel}</Button>
-        <Button variant="danger" size="sm" loading={loading} onClick={handleSubmit}>{t.profile_edit.delete_account}</Button>
-      </div>
-    </Modal>
-  )
-}
-
 // ─── Page principale ───────────────────────────────────────────────────────────
 
 export default function PreferencesPage() {
@@ -116,7 +83,6 @@ export default function PreferencesPage() {
   const { theme, setTheme } = useTheme()
 
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [ibanInput, setIbanInput] = useState(user?.iban ?? '')
   const [ibanError, setIbanError] = useState('')
   const [mobileInput, setMobileInput] = useState(user?.mobile_money_number ?? '')
@@ -324,12 +290,6 @@ export default function PreferencesPage() {
       </Card>
 
       {/* Modales */}
-      <DeleteModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onSuccess={() => { logout(); router.push('/login') }}
-        onError={(msg) => showToast(msg, 'error')}
-      />
     </div>
   )
 }

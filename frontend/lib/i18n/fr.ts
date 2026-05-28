@@ -1058,6 +1058,21 @@ profile_public: {
     modal_delete_password_placeholder: 'Mot de passe actuel',
 
     delete_confirm: 'Supprimer définitivement',
+    pause_account: 'Mettre en pause',
+    modal_delete_choice_title: 'Que souhaitez-vous faire ?',
+    modal_delete_choice_pause_title: 'Mettre en pause',
+    modal_delete_choice_pause_desc: 'Votre compte sera désactivé temporairement. Vous pourrez le réactiver à tout moment.',
+    modal_delete_choice_hard_title: 'Supprimer définitivement',
+    modal_delete_choice_hard_desc: 'Vos données personnelles seront effacées. Cette action est irréversible.',
+    success_account_paused: 'Compte mis en pause',
+    reactivate_title: 'Réactiver mon compte',
+    reactivate_desc: 'Saisissez votre email pour recevoir un code de réactivation.',
+    reactivate_code_desc: 'Saisissez le code reçu par email (valable 15 minutes).',
+    reactivate_send_code: 'Envoyer le code',
+    reactivate_confirm: 'Réactiver mon compte',
+    reactivate_success: 'Compte réactivé avec succès',
+    reactivate_permanently_deleted: 'Ce compte a été supprimé définitivement. Contactez le support.',
+    reactivate_banned: 'Ce compte a été banni. Contactez le support.',
 
     error_delete_password_invalid: 'Mot de passe incorrect',
 

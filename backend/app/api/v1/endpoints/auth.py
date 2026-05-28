@@ -117,7 +117,13 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     lang = user.language if user else "fr"
-    if not user or not user.is_active or not verify_password(payload.password, user.hashed_password):
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
+    # Compte pause (soft delete) -- proposer reactivation
+    if user.deleted_at is not None and not user.is_permanently_deleted:
+        raise HTTPException(status_code=403, detail="compte_supprime")
+    # Compte supprime definitivement ou banni
+    if not user.is_active:
         raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
     from app.api.v1.endpoints.users import _serialize_me
     # Verifier si 2FA est active
@@ -457,6 +463,8 @@ async def request_reactivation(
         return {"status": "ok", "message": "Si un compte existe, un email a ete envoye"}
     if user.is_banned:
         raise HTTPException(status_code=403, detail="Ce compte a ete banni. Contactez le support.")
+    if user.is_permanently_deleted:
+        raise HTTPException(status_code=403, detail="Ce compte a ete supprime definitivement. Contactez le support.")
     code = str(secrets.randbelow(900000) + 100000)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.add(VerificationCode(
@@ -495,6 +503,8 @@ async def confirm_reactivation(
         raise HTTPException(status_code=404, detail="Compte introuvable ou deja actif")
     if user.is_banned:
         raise HTTPException(status_code=403, detail="Ce compte a ete banni. Contactez le support.")
+    if user.is_permanently_deleted:
+        raise HTTPException(status_code=403, detail="Ce compte a ete supprime definitivement. Contactez le support.")
     now = datetime.now(timezone.utc)
     vc_result = await db.execute(
         select(VerificationCode).where(

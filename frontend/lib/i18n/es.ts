@@ -1027,6 +1027,21 @@ export const es = {
     modal_delete_password_placeholder: 'Contraseña actual',
 
     delete_confirm: 'Eliminar definitivamente',
+    pause_account: 'Pausar cuenta',
+    modal_delete_choice_title: '¿Qué deseas hacer?',
+    modal_delete_choice_pause_title: 'Pausar cuenta',
+    modal_delete_choice_pause_desc: 'Tu cuenta será desactivada temporalmente. Puedes reactivarla en cualquier momento.',
+    modal_delete_choice_hard_title: 'Eliminar definitivamente',
+    modal_delete_choice_hard_desc: 'Tus datos personales serán eliminados. Esta acción es irreversible.',
+    success_account_paused: 'Cuenta pausada',
+    reactivate_title: 'Reactivar mi cuenta',
+    reactivate_desc: 'Ingresa tu email para recibir un código de reactivación.',
+    reactivate_code_desc: 'Ingresa el código recibido por email (válido 15 minutos).',
+    reactivate_send_code: 'Enviar código',
+    reactivate_confirm: 'Reactivar mi cuenta',
+    reactivate_success: 'Cuenta reactivada con éxito',
+    reactivate_permanently_deleted: 'Esta cuenta ha sido eliminada permanentemente. Contacta al soporte.',
+    reactivate_banned: 'Esta cuenta ha sido baneada. Contacta al soporte.',
 
     error_delete_password_invalid: 'Contraseña incorrecta',
 

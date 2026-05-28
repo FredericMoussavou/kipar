@@ -1469,21 +1469,23 @@ function DeleteAccountModal({
   onError: (msg: string) => void
 }) {
   const { t } = useTranslation()
+  const [step, setStep] = useState<'choice' | 'pause' | 'hard'>('choice')
   const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
+      setStep('choice')
       setPassword('')
       setShowPwd(false)
     }
   }, [isOpen])
 
-  const handleSubmit = async () => {
+  const handleAction = async (endpoint: string) => {
     setLoading(true)
     try {
-      await api.delete('/users/me', { data: { password } })
+      await api.delete(endpoint, { data: { password } })
       onSuccess()
     } catch (err: any) {
       const status = err?.response?.status
@@ -1497,62 +1499,79 @@ function DeleteAccountModal({
     }
   }
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t.profile_edit.modal_delete_title}
-      description={t.profile_edit.modal_delete_desc}
-      variant="danger"
-      closeDisabled={loading}
-    >
-      <p
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: RED,
-          margin: '0 0 16px',
-        }}
-      >
-        ⚠️ {t.profile_edit.modal_delete_warning}
-      </p>
-
-      <label
-        style={{
-          display: 'block',
-          fontSize: 11,
-          fontWeight: 600,
-          color: TAUPE,
-          marginBottom: 4,
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}
-      >
+  const PasswordField = (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {t.profile_edit.modal_delete_password_label}
       </label>
-      <div style={{ marginBottom: 16 }}>
-        <Input
-          type={showPwd ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={t.profile_edit.modal_delete_password_placeholder}
-          autoFocus
-          rightIcon={
-            <button type="button" onClick={() => setShowPwd(!showPwd)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, color: TAUPE }}>
-              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          }
-        />
-      </div>
-
-      <ModalActions
-        onCancel={onClose}
-        onConfirm={handleSubmit}
-        loading={loading}
-        confirmLabel={t.profile_edit.delete_confirm}
-        confirmDisabled={!password}
-        confirmVariant="danger"
+      <Input
+        type={showPwd ? 'text' : 'password'}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder={t.profile_edit.modal_delete_password_placeholder}
+        autoFocus
+        rightIcon={
+          <button type="button" onClick={() => setShowPwd(!showPwd)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, color: TAUPE }}>
+            {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        }
       />
+    </div>
+  )
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={t.profile_edit.modal_delete_title} variant="danger" closeDisabled={loading}>
+
+      {/* —— ETAPE CHOIX —— */}
+      {step === 'choice' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={{ fontSize: 13, color: TAUPE, margin: '0 0 8px' }}>{t.profile_edit.modal_delete_choice_title}</p>
+
+          {/* Pause */}
+          <button type="button" onClick={() => setStep('pause')}
+            style={{ textAlign: 'left', background: '#FFF9EC', border: '1px solid #FFE082', borderRadius: 12, padding: '14px 16px', cursor: 'pointer' }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#92400E', margin: '0 0 4px' }}>⏸️ {t.profile_edit.modal_delete_choice_pause_title}</p>
+            <p style={{ fontSize: 12, color: '#92400E', margin: 0, opacity: 0.8 }}>{t.profile_edit.modal_delete_choice_pause_desc}</p>
+          </button>
+
+          {/* Suppression definitive */}
+          <button type="button" onClick={() => setStep('hard')}
+            style={{ textAlign: 'left', background: '#FFF1F1', border: '1px solid #FECACA', borderRadius: 12, padding: '14px 16px', cursor: 'pointer' }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: RED, margin: '0 0 4px' }}>🗑️ {t.profile_edit.modal_delete_choice_hard_title}</p>
+            <p style={{ fontSize: 12, color: RED, margin: 0, opacity: 0.8 }}>{t.profile_edit.modal_delete_choice_hard_desc}</p>
+          </button>
+
+          <button type="button" onClick={onClose}
+            style={{ fontSize: 13, color: TAUPE, background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>
+            {t.profile_edit.cancel}
+          </button>
+        </div>
+      )}
+
+      {/* —— ETAPE PAUSE —— */}
+      {step === 'pause' && (
+        <div>
+          <p style={{ fontSize: 13, color: '#92400E', background: '#FFF9EC', border: '1px solid #FFE082', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+            ⏸️ {t.profile_edit.modal_delete_choice_pause_desc}
+          </p>
+          {PasswordField}
+          <ModalActions onCancel={() => setStep('choice')} onConfirm={() => handleAction('/users/me/pause')}
+            loading={loading} confirmLabel={t.profile_edit.modal_delete_choice_pause_title}
+            confirmDisabled={!password} confirmVariant="danger" />
+        </div>
+      )}
+
+      {/* —— ETAPE HARD DELETE —— */}
+      {step === 'hard' && (
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 600, color: RED, marginBottom: 16 }}>⚠️ {t.profile_edit.modal_delete_warning}</p>
+          {PasswordField}
+          <ModalActions onCancel={() => setStep('choice')} onConfirm={() => handleAction('/users/me')}
+            loading={loading} confirmLabel={t.profile_edit.delete_confirm}
+            confirmDisabled={!password} confirmVariant="danger" />
+        </div>
+      )}
+
     </Modal>
   )
 }

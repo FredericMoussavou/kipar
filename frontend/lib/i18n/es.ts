@@ -599,6 +599,7 @@ export const es = {
   arrival_date_label: 'Fecha de llegada',
   flight_valid: 'Vuelo encontrado',
   flight_invalid: 'Vuelo no encontrado',
+  flight_invalid_format: 'Formato inválido — ejemplo: AF502, EK1234',
   flight_not_found_advisory: 'Vuelo no encontrado en nuestra base — verifique el número pero puede continuar',
 
     flight_label: 'Número de vuelo',

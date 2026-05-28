@@ -51,6 +51,7 @@ export default function NewTripPage() {
 
   const [originInput, setOriginInput] = useState('')
   const [flightValid, setFlightValid] = useState<boolean | null>(null)
+  const [flightReason, setFlightReason] = useState<string | null>(null)
   const [flightChecking, setFlightChecking] = useState(false)
   const flightDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [departureDate, setDepartureDate] = useState('')
@@ -78,7 +79,8 @@ export default function NewTripPage() {
       try {
         const res = await api.get('/trips/verify-flight', { params: { flight_number: value } })
         setFlightValid(res.data.valid)
-      } catch { setFlightValid(false) }
+        setFlightReason(res.data.reason || null)
+      } catch { setFlightValid(false); setFlightReason(null) }
       finally { setFlightChecking(false) }
     }, 600)
   }
@@ -314,8 +316,9 @@ export default function NewTripPage() {
                 onChange={e => { register('flight_number').onChange(e); validateFlight(e.target.value) }}
               />
               {flightChecking && <p style={{ fontSize: 11, color: TAUPE, marginTop: 4 }}>...</p>}
-              {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>{'\u2713'} {t.carrier.flight_valid || 'Vol trouvé'}</p>}
-              {flightValid === false && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>{'\u26a0'} {t.carrier.flight_not_found_advisory}</p>}
+              {flightValid === true && <p style={{ fontSize: 11, color: GREEN, marginTop: 4 }}>{'\u2713'} {t.carrier.flight_valid}</p>}
+              {flightValid === false && flightReason === 'invalid_format' && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 4 }}>{'\u26a0'} {t.carrier.flight_invalid_format}</p>}
+              {flightValid === false && flightReason !== 'invalid_format' && <p style={{ fontSize: 11, color: '#EA580C', marginTop: 4 }}>{'\u26a0'} {t.carrier.flight_not_found_advisory}</p>}
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10 }}>

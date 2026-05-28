@@ -24,14 +24,17 @@ async def verify_flight(
     lang: str = Depends(get_lang),
 ):
     """Valide qu'un numero de vol existe — appele a la soumission du formulaire new-trip."""
-    if not flight_number or len(flight_number) < 3:
-        raise HTTPException(status_code=400, detail=t("errors.flight_number_invalid", lang))
+    import re
+    # Validation format IATA : 2 lettres + 1-4 chiffres (ex: AF123, EK1234)
+    if not flight_number or not re.match(r"^[A-Za-z]{2}\d{1,4}$", flight_number.strip()):
+        return {"valid": False, "flight_number": flight_number.upper(), "advisory": False, "reason": "invalid_format"}
     # Validation non bloquante — AirLabs ne couvre pas tous les vols futurs
     try:
         is_valid = await validate_flight_number(flight_number.upper())
     except Exception:
-        is_valid = True  # En cas d'erreur API, on ne bloque pas
-    return {"valid": is_valid, "flight_number": flight_number.upper(), "advisory": not is_valid}
+        is_valid = None  # Inconnu — ni valide ni invalide
+    advisory = is_valid is False  # True seulement si explicitement not found
+    return {"valid": is_valid is not False, "flight_number": flight_number.strip().upper(), "advisory": advisory, "reason": "not_found" if is_valid is False else "ok"}
 
 @router.post("", response_model=TripResponse, status_code=201)
 @limiter.limit("5/minute")

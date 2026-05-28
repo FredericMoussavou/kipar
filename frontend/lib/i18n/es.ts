@@ -857,7 +857,7 @@ export const es = {
 
     pref_mobile_money_placeholder: 'Ej: +241 07 00 00 00',
 
-        criteria_punctuality: 'Puntualidad',
+    criteria_punctuality: 'Puntualidad',
 
     criteria_communication: 'Comunicación',
 

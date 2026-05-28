@@ -880,7 +880,7 @@ profile_public: {
 
     pref_mobile_money_placeholder: 'e.g. +241 07 00 00 00',
 
-        criteria_punctuality: 'Punctuality',
+    criteria_punctuality: 'Punctuality',
 
     criteria_communication: 'Communication',
 

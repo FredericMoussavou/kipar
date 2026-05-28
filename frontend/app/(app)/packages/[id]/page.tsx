@@ -24,6 +24,91 @@ import QRCode from 'qrcode'
 
 /* ─── COMPOSANTS INTERNES ─────────────────────────────────────────────────── */
 
+const CRITERIA_BY_ROLE: Record<string, string[]> = {
+  sender_to_carrier: ['ponctualite', 'communication', 'soin_colis', 'conformite'],
+  carrier_to_sender: ['communication', 'colis_prepare', 'ponctualite_depot', 'serieux'],
+  carrier_to_receiver: ['disponibilite', 'ponctualite_remise', 'communication'],
+  receiver_to_carrier: ['ponctualite', 'communication', 'soin_colis', 'professionnalisme'],
+}
+
+function ReviewBlock({ role, reviewedId, title, reviewScores, setReviewScores, reviewComments, setReviewComments, reviewSubmitted, setReviewSubmitted, reviewLoading, setReviewLoading, bookingId, t }: {
+  role: string; reviewedId: string; title: string; bookingId: string
+  reviewScores: Record<string, Record<string, number>>; setReviewScores: React.Dispatch<React.SetStateAction<Record<string, Record<string, number>>>>
+  reviewComments: Record<string, string>; setReviewComments: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  reviewSubmitted: Record<string, boolean>; setReviewSubmitted: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+  reviewLoading: Record<string, boolean>; setReviewLoading: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+  t: any
+}) {
+  const CRITERIA_I18N: Record<string, string> = {
+    ponctualite: t.profile_edit.criteria_punctuality,
+    communication: t.profile_edit.criteria_communication,
+    soin_colis: t.profile_edit.criteria_package_care,
+    conformite: t.profile_edit.criteria_compliance,
+    colis_prepare: t.profile_edit.criteria_package_prepared,
+    ponctualite_depot: t.profile_edit.criteria_dropoff_punctuality,
+    serieux: t.profile_edit.criteria_reliability,
+    disponibilite: t.profile_edit.criteria_availability,
+    ponctualite_remise: t.profile_edit.criteria_delivery_punctuality,
+    professionnalisme: t.profile_edit.criteria_professionalism,
+  }
+  const criteria = CRITERIA_BY_ROLE[role] || []
+  const handleSubmit = async () => {
+    const scores = reviewScores[role] || {}
+    if (criteria.some(c => !scores[c])) return
+    setReviewLoading(prev => ({ ...prev, [role]: true }))
+    try {
+      await api.post('/reviews', {
+        booking_id: bookingId,
+        reviewed_id: reviewedId,
+        criteria: scores,
+        comment: reviewComments[role] || null,
+      })
+      setReviewSubmitted(prev => ({ ...prev, [role]: true }))
+      toast.success(t.profile_edit.review_submitted)
+    } catch {
+      toast.error(t.errors.generic)
+    } finally {
+      setReviewLoading(prev => ({ ...prev, [role]: false }))
+    }
+  }
+  if (reviewSubmitted[role]) return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: GREEN, fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
+      <CheckCircle size={16} color={GREEN} /> {t.profile_edit.review_submitted}
+    </div>
+  )
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <p style={{ fontSize: 12, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{title}</p>
+      {criteria.map(c => (
+        <div key={c} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, color: CHARCOAL }}>{CRITERIA_I18N[c] || c}</span>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[1,2,3,4,5].map(star => (
+              <button key={star} type='button'
+                onClick={() => setReviewScores(prev => ({ ...prev, [role]: { ...(prev[role] || {}), [c]: star } }))}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, lineHeight: 1,
+                  color: (reviewScores[role]?.[c] || 0) >= star ? '#F59E0B' : '#E5E1DC' }}>
+                ★
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <textarea
+        value={reviewComments[role] || ''}
+        onChange={e => setReviewComments(prev => ({ ...prev, [role]: e.target.value }))}
+        placeholder={t.profile_edit.review_comment_placeholder}
+        style={{ width: '100%', borderRadius: 10, border: `1px solid ${BORDER}`, padding: '10px 12px', fontSize: 13, color: CHARCOAL, resize: 'none', minHeight: 72, marginBottom: 10, boxSizing: 'border-box' as const }}
+      />
+      <Button fullWidth size='sm' loading={reviewLoading[role] || false}
+        onClick={handleSubmit}
+        disabled={criteria.some(c => !(reviewScores[role]?.[c]))}>
+        {t.profile_edit.review_submit_btn}
+      </Button>
+    </div>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, marginBottom: 12 }}>
@@ -109,6 +194,11 @@ export default function BookingDetailPage() {
   const [contestOpen, setContestOpen] = useState(false)
   const [deliveryContestReason, setDeliveryContestReason] = useState('')
   const [deliveryContestOpen, setDeliveryContestOpen] = useState(false)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [reviewSubmitted, setReviewSubmitted] = useState<Record<string, boolean>>({})
+  const [reviewScores, setReviewScores] = useState<Record<string, Record<string, number>>>({})
+  const [reviewComments, setReviewComments] = useState<Record<string, string>>({})
+  const [reviewLoading, setReviewLoading] = useState<Record<string, boolean>>({})
 
   // Date/heure picker state
   const [pickupDate, setPickupDate] = useState('')
@@ -555,20 +645,62 @@ const handleCancel = () => {
           </Section>
         )}
 
-        {/* ── BLOC DELIVERED ────────────────────────────────────────────────────── */}
+        {/* ── BLOC DELIVERED ────────────────────────────────────────────────────────────────────────── */}
         {booking.status === 'delivered' && (
           <Section title={t.packages.status_delivered_title}>
             <div style={{ background: '#ECFDF5', border: '1px solid #86EFAC', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
               <CheckCircle size={18} color={GREEN} style={{ flexShrink: 0, marginTop: 2 }} />
               <p style={{ fontSize: 13, color: CHARCOAL, lineHeight: 1.6, margin: 0 }}>{t.packages.status_delivered_desc}</p>
             </div>
-            {isSender && (
-              <Button fullWidth variant="outline" onClick={() => router.push(`/profile/${booking.carrier_id}`)}>
-                {t.packages.status_delivered_review_btn}
+            {(isSender || isCarrier || isReceiver) && (
+              <Button fullWidth variant='outline' onClick={() => setReviewModalOpen(true)}>
+                {t.profile_edit.review_btn}
               </Button>
             )}
           </Section>
         )}
+
+        {/* ── MODAL REVIEW ────────────────────────────────────────────────────────────────────────── */}
+        <Modal isOpen={reviewModalOpen} onClose={() => setReviewModalOpen(false)} title={t.profile_edit.section_review}>
+          <div>
+            {isSender && booking?.carrier_id && (
+              <ReviewBlock role='sender_to_carrier' reviewedId={booking.carrier_id}
+                title='Transporteur'
+                reviewScores={reviewScores} setReviewScores={setReviewScores}
+                reviewComments={reviewComments} setReviewComments={setReviewComments}
+                reviewSubmitted={reviewSubmitted} setReviewSubmitted={setReviewSubmitted}
+                reviewLoading={reviewLoading} setReviewLoading={setReviewLoading}
+                bookingId={booking.id} t={t} />
+            )}
+            {isReceiver && booking?.carrier_id && (
+              <ReviewBlock role='receiver_to_carrier' reviewedId={booking.carrier_id}
+                title='Transporteur'
+                reviewScores={reviewScores} setReviewScores={setReviewScores}
+                reviewComments={reviewComments} setReviewComments={setReviewComments}
+                reviewSubmitted={reviewSubmitted} setReviewSubmitted={setReviewSubmitted}
+                reviewLoading={reviewLoading} setReviewLoading={setReviewLoading}
+                bookingId={booking.id} t={t} />
+            )}
+            {isCarrier && booking?.sender_id && (
+              <ReviewBlock role='carrier_to_sender' reviewedId={booking.sender_id}
+                title='Expéditeur'
+                reviewScores={reviewScores} setReviewScores={setReviewScores}
+                reviewComments={reviewComments} setReviewComments={setReviewComments}
+                reviewSubmitted={reviewSubmitted} setReviewSubmitted={setReviewSubmitted}
+                reviewLoading={reviewLoading} setReviewLoading={setReviewLoading}
+                bookingId={booking.id} t={t} />
+            )}
+            {isCarrier && booking?.receiver_id && (
+              <ReviewBlock role='carrier_to_receiver' reviewedId={booking.receiver_id}
+                title='Récepteur'
+                reviewScores={reviewScores} setReviewScores={setReviewScores}
+                reviewComments={reviewComments} setReviewComments={setReviewComments}
+                reviewSubmitted={reviewSubmitted} setReviewSubmitted={setReviewSubmitted}
+                reviewLoading={reviewLoading} setReviewLoading={setReviewLoading}
+                bookingId={booking.id} t={t} />
+            )}
+          </div>
+        </Modal>
 
         {/* ── BLOC COLLECTE (accepted) ──────────────────────────────────────── */}
         {booking.status === 'accepted' && (isSender || isCarrier) && (

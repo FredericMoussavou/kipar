@@ -30,11 +30,16 @@ async def verify_flight(
         return {"valid": False, "flight_number": flight_number.upper(), "advisory": False, "reason": "invalid_format"}
     # Validation non bloquante — AirLabs ne couvre pas tous les vols futurs
     try:
-        is_valid = await validate_flight_number(flight_number.upper())
+        found = await validate_flight_number(flight_number.upper())
     except Exception:
-        is_valid = None  # Inconnu — ni valide ni invalide
-    advisory = is_valid is False  # True seulement si explicitement not found
-    return {"valid": is_valid is not False, "flight_number": flight_number.strip().upper(), "advisory": advisory, "reason": "not_found" if is_valid is False else "ok"}
+        found = None  # Inconnu — erreur API
+    if found is True:
+        return {"valid": True, "flight_number": flight_number.strip().upper(), "advisory": False, "reason": "ok"}
+    if found is False:
+        # Vol non trouve — advisory True = non bloquant
+        return {"valid": False, "flight_number": flight_number.strip().upper(), "advisory": True, "reason": "not_found"}
+    # found is None = erreur API — on laisse passer
+    return {"valid": True, "flight_number": flight_number.strip().upper(), "advisory": True, "reason": "api_error"}
 
 @router.post("", response_model=TripResponse, status_code=201)
 @limiter.limit("5/minute")

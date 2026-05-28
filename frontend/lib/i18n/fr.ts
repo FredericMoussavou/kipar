@@ -600,7 +600,7 @@ export const fr = {
   flight_valid: 'Vol trouvé',
   flight_invalid: 'Vol introuvable',
   flight_not_found_advisory: 'Vol non trouvé dans notre base — vérifiez le numéro mais vous pouvez continuer',
-  flight_invalid_format: 'Format invalide — exémple : AF502, EK1234',
+  flight_invalid_format: 'Format invalide — exemple : AF502, EK1234',
 
   flight_label: 'Numéro de vol',
 

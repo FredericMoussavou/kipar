@@ -682,71 +682,117 @@ const handleCancel = () => {
                 if (time) { const [h, m] = time.split(':').map(Number); base.setHours(h, m) }
                 return base.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: time ? '2-digit' : undefined, minute: time ? '2-digit' : undefined })
               }
-              if (flightTracking) {
-                const statusColors: Record<string, string> = {
-                  landed: GREEN, active: '#2563EB', delayed: AMBER,
-                  cancelled: RED, scheduled: TAUPE, unknown: TAUPE,
-                }
-                const statusLabels: Record<string, string> = {
-                  landed: t.packages.flight_status_landed,
-                  active: t.packages.flight_status_active,
-                  delayed: t.packages.flight_status_delayed,
-                  cancelled: t.packages.flight_status_cancelled,
-                  scheduled: t.packages.flight_status_scheduled,
-                  unknown: t.packages.flight_status_unknown,
-                }
-                const color = statusColors[flightTracking.status] || TAUPE
-                const label = statusLabels[flightTracking.status] || flightTracking.status
-                return (
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                      <Plane size={18} color={color} />
-                      <div>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL, margin: 0 }}>{booking.flight_number}</p>
-                        <p style={{ fontSize: 12, color, fontWeight: 600, margin: 0 }}>{label}</p>
-                      </div>
-                    </div>
-                    {flightTracking.arrival_estimated && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
-                        <span>{t.packages.flight_arrival_estimated}</span>
-                        <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmt(flightTracking.arrival_estimated)}</span>
-                      </div>
-                    )}
-                    {flightTracking.arrival_actual && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
-                        <span>{t.packages.flight_arrival_actual}</span>
-                        <span style={{ fontWeight: 600, color: GREEN }}>{fmt(flightTracking.arrival_actual)}</span>
-                      </div>
-                    )}
-                    {flightTracking.last_checked_at && (
-                      <p style={{ fontSize: 10, color: TAUPE, marginTop: 8, textAlign: 'right' }}>
-                        {t.packages.flight_last_updated} : {fmt(flightTracking.last_checked_at)}
-                      </p>
-                    )}
-                  </div>
-                )
+              // Calcul progression avion (0-100)
+              const getProgress = () => {
+                if (!flightTracking) return 0
+                if (flightTracking.status === 'landed') return 100
+                if (flightTracking.status === 'scheduled') return 0
+                if (flightTracking.status === 'cancelled') return 0
+                const dep = flightTracking.departure_actual ? new Date(flightTracking.departure_actual).getTime() : null
+                const arr = flightTracking.arrival_estimated ? new Date(flightTracking.arrival_estimated).getTime() : null
+                if (!dep || !arr) return 50
+                const now = Date.now()
+                const pct = Math.round(((now - dep) / (arr - dep)) * 100)
+                return Math.min(Math.max(pct, 5), 95)
               }
-              // Fallback — données statiques du trip
+              const progress = getProgress()
+              const statusColors: Record<string, string> = {
+                landed: GREEN, active: '#2563EB', delayed: AMBER,
+                cancelled: RED, scheduled: TAUPE, unknown: TAUPE,
+              }
+              const statusLabels: Record<string, string> = {
+                landed: t.packages.flight_status_landed,
+                active: t.packages.flight_status_active,
+                delayed: t.packages.flight_status_delayed,
+                cancelled: t.packages.flight_status_cancelled,
+                scheduled: t.packages.flight_status_scheduled,
+                unknown: t.packages.flight_status_unknown,
+              }
+              const ft = flightTracking
+              const color = ft ? (statusColors[ft.status] || TAUPE) : TAUPE
+              const label = ft ? (statusLabels[ft.status] || ft.status) : t.packages.flight_status_scheduled
+              const depCode = ft?.dep_iata || booking.departure_airport || '???'
+              const arrCode = ft?.arr_iata || booking.arrival_airport || '???'
+              const delayedMin = ft?.delayed_minutes ?? null
               return (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <Plane size={18} color={TAUPE} />
-                    <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL, margin: 0 }}>{booking.flight_number}</p>
-                      <p style={{ fontSize: 12, color: TAUPE, margin: 0 }}>{t.packages.flight_status_scheduled}</p>
+                  {/* En-tete vol + badge statut */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Plane size={18} color={color} />
+                      <p style={{ fontSize: 15, fontWeight: 700, color: CHARCOAL, margin: 0 }}>{booking.flight_number}</p>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color, background: color + '18', border: '1px solid ' + color + '44', borderRadius: 99, padding: '3px 10px' }}>{label}</span>
+                  </div>
+                  {/* Route DEP -> ARR */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: CHARCOAL }}>{depCode}</span>
+                    <span style={{ fontSize: 11, color: TAUPE }}>{t.packages.flight_route || 'Trajet'}</span>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: CHARCOAL }}>{arrCode}</span>
+                  </div>
+                  {/* Barre de progression + avion */}
+                  <div style={{ position: 'relative', height: 28, marginBottom: 12 }}>
+                    {/* Barre fond */}
+                    <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 4, background: '#E5E1DC', borderRadius: 99, transform: 'translateY(-50%)' }} />
+                    {/* Barre remplie */}
+                    <div style={{ position: 'absolute', top: '50%', left: 0, width: progress + '%', height: 4, background: color, borderRadius: 99, transform: 'translateY(-50%)', transition: 'width 0.8s ease' }} />
+                    {/* Avion */}
+                    <div style={{ position: 'absolute', top: '50%', left: 'calc(' + progress + '% - 10px)', transform: 'translateY(-50%)', transition: 'left 0.8s ease' }}>
+                      <Plane size={20} color={color} style={{ display: 'block' }} />
                     </div>
                   </div>
-                  {booking.departure_date && (
+                  {/* Badge retard / avance */}
+                  {delayedMin !== null && delayedMin !== 0 && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700,
+                      color: delayedMin > 0 ? '#92400E' : '#166534',
+                      background: delayedMin > 0 ? '#FFF3CD' : '#DCFCE7',
+                      border: '1px solid ' + (delayedMin > 0 ? '#FFE082' : '#86EFAC'),
+                      borderRadius: 99, padding: '3px 10px', marginBottom: 10 }}>
+                      {delayedMin > 0
+                        ? (t.packages.flight_delayed_minutes || 'Retardé de {n} min').replace('{n}', String(delayedMin))
+                        : (t.packages.flight_early_minutes || 'En avance de {n} min').replace('{n}', String(Math.abs(delayedMin)))
+                      }
+                    </div>
+                  )}
+                  {delayedMin === 0 && ft?.status === 'active' && (
+                    <div style={{ display: 'inline-flex', fontSize: 11, fontWeight: 700, color: '#166534', background: '#DCFCE7', border: '1px solid #86EFAC', borderRadius: 99, padding: '3px 10px', marginBottom: 10 }}>
+                      {t.packages.flight_on_time || 'À l\'heure'}
+                    </div>
+                  )}
+                  {/* Heures */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
+                    <span>{t.packages.flight_departure}</span>
+                    <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmt(ft?.departure_actual || null)}</span>
+                  </div>
+                  {ft?.arrival_actual ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
+                      <span>{t.packages.flight_arrival_actual}</span>
+                      <span style={{ fontWeight: 600, color: GREEN }}>{fmt(ft.arrival_actual)}</span>
+                    </div>
+                  ) : ft?.arrival_estimated ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
+                      <span>{t.packages.flight_arrival_estimated}</span>
+                      <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmt(ft.arrival_estimated)}</span>
+                    </div>
+                  ) : null}
+                  {/* Fallback statique si pas de flightTracking */}
+                  {!ft && booking.departure_date && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
                       <span>{t.packages.flight_departure}</span>
                       <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmtDate(booking.departure_date, booking.departure_time)}</span>
                     </div>
                   )}
-                  {booking.arrival_date && (
+                  {!ft && booking.arrival_date && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: TAUPE, marginBottom: 4 }}>
                       <span>{t.packages.flight_arrival_estimated}</span>
                       <span style={{ fontWeight: 600, color: CHARCOAL }}>{fmtDate(booking.arrival_date, booking.arrival_time)}</span>
                     </div>
+                  )}
+                  {/* Last updated */}
+                  {ft?.last_checked_at && (
+                    <p style={{ fontSize: 10, color: TAUPE, marginTop: 8, textAlign: 'right' }}>
+                      {t.packages.flight_last_updated} : {fmt(ft.last_checked_at)}
+                    </p>
                   )}
                 </div>
               )

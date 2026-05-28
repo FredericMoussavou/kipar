@@ -39,6 +39,8 @@ async def analyze_only(
     Analyse une photo sans package_id — retourne le résultat IA sans sauvegarder.
     Utilisé dans le flow booking pour pré-remplir les champs.
     """
+    from app.api.v1.endpoints.premium import is_premium_active
+    await check_and_consume_scan(db, current_user.id, lang, is_premium=is_premium_active(current_user))
     image_bytes = await file.read()
     if not image_bytes:
         raise HTTPException(status_code=400, detail=t("errors.kiparscan_no_image", lang))

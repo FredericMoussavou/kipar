@@ -26,7 +26,7 @@ async def verify_flight(
     """Valide qu'un numero de vol existe — appele a la soumission du formulaire new-trip."""
     if not flight_number or len(flight_number) < 3:
         raise HTTPException(status_code=400, detail=t("errors.flight_number_invalid", lang))
-    # Validation non bloquante — AeroDataBox ne couvre pas tous les vols futurs
+    # Validation non bloquante — AirLabs ne couvre pas tous les vols futurs
     try:
         is_valid = await validate_flight_number(flight_number.upper())
     except Exception:

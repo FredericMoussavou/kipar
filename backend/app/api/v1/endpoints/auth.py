@@ -433,3 +433,92 @@ async def logout(
     except Exception:
         pass
     return {"status": "logged_out"}
+
+
+@router.post("/reactivate")
+async def request_reactivation(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_lang),
+):
+    """Demande de reactivation compte supprime - envoie un code par mail."""
+    from datetime import datetime, timezone, timedelta
+    from app.models.verification_code import VerificationCode
+    from app.services.resend_service import send_email
+    import secrets
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=422, detail="Email requis")
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    # Reponse generique - ne pas revealer si le compte existe
+    if not user or user.deleted_at is None:
+        return {"status": "ok", "message": "Si un compte existe, un email a ete envoye"}
+    if user.is_banned:
+        raise HTTPException(status_code=403, detail="Ce compte a ete banni. Contactez le support.")
+    code = str(secrets.randbelow(900000) + 100000)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    db.add(VerificationCode(
+        user_id=user.id,
+        channel="email",
+        code=code,
+        expires_at=expires_at,
+    ))
+    await db.commit()
+    await send_email(
+        to=user.email,
+        subject="Reactivation de votre compte KIPAR",
+        html=f"<p>Votre code de reactivation : <strong>{code}</strong></p><p>Valable 15 minutes.</p>",
+    )
+    return {"status": "ok", "message": "Si un compte existe, un email a ete envoye"}
+    
+
+@router.post("/reactivate/confirm")
+async def confirm_reactivation(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    lang: str = Depends(get_lang),
+):
+    """Confirme la reactivation avec le code recu par mail."""
+    from datetime import datetime, timezone
+    from app.models.verification_code import VerificationCode
+    from app.services.notif_db_service import create_notification
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    code = body.get("code", "").strip()
+    if not email or not code:
+        raise HTTPException(status_code=422, detail="Email et code requis")
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if not user or user.deleted_at is None:
+        raise HTTPException(status_code=404, detail="Compte introuvable ou deja actif")
+    if user.is_banned:
+        raise HTTPException(status_code=403, detail="Ce compte a ete banni. Contactez le support.")
+    now = datetime.now(timezone.utc)
+    vc_result = await db.execute(
+        select(VerificationCode).where(
+            VerificationCode.user_id == user.id,
+            VerificationCode.channel == "email",
+            VerificationCode.code == code,
+            VerificationCode.used.is_(False),
+            VerificationCode.expires_at > now,
+        ).order_by(VerificationCode.created_at.desc()).limit(1)
+    )
+    vc = vc_result.scalar_one_or_none()
+    if not vc:
+        raise HTTPException(status_code=400, detail="Code invalide ou expire")
+    vc.used = True
+    user.deleted_at = None
+    user.is_active = True
+    await db.commit()
+    await create_notification(
+        db=db,
+        user_id=user.id,
+        type="account_reactivated",
+        title="Compte reactiv",
+        body="Votre compte KIPAR a ete reactiv avec succes.",
+        link="/dashboard",
+    )
+    await db.commit()
+    return {"status": "ok", "message": "Compte reactivé avec succes"}

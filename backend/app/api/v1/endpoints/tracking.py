@@ -39,19 +39,27 @@ async def set_flight(
 
     if existing:
         existing.flight_number = payload.flight_number
-        existing.airline = payload.airline
+        existing.airline = flight_data.get("airline_iata") or payload.airline
         if flight_data:
             existing.status = flight_data["status"]
             existing.arrival_estimated = flight_data.get("arrival_estimated")
+            existing.departure_actual = flight_data.get("departure_actual")
+            existing.dep_iata = flight_data.get("dep_iata")
+            existing.arr_iata = flight_data.get("arr_iata")
+            existing.delayed_minutes = flight_data.get("delayed")
         existing.last_checked_at = datetime.now(timezone.utc)
         return existing
 
     tracking = FlightTracking(
         trip_id=trip.id,
         flight_number=payload.flight_number,
-        airline=payload.airline,
+        airline=(flight_data.get("airline_iata") if flight_data else None) or payload.airline,
         status=flight_data["status"] if flight_data else "unknown",
+        departure_actual=flight_data.get("departure_actual") if flight_data else None,
         arrival_estimated=flight_data.get("arrival_estimated") if flight_data else None,
+        dep_iata=flight_data.get("dep_iata") if flight_data else None,
+        arr_iata=flight_data.get("arr_iata") if flight_data else None,
+        delayed_minutes=flight_data.get("delayed") if flight_data else None,
         last_checked_at=datetime.now(timezone.utc),
     )
     db.add(tracking)

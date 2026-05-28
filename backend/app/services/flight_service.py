@@ -1,61 +1,78 @@
+import logging
 import httpx
 from app.core.config import settings
+
+logger = logging.getLogger("kipar")
+
+# Mapping statut AirLabs -> statut interne KIPAR
+AIRLABS_STATUS_MAP = {
+    "scheduled": "scheduled",
+    "active": "active",
+    "en-route": "active",
+    "landed": "landed",
+    "diverted": "delayed",
+    "cancelled": "cancelled",
+    "unknown": "unknown",
+}
 
 
 async def fetch_flight_status(flight_number: str) -> dict | None:
     """
-    Interroge AeroDataBox (via RapidAPI) pour recuperer le statut d'un vol.
+    Interroge AirLabs pour recuperer le statut d'un vol.
     Retourne None si le vol est introuvable ou si l'API est indisponible.
-    Documentation : https://rapidapi.com/aedbx-aedbx/api/aerodatabox
+    Documentation : https://airlabs.co/docs/flight
     """
-    if not settings.RAPIDAPI_KEY:
-        # Pas de cle API — retourne un statut simule en dev
+    if not settings.AIRLABS_API_KEY:
+        logger.warning("[FLIGHT] AIRLABS_API_KEY absent - statut simule en dev")
         return {
             "status": "scheduled",
             "departure_actual": None,
             "arrival_estimated": None,
             "arrival_actual": None,
+            "dep_iata": None,
+            "arr_iata": None,
+            "delayed": None,
+            "airline_iata": None,
         }
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             res = await client.get(
-                f"https://aerodatabox.p.rapidapi.com/flights/iata/{flight_number}",
-                headers={
-                    "X-RapidAPI-Key": settings.RAPIDAPI_KEY,
-                    "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
+                "https://airlabs.co/api/v9/flight",
+                params={
+                    "flight_iata": flight_number.upper(),
+                    "api_key": settings.AIRLABS_API_KEY,
                 },
             )
             if res.status_code == 404:
+                logger.info("[FLIGHT] Vol introuvable : %s", flight_number)
                 return None
+            if res.status_code != 200:
+                logger.warning("[FLIGHT] AirLabs HTTP %s pour %s", res.status_code, flight_number)
+                return None
+
             data = res.json()
-            # AeroDataBox retourne une liste
-            if not data:
+            flight = data.get("response")
+            if not flight:
+                logger.info("[FLIGHT] Reponse vide AirLabs pour %s", flight_number)
                 return None
-            flight = data[0] if isinstance(data, list) else data
 
-            # Mapping statut AeroDataBox -> statut interne
-            raw_status = flight.get("status", "unknown").lower()
-            status_map = {
-                "scheduled": "scheduled",
-                "active": "active",
-                "landed": "landed",
-                "diverted": "delayed",
-                "cancelled": "cancelled",
-                "unknown": "unknown",
-            }
-            status = status_map.get(raw_status, "unknown")
-
-            departure = flight.get("departure", {})
-            arrival = flight.get("arrival", {})
+            raw_status = (flight.get("status") or "unknown").lower()
+            status = AIRLABS_STATUS_MAP.get(raw_status, "unknown")
 
             return {
                 "status": status,
-                "departure_actual": departure.get("actualTimeUtc") or departure.get("scheduledTimeUtc"),
-                "arrival_estimated": arrival.get("estimatedTimeUtc") or arrival.get("scheduledTimeUtc"),
-                "arrival_actual": arrival.get("actualTimeUtc"),
+                "departure_actual": flight.get("dep_time_utc"),
+                "arrival_estimated": flight.get("arr_estimated_utc") or flight.get("arr_time_utc"),
+                "arrival_actual": flight.get("arr_time_utc") if raw_status == "landed" else None,
+                "dep_iata": flight.get("dep_iata"),
+                "arr_iata": flight.get("arr_iata"),
+                "delayed": flight.get("delayed"),
+                "airline_iata": flight.get("airline_iata"),
             }
-    except Exception:
+
+    except Exception as e:
+        logger.warning("[FLIGHT] Erreur AirLabs pour %s : %s", flight_number, str(e))
         return None
 
 
@@ -65,9 +82,8 @@ async def validate_flight_number(flight_number: str) -> bool:
     Retourne True si le vol est trouve, False sinon.
     En dev (pas de cle), retourne toujours True.
     """
-    if not settings.RAPIDAPI_KEY or settings.RAPIDAPI_KEY.startswith(b"test"):
-        import logging
-        logging.getLogger("kipar").warning("[FLIGHT] Cle RAPIDAPI absente ou placeholder")
+    if not settings.AIRLABS_API_KEY:
+        logger.warning("[FLIGHT] AIRLABS_API_KEY absent - validation ignoree en dev")
         return True
     result = await fetch_flight_status(flight_number)
     return result is not None

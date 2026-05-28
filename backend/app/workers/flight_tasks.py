@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 @celery_app.task(name="app.workers.flight_tasks.poll_active_flights")
 def poll_active_flights():
     """
-    Interroge AviationStack pour tous les trajets en transit.
+    Interroge AirLabs pour tous les trajets en transit.
     Notifie expéditeur et récepteur si statut change.
     Planifié toutes les 15 min via Celery Beat.
     """
@@ -36,6 +36,10 @@ def poll_active_flights():
                 if old_status != new_status:
                     tracking.status = new_status
                     tracking.arrival_estimated = flight_data.get("arrival_estimated")
+                    tracking.departure_actual = flight_data.get("departure_actual")
+                    tracking.dep_iata = flight_data.get("dep_iata") or tracking.dep_iata
+                    tracking.arr_iata = flight_data.get("arr_iata") or tracking.arr_iata
+                    tracking.delayed_minutes = flight_data.get("delayed")
                     if flight_data.get("arrival_actual"):
                         tracking.arrival_actual = flight_data["arrival_actual"]
 

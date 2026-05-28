@@ -41,6 +41,9 @@ class User(Base):
     is_receiver: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # KYC
+    kyc_approved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     kyc_status: Mapped[str] = mapped_column(String(20), default="pending")
     onfido_applicant_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
@@ -88,6 +91,10 @@ class User(Base):
     phone_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Soft delete (Phase 2)
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
+    banned_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

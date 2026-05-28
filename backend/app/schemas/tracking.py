@@ -14,6 +14,9 @@ class FlightTrackingResponse(BaseModel):
     arrival_estimated: datetime | None
     arrival_actual: datetime | None
     last_checked_at: datetime | None
+    dep_iata: str | None = None
+    arr_iata: str | None = None
+    delayed_minutes: int | None = None
 
     model_config = {"from_attributes": True}
 

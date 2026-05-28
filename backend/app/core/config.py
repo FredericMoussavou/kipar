@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     IDENFY_BASE_URL: str = "https://ivs.idenfy.com"
 
     # AviationStack
-    RAPIDAPI_KEY: str = ""  # Cle RapidAPI pour AeroDataBox
+    AIRLABS_API_KEY: str = ""  # Cle AirLabs pour tracking vol
 
     ANTHROPIC_API_KEY: str = ""
 

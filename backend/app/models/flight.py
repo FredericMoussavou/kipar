@@ -38,4 +38,9 @@ class FlightTracking(Base):
         DateTime(timezone=True), nullable=True
     )
 
+    # Champs AirLabs
+    dep_iata: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    arr_iata: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    delayed_minutes: Mapped[int | None] = mapped_column(nullable=True)
+
     trip: Mapped["Trip"] = relationship("Trip")

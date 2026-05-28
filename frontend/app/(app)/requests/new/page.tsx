@@ -68,6 +68,14 @@ export default function NewRequestPage() {
     } catch { setSuggestions([]) }
   }
 
+  const loadScanQuota = async () => {
+    try {
+      const res = await api.get('/kiparscan/quota')
+      setScanQuota({ free_remaining: res.data.free_remaining })
+    } catch { /* silencieux */ }
+  }
+  if (typeof window !== 'undefined' && scanQuota === null) { loadScanQuota() }
+
   const handleKiparScan = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     setScanning(true)

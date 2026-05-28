@@ -233,7 +233,11 @@ async def resolve_dispute(
         else:
             # Split -> torts partages, admin decide la repartition
             booking.status = "disputed_split"
-            print(f"[DISPUTE] Split decision booking {booking.id} - repartition manuelle requise")
+            import logging
+            logging.getLogger("kipar").info(
+                "[DISPUTE] Split decision booking %s - repartition manuelle requise (Sprint 4)",
+                booking.id
+            )
 
     # Notifier les parties
     from app.services.notif_db_service import create_notification
@@ -477,8 +481,17 @@ async def ban_user(
     if user.is_admin:
         raise HTTPException(status_code=403, detail="Cannot ban an admin")
 
-    user.is_active = not user.is_active
-    return {"user_id": user_id, "is_active": user.is_active}
+    from datetime import datetime, timezone
+    if user.is_banned:
+        user.is_banned = False
+        user.banned_at = None
+        user.is_active = True
+    else:
+        user.is_banned = True
+        user.banned_at = datetime.now(timezone.utc)
+        user.is_active = False
+    await db.commit()
+    return {"user_id": user_id, "is_banned": user.is_banned, "is_active": user.is_active}
 
 
 @router.get("/finance")
@@ -732,7 +745,10 @@ async def reactivate_user(
         raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
     if user.is_active:
         raise HTTPException(status_code=400, detail="User is already active")
+    if user.is_banned:
+        raise HTTPException(status_code=403, detail="Banned user cannot be reactivated this way. Use unban endpoint.")
     user.is_active = True
+    user.deleted_at = None
     await db.commit()
     await create_notification(
         db=db,

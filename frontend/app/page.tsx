@@ -129,7 +129,23 @@ function LaptopMockup({ t }: { t: any }) {
 }
 
 export default function LandingPage() {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {})
+        } else {
+          video.pause()
+        }
+      },
+      { threshold: 0.5 }
+    )
+    observer.observe(video)
+    return () => observer.disconnect()
+  }, [])
   const isMobile = useIsMobile()
   const { paddingH, fontSizeHero, paddingBtn } = useResponsive()
   const { currentLang: lang, setLanguage: setLang } = useLanguage()
@@ -292,33 +308,15 @@ export default function LandingPage() {
           {/* Conteneur de la vidéo (Conserve le ratio 16:9) */}
           <div style={{ position: 'relative', paddingBottom: '56.25%', borderRadius: 16, overflow: 'hidden', background: CHARCOAL, boxShadow: '0 20px 56px rgba(0,0,0,0.15)' }}>
             
-            {isVideoPlaying ? (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: '#000' }}>
-                <video 
-                  src="../videos/presentation.mp4" 
-                  controls 
-                  autoPlay 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setIsVideoPlaying(false) }}
-                  style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', zIndex: 51, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-                <div 
-                  onClick={() => setIsVideoPlaying(true)}
-                  style={{ width: 64, height: 64, borderRadius: '50%', background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(220,0,41,0.4)', cursor: 'pointer', transition: 'transform 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <div style={{ width: 0, height: 0, borderTop: '11px solid transparent', borderBottom: '11px solid transparent', borderLeft: '18px solid white', marginLeft: 4 }} />
-                </div>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{t.landing.video_play}</span>
-              </div>
-            )}
+            <video
+              ref={videoRef}
+              src="../videos/presentation.mp4"
+              muted
+              loop
+              playsInline
+              controls
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            />
 
           </div>
         </div>

@@ -312,9 +312,11 @@ export default function LandingPage() {
               ref={videoRef}
               src="../videos/presentation.mp4"
               muted
+              autoPlay
               loop
               playsInline
               controls
+              preload="auto"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
             />
 

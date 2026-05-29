@@ -19,9 +19,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('kipar_token')
-      document.cookie = 'kipar_token=; path=/; max-age=0'
-      window.location.replace('/login')
+      const publicPaths = ['/', '/login', '/register', '/faq', '/cgu', '/privacy', '/cookies', '/mentions-legales']
+      const isPublic = publicPaths.some(p => window.location.pathname === p || window.location.pathname.startsWith('/receiver/'))
+      if (!isPublic) {
+        localStorage.removeItem('kipar_token')
+        document.cookie = 'kipar_token=; path=/; max-age=0'
+        window.location.replace('/login')
+      }
     }
     return Promise.reject(error)
   }

@@ -67,6 +67,11 @@ class Settings(BaseSettings):
     URGENT_FLAT_FEE: float = 10.0                # Forfait dossier urgence
     URGENT_FEE_KIPAR: float = 3.0                # Part KIPAR sur forfait urgence
     URGENT_FEE_CARRIER: float = 7.0              # Part transporteur sur forfait urgence
+    SMALL_PACKAGE_MAX_KG: float = 1.0            # Seuil poids petit colis (kg)
+    SMALL_PACKAGE_PRICE: float = 15.0            # Prix fixe max expediteur petit colis
+    SMALL_PACKAGE_KIPAR_FEE: float = 5.0         # Part KIPAR sur petit colis
+    SMALL_PACKAGE_CARRIER_MAX: float = 10.0      # Part max transporteur sur petit colis
+    SMALL_PACKAGE_CARRIER_MIN: float = 5.0       # Part min transporteur sur petit colis
     MIN_COMMISSION: float = 2.50                 # Commission minimum absolue
     CARRIER_CANCEL_FEE_PERCENT: float = 0.05     # 5% annulation transporteur non justifiee
     CARRIER_CANCEL_FEE_MIN: float = 5.00         # Plancher annulation transporteur

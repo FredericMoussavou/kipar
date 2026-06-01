@@ -65,6 +65,8 @@ export default function NewTripPage() {
   const [destSelected, setDestSelected] = useState(false)
   const [priceSuggestion, setPriceSuggestion] = useState<{ price_low: number | null; price_high: number | null; is_corridor_data: boolean } | null>(null)
   const [acceptsUrgent, setAcceptsUrgent] = useState(false)
+  const [acceptsSmallPackage, setAcceptsSmallPackage] = useState(false)
+  const [smallPackagePrice, setSmallPackagePrice] = useState('')
   const [dateTouched, setDateTouched] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -155,6 +157,7 @@ export default function NewTripPage() {
         weight_unit: weightUnit,
         currency: tripCurrency,
         accepts_urgent: acceptsUrgent,
+        small_package_price: acceptsSmallPackage && smallPackagePrice ? parseFloat(smallPackagePrice) : null,
         arrival_date: arrivalDate || undefined,
       })
       toast.success(t.carrier.trip_published)
@@ -283,6 +286,36 @@ export default function NewTripPage() {
             <span style={{ fontSize: 10, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', fontWeight: 700, marginLeft: 4, alignSelf: 'center' }}>
               Premium
             </span>
+          )}
+        </div>
+
+        {/* Petits colis */}
+        <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--k-charcoal,#1A1A1A)', margin: 0 }}>{t.carrier.small_package_label}</p>
+              <p style={{ fontSize: 12, color: 'var(--k-taupe,#8C7B6B)', marginTop: 4 }}>{t.carrier.small_package_desc}</p>
+            </div>
+            <button type='button'
+              onClick={() => setAcceptsSmallPackage(v => !v)}
+              style={{ width: 48, height: 28, borderRadius: 14, background: acceptsSmallPackage ? 'var(--k-red,#DC0029)' : 'var(--k-border,#E8E3DD)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: acceptsSmallPackage ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
+            </button>
+          </div>
+          {acceptsSmallPackage && (
+            <div style={{ marginTop: 12 }}>
+              <Input
+                label={t.carrier.small_package_price_label}
+                type='number'
+                placeholder={t.carrier.small_package_price_placeholder}
+                min='5'
+                max='10'
+                step='0.5'
+                value={smallPackagePrice}
+                onChange={e => setSmallPackagePrice(e.target.value)}
+              />
+              <p style={{ fontSize: 11, color: 'var(--k-taupe,#8C7B6B)', marginTop: 6 }}>{t.carrier.small_package_price_hint}</p>
+            </div>
           )}
         </div>
 

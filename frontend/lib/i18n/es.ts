@@ -1,94 +1,50 @@
 export const es = {
-
   statuses: {
-
     awaiting_receiver: 'Esperando al receptor',
-
     pending: 'Pendiente de aceptación',
-
     accepted: 'Aceptado',
-
     refused: 'Rechazado',
-
     paid: 'Pagado',
-
     in_transit: 'En tránsito',
-
     delivered: 'Entregado',
-
     disputed: 'Disputa abierta',
-
     refunded: 'Reembolsado',
-
     open: 'Disponible',
-
     full: 'Completo',
-
     completed: 'Terminado',
-
     cancelled: 'Cancelado',
-
     cancelled_by_sender: 'Cancelado por el remitente',
-
     cancelled_by_carrier: 'Cancelado por el transportista',
-
     pickup_failed: 'Paquete no entregado',
-
   },
-
   auth: {
-
     login_title: 'Iniciar sesión',
-
     login_subtitle: 'Envía, Viaja, Comparte',
-
     email_label: 'Correo electrónico / Teléfono',
-
     email_placeholder: 'ejemplo@kipar.fr',
-
     password_label: 'Contraseña',
-
     forgot_password: '¿Has olvidado tu contraseña?',
-
     login_btn: 'INICIAR SESIÓN',
-
     or_connect_with: 'O conéctate con:',
-
     no_account: '¿Nuevo en Kipar?',
-
     sign_up: 'Registrarse',
-
     register_title: 'Crear una cuenta',
-
     register_subtitle: 'Únete a la comunidad Kipar',
-
     first_name: 'Nombre',
-
     last_name: 'Apellido',
-
     register_btn: 'CREAR MI CUENTA',
-
     already_account: '¿Ya tienes una cuenta?',
-
     sign_in: 'Iniciar sesión',
-
     google: 'Continuar con Google',
-
     stat_carriers: 'Transportistas',
-
     stat_destinations: 'Destinos',
-
     stat_rating: 'Nota media',
-
     stat_carriers_value: '10K+',
-
     stat_destinations_value: '50+',
-
     stat_rating_value: '4.9★',
-
     apple: 'Continuar con Apple',
     twofa_title: 'Verificación en dos pasos',
-    twofa_subtitle: 'Introduce el código de 6 dí gitos generado por tu aplicación de autenticación.',
+    twofa_subtitle: 'Introduce el código de 6 dígitos generado por tu aplicación de autenticación.',
     twofa_confirm_btn: 'CONFIRMAR',
     twofa_back: 'Volver al inicio de sesión',
     twofa_invalid: 'Código incorrecto o caducado',
@@ -117,119 +73,66 @@ export const es = {
     twofa_backup_invalid: 'Código de respaldo inválido o ya utilizado',
     twofa_regen_btn: 'Nuevos códigos de respaldo',
     twofa_regen_confirm: 'Generar nuevos códigos invalidará los anteriores. ¿Continuar?',
-    confirm_password: 'Confirmar contrasena',
-    password_min_placeholder: 'Minimo 8 caracteres',
+    confirm_password: 'Confirmar contraseña',
+    password_min_placeholder: 'Mínimo 8 caracteres',
     first_name_placeholder: 'Nombre',
     last_name_placeholder: 'Apellido',
-
   },
-
   nav: {
-
     home: 'Inicio',
-
     my_packages: 'Mis paquetes',
-
     trips: 'Viajes',
-
     profile: 'Perfil',
-
     carrier: 'Transportista',
-
     messages: 'Mensajes',
-
   },
-
   dashboard: {
-
     greeting: 'Hola',
-
     search_placeholder: 'Buscar un viaje...',
-
     popular_corridors: 'Rutas populares',
-
     available_trips: 'Disponibles',
-
     no_trips: 'No hay viajes disponibles en esta ruta',
-
     hero_sub: 'Encuentra un transportista de confianza para tus paquetes',
-
     no_trips_sub: 'No hay viajes disponibles en esta ruta',
-
     loading: 'Cargando...',
-
   },
-
   trip: {
-
     available_kg: 'kg disponibles',
-
     max_per_package: 'Máx/paquete',
-
     departure: 'Salida',
-
     price_per_kg: '€/kg',
-
     kg_available: '{n} kg disp.',
-
     max_kg: 'Máx {n} kg',
-
     trust_score: 'KiparTrust',
-
     kyc_verified: '✓ KYC Verificado',
-
     send_package: 'Enviar un paquete →',
-
     trip_detail: 'Detalle del viaje',
-
     verified_carrier: 'Transportista verificado Kipar',
-
     insurance_available: 'Seguro de paquete disponible',
-
     insurance_desc: 'Protege tu paquete — 3% del valor declarado',
-
     not_found: 'Viaje no encontrado',
-
     trips_done: 'viajes',
-
     reviews: 'opiniones',
-
     member_since: 'Miembro desde',
-
   },
-
   booking: {
-
     title: 'Describe tu paquete',
-
     subtitle: 'Esta información será compartida con el transportista',
-
     receiver_label: 'Correo del receptor',
-
     receiver_placeholder: 'receptor@email.com',
-
-    content_label: 'Contenido del paquete',
-
+    content_label: 'Contenu del paquete',
     content_placeholder: 'Ropa, libros, medicamentos...',
-
+    small_package_forfait: 'Tarifa plana paquete pequeño',
+    small_package_disclaimer: '⚠️ Documentos oficiales (pasaportes, actas…): consulte las normativas aduaneras de su país de destino antes de enviar. KIPAR no puede ser considerado responsable de incautaciones o bloqueos aduaneros.',
     weight_label: 'Peso (kg)',
-
     value_label: 'Valor declarado (€)',
-
     transport_cost: 'Transporte',
-
     commission: 'Gastos de gestión Kipar',
-
     total: 'Total',
-
     confirm_btn: 'Confirmar reserva →',
-
     fill_fields: 'Por favor, rellena todos los campos obligatorios',
-
     insurance_label: 'Seguro de paquete',
-
     insurance_desc: '3% del valor declarado',
-
     insurance_enter_value: 'Introduce un valor',
     reminder_label: 'Recordatorio de entrega',
     reminder_desc: 'Notificar al receptor X horas antes de la cita',
@@ -238,7 +141,6 @@ export const es = {
     reminder_6h: '6h antes',
     reminder_12h: '12h antes',
     reminder_24h: '24h antes',
-
     insurance_line: 'Seguro',
     urgent_notice_title: 'Paquete urgente',
     urgent_notice_desc: 'Tarifa urgente: 10€ (salida en menos de 36h)',
@@ -246,123 +148,71 @@ export const es = {
     urgent_unavailable_desc: 'Este viaje ya no puede reservarse (salida en menos de 36h)',
     weight_exceeds_available: 'Peso solicitado superior al disponible',
     weight_exceeds_max: 'Peso máximo por paquete superado',
-
   },
-
   payment: {
-
     title: 'Método de pago',
-
     card: 'Tarjeta bancaria',
-
     card_desc: 'Visa, Mastercard, Apple Pay',
-
     mobile_money: 'Mobile Money',
-
     mobile_money_desc: 'Orange Money, Wave, MTN MoMo',
-
     subtotal: 'Subtotal',
-
     insurance: 'Seguro de paquete (3%)',
-
     total: 'Total',
-
     pay_btn: 'Pagar ahora →',
-
     secure: 'Pago seguro · Fondos retenidos hasta la entrega',
-
     simulated: 'Pago simulado — mostrando seguimiento',
-
-      cancel_policy_title: 'Politica de cancelacion',
-
-    cancel_policy_full: 'Cancelacion gratuita hasta 3 dias antes de la salida.',
-
-    cancel_policy_partial: 'Cancelacion entre 1 y 3 dias antes de la salida: reembolso del 50%.',
-
-    cancel_policy_none: 'Cancelacion el dia de la salida: sin reembolso.',
-
-    success: "Pago confirmado!",
-
+    cancel_policy_title: 'Política de cancelación',
+    cancel_policy_full: 'Cancelación gratuita hasta 3 días antes de la salida.',
+    cancel_policy_partial: 'Cancelación entre 1 y 3 días antes de la salida: reembolso del 50%.',
+    cancel_policy_none: 'Cancelación el día de la salida: sin reembolso.',
+    success: '¡Pago confirmado!',
     pawapay_waiting: 'Esperando confirmación en su teléfono...',
     pawapay_success: '¡Pago Mobile Money confirmado!',
     pawapay_failed: 'Pago fallido, por favor inténtelo de nuevo.',
     pawapay_phone_label: 'Número Mobile Money',
     pawapay_phone_placeholder: 'Ej: +221 77 000 00 00',
     pawapay_provider_label: 'Operador',
-    
-    pay_mobile_money: "Pagar con Mobile Money",
-    pay_pawapay: "Confirmar pago Mobile Money",
-
-},
-
-  tracking: {
-
-    title: 'Seguimiento del paquete',
-
-    step_confirmed: 'Reserva confirmada',
-
-    step_waiting: 'Esperando aceptación',
-
-    step_escrow: 'Pago seguro (escrow)',
-
-    step_transit: 'Paquete en tránsito',
-
-    step_delivered: 'Entrega confirmada',
-
-    code_label: 'Código para el transportista',
-
-    code_valid: 'Válido hasta la entrega',
-
-    carrier_notified: 'Transportista notificado',
-
-    today: 'Hoy',
-
+    pay_mobile_money: 'Pagar con Mobile Money',
+    pay_pawapay: 'Confirmar pago Mobile Money',
   },
-
+  tracking: {
+    title: 'Seguimiento del paquete',
+    step_confirmed: 'Reserva confirmada',
+    step_waiting: 'Esperando aceptación',
+    step_escrow: 'Pago seguro (escrow)',
+    step_transit: 'Paquete en tránsito',
+    step_delivered: 'Entrega confirmada',
+    code_label: 'Código para el transportista',
+    code_valid: 'Válido hasta la entrega',
+    carrier_notified: 'Transportista notificado',
+    today: 'Hoy',
+  },
   packages: {
-
     title: 'Mis paquetes',
-
     empty: 'No hay reservas por el momento',
-
     login_required: 'Inicia sesión para ver tus paquetes',
-
     empty_sub: 'Encuentra un viaje y envía tu primer paquete',
-
     booking_count_one: '{n} reserva',
-
     booking_count_many: '{n} reservas',
-
     default_content: 'Paquete',
-
     tab_listings: 'Mis anuncios',
-
     tab_bookings: 'Mis reservas',
-
     filter_all: 'Todos',
-
     cancel_booking: 'Cancelar reserva',
-
-    confirm_cancel: 'Confirmar cancelacion',
-
+    confirm_cancel: 'Confirmar cancelación',
     booking_cancelled: 'Reserva cancelada',
-
     refund_full: 'Reembolso completo',
-
     refund_partial: 'Reembolso parcial (50%)',
-
     refund_none: 'Sin reembolso',
-
-    cancel_reason_placeholder: 'Explique el motivo de su cancelacion...',
+    cancel_reason_placeholder: 'Explique el motivo de su cancelación...',
     pickup_failed_reported: 'Incidente de recogida reportado',
     delivery_failed_reported: 'Incidente de entrega reportado',
     in_transit_sender_title: 'Paquete en tránsito',
-    in_transit_sender_desc: 'El transportista está en camino y gestionando la entrega con el destinatario.',
+    in_transit_sender_desc: 'El transportista está en camino y gentionando la entrega con el destinatario.',
     pickup_failed_btn: 'Fallo en la recogida',
     delivery_failed_btn: 'Fallo en la entrega',
     support_btn: 'Reportar problema',
     incident_reason_placeholder: 'Explica la situación...',
-
     cancel_reason_required: 'Por favor, indique un motivo antes de confirmar.',
     flight_tracking_title: 'Seguimiento del vuelo',
     flight_status_scheduled: 'Programado',
@@ -413,48 +263,36 @@ export const es = {
     section_delivery_rdv: 'Cita de entrega',
     section_handover: 'Entrega al destinatario',
     section_participants: 'Participantes',
-
-    cancel_reason_label: 'Motivo de cancelacion',
-
+    cancel_reason_label: 'Motivo de cancelación',
     pickup_failed_title: 'Reportar paquete no entregado',
-
-    pickup_failed_warning: 'Esta accion notifica al remitente. Se requiere un comentario obligatorio.',
-
-    pickup_failed_placeholder: 'Describa por que no se pudo entregar el paquete...',
-
+    pickup_failed_warning: 'Esta acción notifica al remitente. Se requiere un comentario obligatorio.',
+    pickup_failed_placeholder: 'Describa por qué no se pudo entregar el paquete...',
     pickup_failed_success: 'Reporte enviado al remitente',
-
-    pickup_failed_confirmed: 'Cancelacion confirmada',
-
+    pickup_failed_confirmed: 'Cancelación confirmada',
     confirm_pickup_failed: 'Confirmar no entrega',
-
     dispute_btn: 'Disputar',
-
     dispute_title: 'Disputar la no entrega',
-
-    dispute_placeholder: 'Explique por que esta disputando...',
-
-    dispute_opened: 'Disputa abierta — nuestro equipo revisara la situacion',
-
+    dispute_placeholder: 'Explique por qué está disputando...',
+    dispute_opened: 'Disputa abierta — nuestro equipo revisará la situación',
     dispute_type: 'Tipo de incidente',
-    dispute_stage: 'Cuando ocurrio',
+    dispute_stage: 'Cuándo ocurrió',
     dispute_value: 'Valor declarado (EUR)',
     dispute_value_placeholder: 'Ej: 150',
     dispute_reason_label: 'Motivo (obligatorio)',
     dispute_photos: 'Fotos de prueba',
     dispute_type_pickup: 'No recogido',
     dispute_type_delivery: 'No entregado',
-    dispute_type_damaged: 'Paquete danado',
+    dispute_type_damaged: 'Paquete dañado',
     dispute_type_lost: 'Paquete perdido',
     dispute_type_wrong_content: 'Contenido incorrecto',
     dispute_type_other: 'Otro',
     dispute_stage_pickup: 'En la recogida',
-    dispute_stage_transit: 'En transito',
+    dispute_stage_transit: 'En tránsito',
     dispute_stage_delivery: 'En la entrega',
     dispute_airline: 'Aerolínea',
     dispute_airline_placeholder: 'Seleccione una aerolínea',
-    dispute_airlines: ['Air France','Air Senegal','Royal Air Maroc','Ethiopian Airlines','Kenya Airways','EgyptAir','South African Airways','Air Ivoire','Air Mali','Brussels Airlines','Corsair','Transavia','Turkish Airlines','Emirates','Qatar Airways','Vueling','easyJet','Ryanair','British Airways','Lufthansa','KLM','Iberia','TAP Air Portugal','Swiss','Otro'],
-    reason_required: 'Se requiere una razon',
+    dispute_airlines: ['Air France','Air Sénégal','Royal Air Maroc','Ethiopian Airlines','Kenya Airways','EgyptAir','South African Airways','Air Ivoire','Air Mali','Brussels Airlines','Corsair','Transavia','Turkish Airlines','Emirates','Qatar Airways','Vueling','easyJet','Ryanair','British Airways','Lufthansa','KLM','Iberia','TAP Air Portugal','Swiss','Otro'],
+    reason_required: 'Se requiere una razón',
     meeting_set_success: 'Cita programada con éxito',
     pickup_meeting_propose_btn: 'Proponer cita de recogida',
     pickup_meeting_reschedule_btn: 'Reprogramar cita de recogida',
@@ -494,538 +332,283 @@ export const es = {
     accept: 'Aceptar',
     refuse: 'Rechazar',
     invalid_code: 'El código introducido es incorrecto',
-
   },
-
   profile: {
-
     title: 'Mi perfil',
-
     trust_score: 'Puntuación KiparTrust',
-
     kyc_status: 'Estado KYC',
-
     kyc_verified: '✓ Verificado',
-
     kyc_pending: 'Pendiente',
-
     my_bookings: 'Mis reservas',
-
     logout: 'Cerrar sesión',
-
   },
-
   search: {
-
     title: 'Buscar',
-
     origin_label: 'Origen',
-
     origin_placeholder: 'Ej: CDG, París...',
-
     dest_label: 'Destino',
-
     dest_placeholder: 'Ej: DSS, Dakar...',
-
     search_btn: 'Buscar',
-
     no_results: 'No se han encontrado viajes',
-
     empty_title: 'No hay viajes por el momento',
-
     empty_subtitle: 'Introduce un destino para buscar viajes',
-
     filter_date: 'Fecha',
-
     filter_sort: 'Ordenar por',
-
     sort_price_asc: 'Precio ascendente',
-
     sort_price_desc: 'Precio descendente',
-
     sort_date: 'Fecha de salida',
-
     results_count: 'viaje encontrado',
-
     no_results_sub: 'Prueba con otros criterios de búsqueda',
-
     results_count_plural: 'viajes encontrados',
     show_own_trips: 'Incluir mis viajes',
     hide_own_trips: 'Ocultar mis viajes',
     filter_urgent: 'Urgentes',
     filter_urgent_active: 'Solo urgentes',
-
   },
-
   carrier: {
-
     onboarding_title: 'Conviértete en transportista',
-
     onboarding_sub: 'Rentabiliza tu equipaje transportando paquetes para la comunidad Kipar',
-
     onboarding_btn: 'Activar modo transportista',
-
     onboarding_kyc: 'Se requiere verificación KYC para ser transportista',
-
     dashboard_title: 'Mi espacio de transportista',
-
     my_trips: 'Mis anuncios',
-
     new_trip: 'Nuevo anuncio',
-
     pending_bookings: 'Reservas pendientes',
-
     no_trips: 'No has publicado anuncios',
-
     no_bookings: 'No hay reservas pendientes',
-
     accept: 'Aceptar',
-
     pickup_btn: 'Recogí el paquete',
-
     refuse: 'Rechazar',
-
     trip_form_title: 'Publicar un anuncio',
-
     origin_label: 'Aeropuerto de salida',
-
     dest_label: 'Aeropuerto de destino',
-
     date_label: 'Fecha de salida',
-
     departure_time_label: 'Hora de salida',
-
     arrival_time_label: 'Hora de llegada',
-  arrival_date_label: 'Fecha de llegada',
-  flight_valid: 'Vuelo encontrado',
-  flight_invalid: 'Vuelo no encontrado',
-  flight_invalid_format: 'Formato inválido — ejemplo: AF502, EK1234',
-  flight_not_found_advisory: 'Vuelo no encontrado en nuestra base — verifique el número pero puede continuar',
-
+    arrival_date_label: 'Fecha de llegada',
+    flight_valid: 'Vuelo encontrado',
+    flight_invalid: 'Vuelo no encontrado',
+    flight_invalid_format: 'Formato inválido — ejemplo: AF502, EK1234',
+    flight_not_found_advisory: 'Vuelo no encontrado en nuestra base — verifique el número pero puede continuar',
     flight_label: 'Número de vuelo',
-
     kg_label: 'Kg disponibles',
-
     max_kg_label: 'Máx kg por paquete',
-
     price_label: 'Precio por kg (€)',
-
     step1: 'Activa el modo transportista',
-
     step2: 'Completa tu verificación KYC',
-
     step3: 'Publica tus anuncios de viaje',
-
     no_bookings_sub: 'Las nuevas reservas aparecerán aquí',
-
     no_treated_bookings: 'Sin reservas procesadas',
-
     no_treated_bookings_sub: 'Las reservas aceptadas y rechazadas aparecerán aquí',
-
     no_trips_sub: 'Publica tu primer anuncio',
-
     submit_btn: 'Publicar mi anuncio',
-
     tab_pending: 'Pendientes',
-
     tab_treated: 'Seguimiento',
-
     tab_trips: 'Mis anuncios',
-
     accepted_bookings: 'Aceptadas',
-
     refused_bookings: 'Rechazadas',
-
-
-
     section_departure: 'Salida',
-
     section_destination: 'Destino',
-
     section_flight: 'Vuelo',
-
     section_capacity: 'Capacidad y Precio',
-
     airport_selected: '✓ Seleccionado',
-
     accepts_urgent_label: 'Aceptar paquetes urgentes',
+    small_package_label: 'Aceptar paquetes pequeños (< 1 kg)',
+    small_package_desc: 'Precio fijo para cualquier paquete de menos de 1 kg',
+    small_package_price_label: 'Tu precio por un paquete pequeño (€)',
+    small_package_price_placeholder: 'Entre 5 y 10 €',
+    small_package_price_hint: 'KIPAR añade 5€ de gastos. El remitente pagará entre 10€ y 15€.',
     accepts_urgent_desc: 'Paquetes depositados menos de 36h antes de la salida',
     accepts_urgent_premium: 'Función Premium',
     accepts_urgent_sender_fee: 'Tarifa urgente: 10€ (en lugar de 1,50€)',
     trip_published: '¡Anuncio publicado!',
-
-  trip_delete_confirm: '¿Eliminar este anuncio?',
-
-  weight_unit_label: 'Unidad de peso',
-  currency_label: 'Divisa',
-  trip_deleted: 'Anuncio eliminado',
-  price_suggestion_corridor: 'Precios observados en este corredor:',
-  net_per_unit: 'Neto recibido',
-  price_suggestion_global: 'Precios indicativos de la plataforma:',
-
-
+    trip_delete_confirm: '¿Eliminar este anuncio?',
+    weight_unit_label: 'Unidad de peso',
+    currency_label: 'Divisa',
+    trip_deleted: 'Anuncio eliminado',
+    price_suggestion_corridor: 'Precios observados en este corredor:',
+    net_per_unit: 'Neto recibido',
+    price_suggestion_global: 'Precios indicativos de la plataforma:',
   },
-
   profile_public: {
-
     member_since: 'Miembro desde hace',
-
     months: 'meses',
-
     years: 'años',
-
     year: 'año',
-
     deliveries_as_sender: 'Paquetes enviados',
-
     deliveries_as_carrier: 'Paquetes entregados',
-
     trips_posted: 'Viajes publicados',
-
     reviews_received: 'Valoraciones recibidas',
-
     avg_rating: 'Nota media',
-
     kyc_verified: 'Identidad verificada',
-
     kyc_pending: 'KYC pendiente',
-
     is_carrier_badge: 'Transportista',
-
     is_sender_badge: 'Remitente',
-
     no_reviews: 'Sin valoraciones por ahora',
-
     no_reviews_sub: 'Las valoraciones aparecerán tras las primeras entregas',
-
     reviews_title: 'Valoraciones recibidas',
-
     see_all: 'Ver todas',
-
     load_more: 'Cargar más',
-
     see_less: 'Ver menos',
-
     user_not_found: 'Usuario no encontrado',
-
     loading: 'Cargando perfil...',
-
     back: 'Volver',
-
     no_comment: 'Sin comentarios',
-
   },
-
   profile_edit: {
-
     title: 'Mi cuenta',
-
     subtitle: 'Gestiona tu información y preferencias',
-
     section_info: 'Información personal',
-
     section_preferences: 'Preferencias',
-
     section_security: 'Seguridad',
-
     section_danger: 'Zona de peligro',
-
     field_email: 'Correo electrónico',
-
     field_first_name: 'Nombre',
-
     field_last_name: 'Apellido',
-
     field_phone: 'Teléfono',
-
     field_phone_empty: 'No indicado',
-
     field_member_since: 'Miembro desde',
-
     view_public_profile: 'Ver mi perfil público',
-
     change_photo: 'Cambiar foto',
-
     edit: 'Editar',
-
     save: 'Guardar',
-
     cancel: 'Cancelar',
-
     saving: 'Guardando...',
-
     modal_phone_title: 'Modificar teléfono',
-
     modal_phone_desc: 'Se recomienda formato internacional',
-
     modal_phone_placeholder: '+34 600 000 000',
-
     modal_phone_format: 'Formato aceptado: +34600000000 o 600000000',
-
     error_iban_invalid: 'IBAN inválido',
-
     error_phone_invalid: 'Formato de teléfono inválido',
-
     error_phone_already_used: 'Este número ya está en uso',
-
     success_phone_updated: 'Teléfono actualizado',
-
     success_weight_unit_updated: 'Unidad de peso actualizada',
-
-    weight_unit_active_listings: "No se puede cambiar la unidad de peso: tienes anuncios activos. Elimínalos primero.",
-
+    weight_unit_active_listings: 'No se puede cambiar la unidad de peso: tienes anuncios activos. Elimínalos primero.',
     edit_btn: 'Editar',
-
     add_btn: 'Agregar',
-
     modal_password_title: 'Cambiar contraseña',
-
     modal_password_desc: 'Elige una nueva contraseña segura',
-
     field_old_password: 'Contraseña actual',
-
     field_new_password: 'Nueva contraseña',
-
     field_confirm_password: 'Confirmar nueva contraseña',
-
     password_requirements: 'Mín. 8 caracteres, 1 mayúscula, 1 minúscula, 1 número, 1 carácter especial',
     pwd_hint_length: 'Mín. 8 caracteres',
     pwd_hint_upper: '1 letra mayúscula',
     pwd_hint_lower: '1 letra minúscula',
     pwd_hint_digit: '1 número',
     pwd_hint_special: '1 carácter especial (!@#$...)',
-
     error_password_old_invalid: 'Contraseña actual incorrecta',
-
     error_password_same: 'La nueva contraseña debe ser diferente',
-
     error_password_mismatch: 'Las contraseñas no coinciden',
-
     error_password_weak: 'Contraseña demasiado débil',
-
     success_password_changed: 'Contraseña modificada',
-
     modal_avatar_title: 'Foto de perfil',
-
     modal_avatar_desc: 'JPG, PNG o WebP — Máx 5 MB',
-
     upload_choose: 'Elegir archivo',
-
     upload_uploading: 'Subiendo...',
-
     upload_success: 'Foto actualizada',
-
     upload_error: 'Error al subir la foto',
-
     upload_too_large: 'Archivo demasiado grande (Máx 5 MB)',
-
     upload_wrong_type: 'Formato no soportado (solo JPG, PNG o WebP)',
-
     avatar_remove: 'Eliminar foto',
-
     pref_language: 'Idioma',
-
     pref_language_desc: 'Idioma de la interfaz',
-
     lang_fr: 'Français',
-
     lang_en: 'English',
-
     lang_es: 'Español',
-
     success_language_updated: 'Idioma actualizado',
-
     pref_weight: 'Unidad de peso',
-
     pref_payout: 'Preferencias de pago',
-
     pref_payout_desc: 'Divisa y método de cobro',
-
     pref_currency: 'Divisa',
-
     pref_payment_method: 'Método de pago',
-
     payment_method_iban: 'Transferencia IBAN',
-
     payment_method_mobile: 'Mobile Money',
-
     pref_payment_country: 'País',
-
     pref_iban: 'IBAN',
-
     pref_mobile_money: 'Número Mobile Money',
-
     pref_mobile_money_placeholder: 'Ej: +241 07 00 00 00',
-
     criteria_punctuality: 'Puntualidad',
-
     criteria_communication: 'Comunicación',
-
     criteria_package_care: 'Cuidado del paquete',
-
     criteria_compliance: 'Conformidad',
-
     criteria_package_prepared: 'Paquete bien preparado',
-
     criteria_dropoff_punctuality: 'Puntualidad en la entrega',
-
     criteria_reliability: 'Seriedad',
-
     criteria_availability: 'Disponibilidad',
-
     criteria_delivery_punctuality: 'Puntualidad en la recogida',
-
     criteria_professionalism: 'Profesionalismo',
-
     section_review: 'Dejar una valoración',
-
     review_btn: 'Dejar una valoración',
-
     review_submitted: 'Valoración enviada',
-
     review_already: 'Valoración ya enviada',
-
     review_comment_placeholder: 'Comentario opcional...',
-
     review_submit_btn: 'Enviar valoración',
-
     success_payout_updated: 'Preferencias de pago actualizadas',
-
-    field_username: "Nombre de usuario",
-
-    field_address: "Dirección",
-
-    field_username_hint: "4 a 15 caracteres, letras minúsculas, dígitos, guion bajo",
-
-    username_cooldown: "Próximo cambio disponible el",
-
-    username_taken: "Nombre de usuario ya en uso",
-
-    username_available: "Nombre de usuario disponible",
-
-    username_checking: "Verificando...",
-
-    success_username_updated: "Nombre de usuario actualizado",
-
-    success_name_updated: "Nombre actualizado",
-
-    success_address_updated: "Dirección actualizada",
-
-        currency_EUR: 'Euro',
-
+    field_username: 'Nombre de usuario',
+    field_address: 'Dirección',
+    field_username_hint: '4 a 15 caracteres, letras minúsculas, dígitos, guion bajo',
+    username_cooldown: 'Próximo cambio disponible el',
+    username_taken: 'Nombre de usuario ya en uso',
+    username_available: 'Nombre de usuario disponible',
+    username_checking: 'Verificando...',
+    success_username_updated: 'Nombre de usuario actualizado',
+    success_name_updated: 'Nombre actualizado',
+    success_address_updated: 'Dirección actualizada',
+    currency_EUR: 'Euro',
     currency_GBP: 'Libra esterlina',
-
     currency_USD: 'Dólar estadounidense',
-
     currency_CHF: 'Franco suizo',
-
     currency_CAD: 'Dólar canadiense',
-
     currency_AUD: 'Dólar australiano',
-
     currency_XOF: 'Franco CFA (UEMOA)',
-
     currency_XAF: 'Franco CFA (CEMAC)',
-
     currency_MAD: 'Dírham marroquí',
-
     currency_EGP: 'Libra egipcia',
-
     currency_KES: 'Chelín keniano',
-
     currency_NGN: 'Naira nigeriana',
-
-    currency_GHS: 'Cedi ghaneés',
-
+    currency_GHS: 'Cedi ghanés',
     currency_ZAR: 'Rand sudafricano',
-
     currency_HTG: 'Gourde haitiana',
-
     currency_BRL: 'Real brasileño',
-
     currency_MXN: 'Peso mexicano',
-
     currency_AED: 'Dírham emiratí',
-
     currency_INR: 'Rupia india',
-
     currency_CNY: 'Yuan chino',
-
     pref_weight_desc: 'Unidad utilizada para introducir pesos',
-
     weight_unit_kg: 'kg',
-
     weight_unit_lb: 'lb',
-
     weight_unit_g: 'g',
     weight_unit_kg_long: 'kg — Kilogramo',
     weight_unit_lb_long: 'lb — Libra',
     weight_unit_g_long: 'g — Gramo',
-
-
-
     pref_theme: 'Tema',
-
     pref_theme_desc: 'Apariencia de la aplicación',
-
-    theme_light: 'Claro',
-
+    theme_light: 'Clair',
     theme_dark: 'Oscuro',
-
     theme_auto: 'Automático',
-
     pref_notifications: 'Notificaciones',
-
     notify_by_email: 'Correo electrónico',
-
     notify_by_email_desc: 'Actualizaciones de reservas, facturas, seguridad',
-
     notify_by_push: 'Notificaciones push',
-
     notify_by_push_desc: 'Alertas en tiempo real en este dispositivo',
-
     notify_by_sms: 'SMS',
-
     notify_by_sms_desc: 'Solo para acciones urgentes',
-
     success_notifications_updated: 'Preferencias actualizadas',
-
     kyc_title: 'Verificación de identidad',
-
-    kyc_status_verified: 'Identidad verificada',
-
+    kyc_status_verified: 'Identidad verificado',
     kyc_status_pending: 'KYC pendiente',
-
     kyc_status_unverified: 'No verificada',
-
     kyc_action_verify: 'Verificar mi identidad',
-
-
-
-
-
-
-
-
-
     logout: 'Cerrar sesión',
-
     danger_title: 'Eliminar mi cuenta',
-
     danger_desc: 'Esta acción es definitiva. Tus paquetes entregados e historial de pagos se conservarán (obligación legal) pero tu perfil será anonimizado.',
-
     delete_account: 'Eliminar mi cuenta',
-
     modal_delete_title: 'Confirmar eliminación',
-
     modal_delete_warning: 'Esta acción es irreversible.',
-
     modal_delete_desc: 'Tus datos personales se borrarán y tu cuenta se desactivará. El historial de transacciones se conservará por motivos legales.',
-
     modal_delete_password_label: 'Confirma con tu contraseña',
-
     modal_delete_password_placeholder: 'Contraseña actual',
-
     delete_confirm: 'Eliminar definitivamente',
     pause_account: 'Pausar cuenta',
     modal_delete_choice_title: '¿Qué deseas hacer?',
@@ -1042,401 +625,207 @@ export const es = {
     reactivate_success: 'Cuenta reactivada con éxito',
     reactivate_permanently_deleted: 'Esta cuenta ha sido eliminada permanentemente. Contacta al soporte.',
     reactivate_banned: 'Esta cuenta ha sido baneada. Contacta al soporte.',
-
     error_delete_password_invalid: 'Contraseña incorrecta',
-
     success_account_deleted: 'Cuenta eliminada',
-
   },
-
   errors: {
-
     server_unreachable: 'No se puede conectar con el servidor',
-
-    trip_too_close_normal: 'Un viaje estÃ¡ndar debe crearse al menos 7 dÃ­as antes de la salida',
+    trip_too_close_normal: 'Un viaje estándar debe crearse al menos 7 días antes de la salida',
     trip_too_close_urgent: 'Un viaje urgente debe crearse al menos 72 horas antes de la salida',
     trip_departure_past: 'La fecha de salida ya ha pasado',
     invalid_credentials: 'Credenciales incorrectas',
-
     generic: 'Ha ocurrido un error',
-
   },
-
   package_detail: {
-
     not_found: 'Reserva no encontrada',
-
     section_package: 'Paquete',
-
     section_carrier: 'Transportista',
-
     section_sender: 'Remitente',
-
     section_receiver: 'Receptor',
-
     section_photos: 'Fotos KiparScan',
-
     field_content: 'Contenido',
-
     field_weight: 'Peso',
-
     field_declared_value: 'Valor declarado',
-
     field_amount_paid: 'Monto pagado',
-
     field_insurance: 'Seguro',
-
     insurance_yes: 'Sí',
-
     insurance_no: 'No',
-
     ai_flag_warning: 'Contenido reportado por KiparScan',
-
     role_carrier: 'Transportista',
-
     role_sender: 'Remitente',
-
     role_receiver: 'Receptor',
-
     see_profile: 'Perfil',
-
     kyc_verified: 'KYC Verificado',
     section_flight: 'Vuelo',
     field_route: 'Trayecto',
     field_flight: 'N° de vuelo',
     field_departure: 'Salida',
     field_arrival: 'Llegada estimada',
-
   },
-
   kiparscan: {
-
     btn: 'KiparScan IA',
-
     scanning: 'Analizando...',
-
     result_title: 'Resultado KiparScan',
-
     description: 'Descripción',
-
     weight: 'Peso estimado',
-
     dimensions: 'Dimensiones',
-
     confidence: 'Confianza',
-
     confidence_low: 'Baja',
-
     confidence_medium: 'Media',
-
     confidence_high: 'Alta',
-
     prohibited_flag: 'Contenido potencialmente prohibido',
-
     prohibited_reason: 'Razón',
-
     simulated: 'Simulación (sin clave OpenAI)',
-
     apply_btn: 'Prerrellenar formulario',
-
     error: 'Error en el análisis KiparScan',
-
   },
-
   requests: {
-
     title: 'Anuncios de paquetes',
-
     my_requests: 'Mis anuncios',
-
     new_request: '+ Nuevo anuncio',
-
     empty: 'Sin anuncios por el momento',
-
     empty_sub: 'Publica tu primer anuncio para encontrar un transportista',
-
     post_btn: 'Encontrar transportista',
-
     create_alert_btn: 'Crear una alerta',
-
     form_title: 'Describir mi paquete',
-
     field_content: 'Descripción del paquete',
-
     field_content_placeholder: 'Ropa, libros, medicamentos...',
-
     field_weight: 'Peso (kg)',
-
     field_value: 'Valor declarado (€)',
-
     field_budget: 'Presupuesto máx (€/kg)',
-
     field_deadline: 'Fecha límite',
-
     field_receiver: 'Email o teléfono del receptor',
-
     field_photos: 'Fotos (máx 3)',
-
     submit_btn: 'Publicar mi anuncio',
-
     success_created: '¡Anuncio publicado!',
-
     applications: 'Candidaturas',
-
     other_accepted: 'Otro transportista aceptado',
-
     no_applications: 'Sin candidaturas por el momento',
-
     accept_btn: 'Elegir este transportista',
-
     accepted: 'Transportista elegido',
-
     budget_label: 'Presupuesto',
-
     deadline_label: 'Fecha límite',
-
-    apply_btn: 'Candidater',
-
+    apply_btn: 'Postularse',
     apply_success: '¡Candidatura enviada!',
-
     already_applied: 'Ya candidatado',
-
     price_above_budget: 'El presupuesto máximo del remitente está superado',
-
     carrier_requests: 'Anuncios de remitentes',
-
     no_carrier_requests: 'Sin anuncios disponibles',
-
     no_carrier_requests_sub: 'Los anuncios de remitentes que coincidan con tus viajes aparecerán aquí',
-
     status_open: 'Abierto',
-
     status_matched: 'Asignado',
-
     status_expired: 'Expirado',
-
     status_cancelled: 'Cancelado',
-
     delete_confirm: '¿Eliminar este anuncio?',
-
     deleted: 'Anuncio eliminado',
-
   },
-
   delivery: {
-
     section_code: 'Código de entrega',
-
     code_label: 'Muestra este código al transportista',
-
     qr_label: 'o escanea este código QR',
-
     expires: 'Válido hasta',
-
     generate_hint: '¿Recibiste tu paquete? Genera tu código para confirmar la entrega.',
-
     generate_btn: 'Generar código de entrega',
-
     generating: 'Generando...',
-
     confirm_title: 'Confirmar entrega',
-
     enter_code: 'Código de 6 dígitos',
-
     code_placeholder: '000000',
-
     scan_qr: 'Escanear código QR',
-
     confirm_btn: 'Confirmar entrega',
-
     confirming: 'Confirmando...',
-
     delivered_toast: 'Entrega confirmada',
-
     invalid_code: 'Código inválido',
-
     error_generic: 'Se produjo un error',
-
     status_delivered: 'Entregado ✓',
-
   },
-
   receiver: {
-
     loading: 'Cargando...',
-
-    title: '¡Un paquete está en camino !',
-
+    title: '¡Un paquete está en camino!',
     from: 'De parte de',
-
     route: 'Ruta',
-
     content: 'Contenido',
-
     weight: 'Peso',
-
     value: 'Valor declarado',
-
     expires: 'Enlace válido hasta',
-
     confirm_btn: 'Confirmo la recepción',
-
     refuse_btn: 'Rechazar',
-
     confirming: 'Confirmando...',
-
     refusing: 'Rechazando...',
-
-    confirmed_title: '¡Recepción confirmada !',
-
+    confirmed_title: '¡Recepción confirmada!',
     confirmed_desc: 'Tu cuenta Kipar ha sido creada. Inicia sesión con tu correo y la contraseña temporal a continuación.',
-
     confirmed_existing: '¡Gracias! La reserva está confirmada. Puedes seguir el paquete en tu espacio Kipar.',
-
     temp_password_label: 'Contraseña temporal',
-
     temp_password_note: 'Cámbiala tras tu primer inicio de sesión.',
-
     login_btn: 'Iniciar sesión en Kipar',
-
     refused_title: 'Invitación rechazada',
-
     refused_desc: 'El remitente será notificado y podrá designar otro receptor.',
-
     expired_title: 'Enlace expirado',
-
     expired_desc: 'Este enlace ya no es válido. Contacta al remitente para obtener un nuevo enlace.',
-
     already_title: 'Ya procesado',
-
     already_desc: 'Esta invitación ya fue aceptada o rechazada.',
-
     not_found_title: 'Enlace inválido',
-
     not_found_desc: 'Este enlace de recepción no se encuentra.',
-
     error_generic: 'Se produjo un error. Inténtalo de nuevo.',
-
     insurance_label: 'Seguro',
-
     insurance_yes: 'Incluido',
-
   },
-
   verify: {
-
     email_label: 'Correo electrónico',
-
     phone_label: 'Teléfono',
-
     verified: 'Verificado',
-
     not_verified: 'No verificado',
-
     verify_btn: 'Verificar',
-
     code_sent: 'Código enviado. Revisa tu bandeja de entrada.',
-
     code_sent_phone: 'Código enviado por SMS.',
-
     enter_code: 'Introduce el código de 6 dígitos',
-
     resend: 'Reenviar código',
-
     confirm_btn: 'Confirmar',
-
     sending: 'Enviando...',
-
     confirming: 'Verificando...',
-
     email_verified: 'Correo verificado ✓',
-
     phone_verified: 'Teléfono verificado ✓',
-
     invalid_code: 'Código inválido o expirado',
-
     modal_email_title: 'Verificar tu correo',
-
     modal_phone_title: 'Verificar tu teléfono',
-
     modal_email_desc: 'Se enviará un código de 6 dígitos a tu correo electrónico.',
-
     modal_phone_desc: 'Se enviará un código de 6 dígitos por SMS a tu número.',
-
   },
-
   notifications: {
-
     title: 'Notificaciones',
-
     empty: 'Sin notificaciones',
-
-    mark_all_read: 'Marcar todo como leido',
-
+    mark_all_read: 'Marcar todo como leído',
     trip_match: 'Nuevo viaje disponible',
-
     new_application: 'Nueva candidatura',
-
     just_now: 'Ahora mismo',
-
-  see_all: 'Ver todo',
-
+    see_all: 'Ver todo',
     delete_read: 'Eliminar leídas',
-
   },
-
   chat: {
-
     title: 'Mensajería',
-
     placeholder: 'Tu mensaje...',
-
     readonly_notice: 'Conversación archivada — solo lectura',
-
     send: 'Enviar',
-
     you: 'Tú',
-
     loading: 'Cargando...',
-
     error_connect: 'No se puede conectar al chat',
-
     error_send: 'Error al enviar el mensaje',
-
   },
-
   support: {
-
     section_title: 'Soporte',
-
     chat_label: 'Contactar soporte',
-
     chat_desc: 'Nuestro equipo está disponible para ayudarte',
-
     faq_label: 'FAQ',
-
     faq_desc: 'Consulta nuestras preguntas frecuentes',
-
   },
-
   onboarding: {
-
     step_label: "Paso",
-
-    personal_title: "Tu informacion",
-
+    personal_title: "Tu información",
     personal_subtitle: "Completa tu perfil para empezar",
-
     pref_title: "Tus preferencias",
-
     pref_subtitle: "Personaliza tu experiencia en Kipar",
-
     payment_title: "Tus datos bancarios",
-
     payment_subtitle: "Para recibir pagos como transportista",
-
-    identity_title: "Verificacion de identidad",
-
+    identity_title: "Verificación de identidad",
     identity_subtitle: "Verifica tu identidad en pocos minutos",
     kyc_how_title: "¿Cómo funciona?",
     kyc_step1: "1. Haz clic en Verificar mi identidad",
@@ -1450,161 +839,85 @@ export const es = {
     kyc_check_btn: "He completado la verificación",
     kyc_timeout: "Verificación en curso",
     kyc_timeout_sub: "Recibirás una notificación cuando tu identidad sea confirmada.",
-
     id_front: "Documento identidad anverso",
-
     id_back: "Documento identidad reverso",
-
     selfie: "Selfie con tu documento",
-
     upload_btn: "Haz clic para subir",
-
     done_title: "Perfil completado",
-
     done_subtitle: "Bienvenido a Kipar.",
-
     done_btn: "Ir al panel",
-
     next_btn: "Continuar",
-
-    back_btn: "Atras",
-
+    back_btn: "Atrás",
     finish_btn: "Finalizar",
-
     skip_btn: "Omitir este paso",
-
     field_first_name: "Nombre",
-
     field_last_name: "Apellido",
-
     field_username: "Nombre de usuario",
-
     field_username_hint: "4 a 15 caracteres, letras minúsculas, dígitos, guion bajo",
-
     field_address: "Dirección",
-
-    field_address_hint: "Ingrese su dirección o busquela",
-
+    field_address_hint: "Ingrese su dirección o búsquela",
     username_available: "Nombre de usuario disponible",
-
     username_taken: "Nombre de usuario ya en uso",
-
     username_invalid: "Formato inválido (4-15 car., minúsculas, dígitos, _)",
-
     username_checking: "Verificando...",
-
   },
-
   landing: {
-
     hero_badge: "Transportistas verificados KiparTrust",
-
     hero_title_1: "Cada paquete",
-
     hero_title_2: "merece",
-
     hero_title_3: "un transportista",
-
     hero_title_4: "de confianza.",
-
     hero_tagline: "Envía, Viaja, Comparte.",
-
     hero_desc: "El primer marketplace de transporte de paquetes entre particulares con verificación de identidad y puntuación KiparTrust.",
-
     hero_cta_primary: "Comenzar gratis",
-
     hero_cta_secondary: "Cómo funciona",
-
     stat_carriers: "Transportistas activos",
-
     stat_destinations: "Destinos",
-
     stat_success: "Entregas exitosas",
-
     stat_rating: "Calificación media",
-
     how_tag: "Simple y Rápido",
-
     how_title: "¿Cómo funciona?",
-
     how_step1_title: "Publica tu anuncio",
-
     how_step1_desc: "Describe tu paquete, su peso y destino. Nuestra IA KiparScan analiza tus fotos para validar el contenido.",
-
     how_step2_title: "Elige un transportista",
-
     how_step2_desc: "Navega por los viajeros verificados KiparTrust en tu corredor. Consulta su puntuación de confianza, reseñas y tarifas.",
-
     how_step3_title: "Entrega segura",
-
     how_step3_desc: "El transportista entrega el paquete con un código QR único. El pago se libera solo tras confirmar la recepción.",
-
     role_sender: "Remitente",
-
     role_sender_desc: "Envía tus paquetes con tranquilidad",
-
     role_carrier: "Transportista",
-
     role_carrier_desc: "Rentabiliza tus viajes",
-
     role_receiver: "Receptor",
-
     role_receiver_desc: "Recibe tus paquetes de forma segura",
-
     video_title: "KIPAR en acción",
-
     video_placeholder: "Vídeo de presentación — próximamente",
-
     why_tag: "Nuestra promesa",
-
     why_title: "¿Por qué elegir KIPAR?",
-
     why_trust_title: "KiparTrust",
-
     why_trust_desc: "Nuestro sistema único de puntuación de confianza verifica cada transportista: identidad, historial, reseñas.",
-
     why_scan_title: "KiparScan IA",
-
     why_scan_desc: "Nuestra IA analiza las fotos de tus paquetes para validar el contenido y acelerar la conexión.",
-
     why_globe_title: "50+ destinos",
-
     why_globe_desc: "CDG, ORY, LYS hacia Abiyán, Dakar, Libreville, Lagos, Casablanca y mucho más.",
-
     why_community_title: "Comunidad verificada",
-
     why_community_desc: "Cada miembro es verificado mediante nuestro proceso KYC. Email, teléfono, documento de identidad.",
-
     corridors_title: "Corredores populares",
-
     testimonials_tag: "Confían en nosotros",
-
     testimonials_title: "Lo que dicen de KIPAR",
-
     cta_title_1: "Listo para unirte",
-
     cta_title_2: "a la comunidad",
-
     cta_desc: "Unéte a miles de miembros que confían en KIPAR para sus envíos internacionales.",
-
     cta_primary: "Crear cuenta gratis",
-
     cta_secondary: "Iniciar sesión",
-
     nav_how: "Cómo funciona",
-
     nav_why: "Por qué KIPAR",
-
     nav_testimonials: "Testimonios",
-
     nav_login: "Iniciar sesión",
-
     nav_login_mobile: "Entrar",
-
     mockup_verified: "Verificados",
     footer_rights: "KIPAR. Todos los derechos reservados.",
     footer_privacy: "Privacidad",
-    footer_terms: "CGU",
+    footer_terms: "Terms",
     footer_contact: "Contacto",
     video_play: "Ver el vídeo de presentación",
     testimonial1_name: "Aminata D.",
@@ -1616,9 +929,7 @@ export const es = {
     testimonial3_name: "Marie-Claire N.",
     testimonial3_role: "Remitente, Burdeos",
     testimonial3_text: "La puntuación KiparTrust es una verdadera revolución. Sé exactamente a quién le confío mi paquete antes de entregárselo.",
-
   },
-
   premium: {
     title: 'KIPAR Premium',
     headline: 'Transporta sin límites',
@@ -1672,13 +983,13 @@ export const es = {
     page_title: 'Preguntas Frecuentes',
     page_subtitle: 'Todas las respuestas a sus preguntas sobre KIPAR',
     search_placeholder: 'Buscar una pregunta...',
-    no_results: 'Sin resultados para su busqueda',
-    contact_title: 'No encontro su respuesta?',
-    contact_desc: 'Nuestro equipo esta disponible para ayudarle.',
+    no_results: 'Sin resultados para su búsqueda',
+    contact_title: '¿No encontró su respuesta?',
+    contact_desc: 'Nuestro equipo está disponible para ayudarle.',
     contact_btn: 'Contactar soporte',
     categories: {
       general: 'General',
-      inscription: 'Registro y Verificacion',
+      inscription: 'Registro y Verificación',
       expediteur: 'Remitente',
       transporteur: 'Transportista',
       recepteur: 'Receptor',
@@ -1687,67 +998,65 @@ export const es = {
       colis: 'Paquetes y Contenido',
       compte: 'Cuenta y Perfil',
     },
-    q_what_is_kipar: 'Que es KIPAR?',
-    a_what_is_kipar: 'KIPAR es una plataforma que conecta a personas que desean enviar paquetes internacionalmente con viajeros que tienen espacio disponible en su equipaje. Usted envia a menor costo, el viajero rentabiliza su viaje.',
-    q_how_works: 'Como funciona KIPAR?',
-    a_how_works: 'En 4 pasos simples: (1) El remitente busca un viaje que coincida con su destino. (2) Envia una solicitud de reserva con los detalles de su paquete. (3) El transportista acepta y el pago es asegurado por KIPAR. (4) El paquete es entregado, transportado y entregado al destinatario.',
-    q_countries: 'Esta KIPAR disponible en mi pais?',
-    a_countries: 'KIPAR esta disponible actualmente en todas las rutas aereas internacionales. Nos dirigimos principalmente a las rutas entre Europa y el Africa subsahariana francofona. Si su pais aun no esta bien atendido, registrese.',
-    q_legal: 'Es legal usar KIPAR?',
-    a_legal: 'Si. El transporte de paquetes por particulares durante viajes aereos es legal en la gran mayoria de los paises. Cada usuario es responsable de cumplir con las regulaciones aduaneras de su pais de destino. KIPAR prohibe estrictamente el transporte de articulos prohibidos.',
-    q_kyc_why: 'Por que debo verificar mi identidad?',
-    a_kyc_why: 'La verificacion de identidad (KYC) es obligatoria para garantizar la seguridad de todos los usuarios. Nos permite combatir el fraude, asegurar los pagos y responsabilizar a cada usuario. Sin KYC aprobado, no puede crear un viaje ni realizar una reserva.',
-    q_kyc_docs: 'Que documentos se necesitan para el KYC?',
-    a_kyc_docs: 'Un documento de identidad oficial (pasaporte, cedula de identidad o permiso de residencia) por ambos lados y una selfie. El proceso generalmente toma menos de 5 minutos.',
-    q_kyc_time: 'Cuanto tiempo toma la verificacion?',
-    a_kyc_time: 'La verificacion generalmente es instantanea o toma unos minutos. En algunos casos, puede ser necesaria una verificacion manual — esta se realiza en 24 horas.',
-    q_kyc_rejected: 'Mi KYC fue rechazado — que hacer?',
-    a_kyc_rejected: 'Si su KYC es rechazado, verifique que sus documentos sean legibles, no esten vencidos y que la selfie sea claramente visible. Puede reiniciar el proceso desde su perfil. Si el problema persiste, contactenos en contact@kipar.app.',
-    q_sender_how: 'Como enviar un paquete con KIPAR?',
-    a_sender_how: 'Cree su cuenta y complete su KYC. Luego busque un viaje que coincida con su destino, especificando el peso de su paquete. Seleccione un transportista, envie su solicitud de reserva y proceda al pago.',
-    q_sender_handover: 'Como se realiza la entrega del paquete?',
-    a_sender_handover: 'Despues de la aceptacion y el pago, acuerda una reunion con el transportista para entregar su paquete. La entrega se valida mediante un codigo QR o codigo numerico. Este paso activa el inicio del seguimiento.',
-    q_sender_lost: 'Que pasa si mi paquete no llega?',
-    a_sender_lost: 'Si la entrega falla o su paquete no llega, puede abrir una disputa desde su cuenta dentro de las 72 horas posteriores al incidente. Adjunte fotos y cualquier evidencia util. Nuestro equipo analiza el caso y toma una decision en 72 horas.',
-    q_sender_cancel: 'Puedo cancelar mi reserva?',
-    a_sender_cancel: 'Si, bajo ciertas condiciones. Si cancela con mas de 72 horas de antelacion, recibe un reembolso completo (excluyendo las tasas de gestion). Entre 0 y 72 horas antes de la salida, el reembolso es del 50%. El dia de la salida, no es posible ningun reembolso.',
-    q_carrier_publish: 'Como publicar un viaje?',
+    q_what_is_kipar: '¿Qué es KIPAR?',
+    a_what_is_kipar: 'KIPAR es una plataforma que conecta a personas que desean enviar paquetes internacionalmente con viajeros que tienen espacio disponible en su equipaje. Usted envía a menor costo, el viajero rentabiliza su viaje.',
+    q_how_works: '¿Cómo funciona KIPAR?',
+    a_how_works: 'En 4 pasos simples: (1) El remitente busca un viaje que coincida con su destino. (2) Envía una solicitud de reserva con los detalles de su paquete. (3) El transportista acepta y el pago es asegurado por KIPAR. (4) El paquete es entregado, transportado y entregado al destinatario.',
+    q_countries: '¿Está KIPAR disponible en mi país?',
+    a_countries: 'KIPAR está disponible actualmente en todas las rutas aéreas internacionales. Nos dirigimos principalmente a las rutas entre Europa y el África subsahariana francófona. Si su país aún no está bien atendido, regístrese.',
+    q_legal: '¿Es legal usar KIPAR?',
+    a_legal: 'Sí. El transporte de paquetes por particulares durante viajes aéreos es legal en la gran mayoría de los países. Cada usuario es responsable de cumplir con las regulaciones aduaneras de su país de destino. KIPAR prohíbe estrictamente el transporte de artículos prohibidos.',
+    q_kyc_why: '¿Por qué debo verificar mi identidad?',
+    a_kyc_why: 'La verificación de identidad (KYC) es obligatoria para garantizar la seguridad de todos los usuarios. Nos permite combatir el fraude, asegurar los pagos y responsabilizar a cada usuario. Sin KYC aprobado, no puede crear un viaje ni realizar una reserva.',
+    q_kyc_docs: '¿Qué documentos se necesitan para el KYC?',
+    a_kyc_docs: 'Un documento de identidad oficial (pasaporte, cédula de identidad o permiso de residencia) por ambos lados y una selfie. El proceso generalmente toma menos de 5 minutos.',
+    q_kyc_time: '¿Cuánto tiempo toma la verificación?',
+    a_kyc_time: 'La verificación generalmente es instantánea o toma unos minutos. En algunos casos, puede ser necesaria una verificación manual — esta se realiza en 24 horas.',
+    q_kyc_rejected: 'Mi KYC fue rechazado — ¿qué hacer?',
+    a_kyc_rejected: 'Si su KYC es rechazado, verifique que sus documentos sean legibles, no estén vencidos y que la selfie sea claramente visible. Puede reiniciar el proceso desde su perfil. Si el problema persiste, contáctenos en contact@kipar.app.',
+    q_sender_how: '¿Cómo enviar un paquete con KIPAR?',
+    a_sender_how: 'Cree su cuenta y complete su KYC. Luego busque un viaje que coincida con su destino, especificando el peso de su paquete. Seleccione un transportista, envíe su solicitud de reserva y proceda al pago.',
+    q_sender_handover: '¿Cómo se realiza la entrega del paquete?',
+    a_sender_handover: 'Después de la aceptación y el pago, acuerda una reunión con el transportista para entregar su paquete. La entrega se valida mediante un código QR o código numérico. Este paso activa el inicio del seguimiento.',
+    q_sender_lost: '¿Qué pasa si mi paquete no llega?',
+    a_sender_lost: 'Si la entrega falla o su paquete no llega, puede abrir una disputa desde su cuenta dentro de las 72 horas posteriores al incidente. Adjunte fotos y cualquier evidencia útil. Nuestro equipo analiza el caso y toma una decisión en 72 horas.',
+    q_sender_cancel: '¿Puedo cancelar mi reserva?',
+    a_sender_cancel: 'Sí, bajo ciertas condiciones. Si cancela con más de 72 horas de antelación, recibe un reembolso completo (excluyendo las tasas de gestión). Entre 0 y 72 horas antes de la salida, el reembolso es del 50%. El día de la salida, no es posible ningún reembolso.',
+    q_carrier_publish: '¿Cómo publicar un viaje?',
     a_carrier_publish: 'Desde su espacio de transportista, haga clic en Nuevo viaje. Ingrese su aeropuerto de salida, llegada, fecha de vuelo, horarios de salida y llegada, peso disponible y su precio por kilogramo. Su viaje es inmediatamente visible para los remitentes.',
-    q_carrier_payment: 'Cuando recibo mi pago?',
-    a_carrier_payment: 'El pago se le transfiere tan pronto como se confirma la entrega via el codigo de entrega o codigo QR en posesion del destinatario. Si el destinatario no esta disponible, puede enviar fotos de la entrega junto con su identificacion. Los fondos se liberan en 1 a 3 dias habiles.',
-    q_carrier_refuse: 'Puedo rechazar una reserva?',
-    a_carrier_refuse: 'Si, puede rechazar una solicitud de reserva antes de aceptarla. Una vez aceptada, una cancelacion de su parte esta sujeta a cargos (5% del monto, minimo 5 EUR) a menos que KIPAR reconozca fuerza mayor.',
-    q_carrier_prohibited: 'Que paquetes puedo rechazar transportar?',
-    a_carrier_prohibited: 'Puede rechazar cualquier paquete cuyo contenido le parezca sospechoso o no declarado. Nunca esta obligado a aceptar un paquete. KIPAR recomienda inspeccionar visualmente el paquete en la entrega y usar KiparScan para detectar contenido prohibido.',
-    q_receiver_how: 'Como recepcionar un paquete?',
-    a_receiver_how: 'Recibe un enlace por correo electronico o SMS del remitente. Este enlace le permite confirmar sus datos y seguir su paquete. El transportista le enviara una propuesta de cita directamente a traves de la aplicacion. En la entrega, proporciona su codigo de entrega o codigo QR para validar la recepcion.',
-    q_receiver_noshow: 'Que hacer si el transportista no se presenta?',
-    a_receiver_noshow: 'Si el transportista no se presenta a la cita de entrega, reportelo inmediatamente a traves de la aplicacion. El remitente puede abrir una disputa. Nuestro equipo interviene para resolver la situacion.',
-    q_payment_methods: 'Que metodos de pago se aceptan?',
-    a_payment_methods: 'KIPAR acepta tarjetas bancarias (Visa, Mastercard) a traves de Stripe para pagos desde Europa. Para Africa, admitimos pagos de dinero movil a traves de PawaPay (Orange Money, MTN Mobile Money, Airtel Money y otros segun el pais).',
-    q_escrow: 'Como funciona el escrow de KIPAR?',
-    a_escrow: 'Cuando paga una reserva, su dinero es asegurado por KIPAR. Los fondos nunca se pagan directamente al transportista antes de la entrega confirmada. Si surge una disputa, los fondos permanecen bloqueados hasta la resolucion.',
-    q_fees: 'Cuanto cuesta KIPAR?',
-    a_fees: 'KIPAR cobra una comision del 15% sobre el monto pagado por el remitente y el 2% sobre el monto recibido por el transportista. Se aplican tarifas de gestion de 1,50 EUR a cada reserva confirmada. Para reservas urgentes, se aplican cargos adicionales de 10 EUR.',
-    q_trust: 'Como protege KIPAR mi dinero?',
-    a_trust: 'Su pago se asegura inmediatamente en escrow al confirmar la reserva. Los fondos nunca se pagan directamente al transportista antes de la entrega confirmada. KIPAR nunca retiene sus datos bancarios — son gestionados por Stripe (certificado PCI DSS) o PawaPay.',
-    q_kiparscore: 'Que es la puntuacion KiparTrust?',
-    a_kiparscore: "KiparTrust es nuestra puntuacion de confianza — refleja la fiabilidad de un usuario en la plataforma. Se calcula a partir de su KYC, entregas exitosas, resenas recibidas y su historial. Cuanto mayor sea su puntuacion, mas confianza inspira en otros usuarios.",
-    q_dispute: 'Que hacer en caso de disputa?',
-    a_dispute: 'En caso de problema (paquete danado, no entregado, contenido incorrecto...), abra una disputa desde su cuenta dentro de las 72 horas posteriores al incidente. Adjunte fotos y cualquier evidencia util. Nuestro equipo analiza el caso y toma una decision en 72 horas.',
-    q_allowed: 'Que paquetes estan permitidos?',
-    a_allowed: 'KIPAR es una plataforma de conexion entre particulares. Como tal, KIPAR no inspecciona, controla ni esta en posesion de los paquetes transportados. Cada usuario es el unico responsable del contenido que declara y transporta. Estan formalmente excluidos: armas y municiones, drogas, medicamentos no declarados, efectivo, falsificaciones, animales vivos, materiales peligrosos y explosivos. KIPAR declina toda responsabilidad por el transporte de contenido ilicito.',
-    q_weight: 'Hay un limite de peso?',
-    a_weight: 'El limite de peso depende del transportista — cada viajero define el peso disponible en su viaje. En la practica, la mayoria de los viajes aceptan entre 1 y 20 kg.',
-    q_insurance: 'El seguro de transito es obligatorio?',
-    a_insurance: 'No, el seguro de transito es opcional. Se ofrece al crear la reserva y cubre el valor declarado de su paquete en caso de perdida o dano. Recomendamos contratarlo para paquetes de valor.',
-    q_profile: 'Como editar mi perfil?',
-    a_profile: 'Desde su espacio de perfil, puede modificar su foto, numero de telefono y preferencias. Su correo electronico e identidad KYC no pueden modificarse directamente — contactenos en contact@kipar.app si es necesario.',
-    q_delete: 'Como eliminar mi cuenta?',
-    a_delete: 'Puede eliminar su cuenta directamente desde su perfil en la aplicacion. La eliminacion es permanente. Los datos relacionados con transacciones en curso u obligaciones legales se conservan durante el periodo requerido por la ley.',
-    q_contact: 'Mi pregunta no esta en la FAQ — como contactarles?',
-    a_contact: 'Nuestro equipo esta disponible por correo electronico en contact@kipar.app y a traves del chat en vivo en el sitio web. Generalmente respondemos en 24 horas.',
+    q_carrier_payment: '¿Cuándo recibo mi pago?',
+    a_carrier_payment: 'El pago se le transfiere tan pronto como se confirma la entrega vía el código de entrega o código QR en posesión del destinatario. Si el destinatario no está disponible, puede enviar fotos de la entrega junto con su identificación. Los fondos se liberan en 1 a 3 días hábiles.',
+    q_carrier_refuse: '¿Puedo rechazar una reserva?',
+    a_carrier_refuse: 'Sí, puede rechazar una solicitud de reserva antes de aceptarla. Once aceptada, una cancelación de su parte está sujeta a cargos (5% del monto, mínimo 5 EUR) a menos que KIPAR reconozca fuerza mayor.',
+    q_carrier_prohibited: '¿Qué paquetes puedo rechazar transportar?',
+    a_carrier_prohibited: 'Puede rechazar cualquier paquete cuyo contenido le parezca sospechoso o no declarado. Nunca está obligado a aceptar un paquete. KIPAR recomienda inspeccionar visualmente el paquete en la entrega y usar KiparScan para detectar contenido prohibido.',
+    q_receiver_how: '¿Cómo recepcionar un paquete?',
+    a_receiver_how: 'Recibe un enlace por correo electrónico o SMS del remitente. Este enlace le permite confirmar sus datos y seguir su paquete. El transportista le enviará una propuesta de cita directamente a través de la aplicación. En la entrega, proporciona su código de entrega o código QR para validar la recepción.',
+    q_receiver_noshow: '¿Qué hacer si el transportista no se presenta?',
+    a_receiver_noshow: 'Si el transportista no se presenta a la cita de entrega, repórtelo inmediatamente a través de la aplicación. El remitente puede abrir una disputa. Nuestro equipo interviene para resolver la situación.',
+    q_payment_methods: '¿Qué métodos de pago se aceptan?',
+    a_payment_methods: 'KIPAR acepta tarjetas bancarias (Visa, Mastercard) a través de Stripe para pagos desde Europa. Para África, admitimos pagos de dinero móvil a través de PawaPay (Orange Money, MTN Mobile Money, Airtel Money y otros según el país).',
+    q_escrow: '¿Cómo funciona el escrow de KIPAR?',
+    a_escrow: 'Cuando paga una reserva, su dinero es asegurado por KIPAR. Los fondos nunca se pagan directamente al transportista antes de la entrega confirmada. Si surge una disputa, los fondos permanecen bloqueados hasta la resolución.',
+    q_fees: '¿Cuánto cuesta KIPAR?',
+    a_fees: 'KIPAR cobra una comisión del 15% sobre el monto pagado por el remitente y el 2% sobre el monto recibido por el transportista. Se aplican tarifas de gestión de 1,50 EUR a cada reserva confirmada. Para reservas urgentes, se aplican cargos adicionales de 10 EUR.',
+    q_trust: '¿Cómo protege KIPAR mi dinero?',
+    a_trust: 'Su pago se asegura inmediatamente en escrow al confirmar la reserva. Los fondos nunca se pagan directamente al transportista antes de la entrega confirmada. KIPAR nunca retiene sus datos bancarios — son gersiónados por Stripe (certificado PCI DSS) o PawaPay.',
+    q_kiparscore: '¿Qué es la puntuación KiparTrust?',
+    a_kiparscore: 'KiparTrust es nuestra puntuación de confianza — refleja la fiabilidad de un usuario en la plataforma. Se calcula a partir de su KYC, entregas exitosas, reseñas recibidas y su historial. Cuanto mayor sea su puntuación, más confianza inspira en otros usuarios.',
+    q_dispute: '¿Qué hacer en caso de disputa?',
+    a_dispute: 'En caso de problema (paquete dañado, no entregado, contenido incorrecto...), abra una disputa desde su cuenta dentro de las 72 horas posteriores al incidente. Adjunte fotos y cualquier evidencia útil. Nuestro equipo analiza el caso y toma una decisión en 72 horas.',
+    q_allowed: '¿Qué paquetes están permitidos?',
+    a_allowed: 'KIPAR es una plataforma de conexión entre particulares. Como tal, KIPAR no inspecciona, controla ni está en posesión de los paquetes transportados. Cada usuario es el único responsable del contenido que declara y transporta. Están formalmente excluidos: armas y municiones, drogas, medicamentos no declarados, efectivo, falsificaciones, animales vivos, materiales peligrosos y explosivos. KIPAR declina toda responsabilidad por el transporte de contenido ilícito.',
+    q_weight: '¿Hay un límite de peso?',
+    a_weight: 'El límite de peso depende del transportista — cada viajero define el peso disponible en su viaje. En la práctica, la mayoría de los viajes aceptan entre 1 y 20 kg.',
+    q_insurance: '¿El seguro de tránsito es obligatorio?',
+    a_insurance: 'No, el seguro de tránsito es opcional. Se ofrece al crear la reserva y cubre el valor declarado de su paquete en caso de pérdida o daño. Recomendamos contratarlo para paquetes de valor.',
+    q_profile: '¿Cómo editar mi perfil?',
+    a_profile: 'Desde su espacio de perfil, puede modificar su foto, número de teléfono y preferencias. Su correo electrónico e identidad KYC no pueden modificarse directamente — contáctenos en contact@kipar.app si es necesario.',
+    q_delete: '¿Cómo eliminar mi cuenta?',
+    a_delete: 'Puede eliminar su cuenta directamente desde su perfil en la aplicación. La eliminación es permanente. Los datos relacionados con transacciones en curso u obligaciones legales se conservan durante el periodo requerido por la ley.',
+    q_contact: 'Mi pregunta no está en la FAQ — ¿cómo contactarles?',
+    a_contact: 'Nuestro equipo está disponible por correo electrónico en contact@kipar.app y a través del chat en vivo en el sitio web. Generalmente respondemos en 24 horas.',
   },
-
 }
-

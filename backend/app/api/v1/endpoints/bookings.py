@@ -137,9 +137,17 @@ async def create_booking(
     if hours_until_dep <= 5:
         raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
 
-    flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
-    base_amount = payload.weight_kg * trip.price_per_kg
-    amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
+    # Calcul prix selon type de colis
+    is_small = payload.weight_kg < settings.SMALL_PACKAGE_MAX_KG
+    if is_small and trip.small_package_price is not None:
+        # Petit colis : forfait fixe (prix transporteur + part KIPAR)
+        flat_fee = settings.SMALL_PACKAGE_KIPAR_FEE
+        base_amount = trip.small_package_price  # Part transporteur
+        amount = round(trip.small_package_price + settings.SMALL_PACKAGE_KIPAR_FEE, 2)
+    else:
+        flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
+        base_amount = payload.weight_kg * trip.price_per_kg
+        amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
     package = Package(
         sender_id=current_user.id,
         weight_kg=payload.weight_kg,

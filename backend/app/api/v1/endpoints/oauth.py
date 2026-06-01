@@ -51,10 +51,19 @@ async def _oauth_login_or_register(
     is_new_user = False
 
     if user:
+        # Verifications securite - memes guards que le login classique
+        if user.is_permanently_deleted:
+            raise HTTPException(status_code=403, detail=t("errors.account_deleted", lang))
+        if user.is_banned:
+            raise HTTPException(status_code=403, detail=t("errors.account_banned", lang))
+        if user.deleted_at is not None:
+            raise HTTPException(status_code=403, detail="compte_supprime")
+        # Lier le provider si pas encore fait
         if provider == "google" and not user.google_id:
             user.google_id = provider_id
         elif provider == "apple" and not user.apple_id:
             user.apple_id = provider_id
+        await db.commit()
     else:
         is_new_user = True
         user = User(

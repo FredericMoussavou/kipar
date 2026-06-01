@@ -114,8 +114,11 @@ export default function BookPage() {
   const weight = parseFloat(watch('weight_kg') || '0') || 0
   const value = parseFloat(watch('declared_value') || '0') || 0
   const pricePerKg = trip?.price_per_kg || 0
-  const transport = weight * pricePerKg
-  const senderFee = transport * 0.15
+  const SMALL_PACKAGE_MAX_KG = 1.0
+  const SMALL_PACKAGE_KIPAR_FEE = 5.0
+  const isSmallPackage = weight > 0 && weight < SMALL_PACKAGE_MAX_KG && !!trip?.small_package_price
+  const transport = isSmallPackage ? (trip?.small_package_price || 0) : weight * pricePerKg
+  const senderFee = isSmallPackage ? SMALL_PACKAGE_KIPAR_FEE : transport * 0.15
   const hoursUntilDep = trip?.departure_date
     ? (new Date(trip.departure_date).getTime() - Date.now()) / 3600000
     : Infinity
@@ -447,6 +450,11 @@ export default function BookPage() {
               <span>{value}</span>
             </div>
           ))}
+          {isSmallPackage && (
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 12px', marginTop: 10 }}>
+              <p style={{ fontSize: 11, color: '#92400E', margin: 0, lineHeight: 1.5 }}>{t.booking.small_package_disclaimer}</p>
+            </div>
+          )}
           <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 10, marginTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
             <span>{t.booking.total}</span>
             <span>{total > 0 ? `${total.toFixed(2)}€` : '—'}</span>

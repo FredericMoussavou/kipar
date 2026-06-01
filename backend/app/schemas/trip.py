@@ -17,6 +17,7 @@ class TripCreate(BaseModel):
     total_kg: float
     max_kg_per_package: float = 5.0
     price_per_kg: float
+    small_package_price: float | None = None
     weight_unit: str = "kg"
     currency: str = "EUR"
     accepts_urgent: bool = False
@@ -61,6 +62,7 @@ class TripResponse(BaseModel):
     remaining_kg: float
     max_kg_per_package: float
     price_per_kg: float
+    small_package_price: float | None = None
     status: str
     trust_score: float | None = None
     carrier_full_name: str | None = None

@@ -101,6 +101,10 @@ async def create_trip(
         if hours_until2 < 7 * 24:
             raise HTTPException(status_code=400, detail=t("errors.trip_too_close_normal", lang))
 
+    # Validation : au moins price_per_kg ou small_package_price requis
+    if payload.price_per_kg is None and payload.small_package_price is None:
+        raise HTTPException(status_code=400, detail=t("errors.trip_price_required", lang))
+
     # Validation small_package_price
     if payload.small_package_price is not None:
         if payload.small_package_price < settings.SMALL_PACKAGE_CARRIER_MIN:
@@ -123,7 +127,7 @@ async def create_trip(
         total_kg=payload.total_kg,
         remaining_kg=payload.total_kg,
         max_kg_per_package=payload.max_kg_per_package,
-        price_per_kg=payload.price_per_kg,
+        price_per_kg=payload.price_per_kg or 0.0,
         small_package_price=payload.small_package_price,
         weight_unit=payload.weight_unit if hasattr(payload, "weight_unit") else "kg",
         currency=payload.currency if hasattr(payload, "currency") else "EUR",

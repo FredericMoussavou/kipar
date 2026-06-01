@@ -34,7 +34,7 @@ const schema = z.object({
   flight_number: z.string().optional(),
   total_kg: z.string(),
   max_kg_per_package: z.string(),
-  price_per_kg: z.string(),
+  price_per_kg: z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -153,7 +153,7 @@ export default function NewTripPage() {
         ...data,
         total_kg: parseFloat(data.total_kg),
         max_kg_per_package: parseFloat(data.max_kg_per_package),
-        price_per_kg: parseFloat(data.price_per_kg),
+        price_per_kg: data.price_per_kg ? parseFloat(data.price_per_kg) : null,
         weight_unit: weightUnit,
         currency: tripCurrency,
         accepts_urgent: acceptsUrgent,

@@ -22,6 +22,7 @@ interface Trip {
   remaining_kg: number
   max_kg_per_package: number
   price_per_kg: number
+  small_package_price?: number | null
   weight_unit?: string
   currency?: string
   trust_score?: number
@@ -84,6 +85,11 @@ export default function TripCard({ trip, onClick, className }: {
                 return <span style={{ fontSize: 12, fontWeight: 400, color: TAUPE }}> ≃ {Math.ceil(converted)} {userCurrency}/{userUnit}</span>
               })()}
             </p>
+            {trip.small_package_price != null && (
+              <p style={{ fontSize: 11, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', margin: '4px 0 0', display: 'inline-block', fontWeight: 600 }}>
+                📦 Petit colis : {trip.small_package_price + 5}€
+              </p>
+            )}
           </div>
         </div>
       </div>

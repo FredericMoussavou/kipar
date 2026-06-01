@@ -16,7 +16,7 @@ class TripCreate(BaseModel):
     airline: str | None = None
     total_kg: float
     max_kg_per_package: float = 5.0
-    price_per_kg: float
+    price_per_kg: float | None = None
     small_package_price: float | None = None
     weight_unit: str = "kg"
     currency: str = "EUR"
@@ -30,7 +30,7 @@ class TripCreate(BaseModel):
             raise ValueError(f"IATA_INVALID:{code}")
         return code
 
-    @field_validator("total_kg", "max_kg_per_package", "price_per_kg")
+    @field_validator("total_kg", "max_kg_per_package")
     @classmethod
     def positive_values(cls, v: float) -> float:
         if v <= 0:

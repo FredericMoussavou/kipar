@@ -31,10 +31,10 @@ class Trip(Base):
     airline: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Capacité
-    total_kg: Mapped[float] = mapped_column(Float)
-    remaining_kg: Mapped[float] = mapped_column(Float)
+    total_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    remaining_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
     max_kg_per_package: Mapped[float] = mapped_column(Float, default=5.0)
-    price_per_kg: Mapped[float] = mapped_column(Float)
+    price_per_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
     small_package_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     weight_unit: Mapped[str] = mapped_column(String(5), default="kg")  # kg | lb
     currency: Mapped[str] = mapped_column(String(5), default="EUR")  # ISO 4217
@@ -59,3 +59,10 @@ class Trip(Base):
     # Relations
     carrier: Mapped["User"] = relationship("User", foreign_keys=[carrier_id])
     bookings: Mapped[list["Booking"]] = relationship("Booking", back_populates="trip")
+    @property
+    def has_kg_capacity(self) -> bool:
+        return self.price_per_kg is not None and self.total_kg is not None
+
+    @property
+    def has_small_package(self) -> bool:
+        return self.small_package_price is not None

@@ -125,7 +125,7 @@ export default function TripDetailPage() {
               </div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}><CurrencyDisplay amount={trip.price_per_kg} currency={trip.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} perUnit={trip.weight_unit ?? 'kg'} /></p>
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, lineHeight: 1 }}>{trip.price_per_kg != null ? <CurrencyDisplay amount={trip.price_per_kg} currency={trip.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} perUnit={trip.weight_unit ?? 'kg'} /> : t.trip.small_package_only}</p>
               <p style={{ fontSize: 11, color: TAUPE }}>{t.trip.price_per_kg}</p>
             </div>
           </div>
@@ -151,9 +151,10 @@ export default function TripDetailPage() {
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {[
-            { label: t.trip.available_kg, value: <WeightDisplay value={trip.remaining_kg} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> },
-            { label: t.trip.max_per_package, value: <WeightDisplay value={trip.max_kg_per_package} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> },
+{[
+            ...(trip.remaining_kg != null ? [{ label: t.trip.available_kg, value: <WeightDisplay value={trip.remaining_kg} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> }] : []),
+            ...(trip.max_kg_per_package != null && trip.price_per_kg != null ? [{ label: t.trip.max_per_package, value: <WeightDisplay value={trip.max_kg_per_package} unit={trip.weight_unit ?? 'kg'} userUnit={user?.weight_unit as any} /> }] : []),
+            ...(trip.small_package_price != null ? [{ label: t.trip.small_package_label, value: `${trip.small_package_price + 5}€` }] : []),
             { label: t.trip.departure, value: trip.departure_date?.slice(5) || '—' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>

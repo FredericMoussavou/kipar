@@ -19,9 +19,9 @@ interface Trip {
   departure_time?: string | null
   arrival_time?: string | null
   flight_number: string | null
-  remaining_kg: number
-  max_kg_per_package: number
-  price_per_kg: number
+  remaining_kg: number | null
+  max_kg_per_package: number | null
+  price_per_kg: number | null
   small_package_price?: number | null
   weight_unit?: string
   currency?: string
@@ -77,14 +77,20 @@ export default function TripCard({ trip, onClick, className }: {
         {/* Prix */}
         <div style={{ textAlign: 'right' }}>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: CHARCOAL, lineHeight: 1, margin: 0 }}>
-              {trip.price_per_kg} {tripCurrency}/{tripUnit}
-              {tripCurrency !== userCurrency && rates && (() => {
-                const inEur = tripCurrency === 'EUR' ? trip.price_per_kg : trip.price_per_kg / (rates[tripCurrency] ?? 1)
-                const converted = userCurrency === 'EUR' ? inEur : inEur * (rates[userCurrency] ?? 1)
-                return <span style={{ fontSize: 12, fontWeight: 400, color: TAUPE }}> ≃ {Math.ceil(converted)} {userCurrency}/{userUnit}</span>
-              })()}
-            </p>
+            {trip.price_per_kg != null ? (
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: CHARCOAL, lineHeight: 1, margin: 0 }}>
+                {trip.price_per_kg} {tripCurrency}/{tripUnit}
+                {tripCurrency !== userCurrency && rates && (() => {
+                  const inEur = tripCurrency === 'EUR' ? trip.price_per_kg! : trip.price_per_kg! / (rates[tripCurrency] ?? 1)
+                  const converted = userCurrency === 'EUR' ? inEur : inEur * (rates[userCurrency] ?? 1)
+                  return <span style={{ fontSize: 12, fontWeight: 400, color: TAUPE }}> ≃ {Math.ceil(converted)} {userCurrency}/{userUnit}</span>
+                })()}
+              </p>
+            ) : (
+              <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 13, fontWeight: 700, color: '#92400E', lineHeight: 1, margin: 0 }}>
+                {t.trip.small_package_only}
+              </p>
+            )}
             {trip.small_package_price != null && (
               <p style={{ fontSize: 11, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', margin: '4px 0 0', display: 'inline-block', fontWeight: 600 }}>
                 📦 Petit colis : {trip.small_package_price + 5}€
@@ -129,12 +135,18 @@ export default function TripCard({ trip, onClick, className }: {
             ⚡ Urgent
           </span>
         )}
-        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
-          <WeightDisplay value={trip.remaining_kg} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} /> {t.trip.available_kg}
-        </span>
-        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 500 }}>
-          max <WeightDisplay value={trip.max_kg_per_package} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} />
-        </span>
+        {trip.remaining_kg != null && (
+          <>
+            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 600 }}>
+              <WeightDisplay value={trip.remaining_kg} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} /> {t.trip.available_kg}
+            </span>
+            {trip.max_kg_per_package != null && (
+              <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: SAND, color: CHARCOAL2, fontWeight: 500 }}>
+                max <WeightDisplay value={trip.max_kg_per_package} unit={tripUnit} userUnit={userUnit} showConversion={tripUnit !== userUnit} />
+              </span>
+            )}
+          </>
+        )}
       </div>
 
       {/* Trust */}

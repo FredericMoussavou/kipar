@@ -1,7 +1,8 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date
 import uuid
 from app.services.airport_service import validate_iata
+
 
 class TripCreate(BaseModel):
     origin_city: str
@@ -14,7 +15,7 @@ class TripCreate(BaseModel):
     arrival_time: str | None = None
     flight_number: str | None = None
     airline: str | None = None
-    total_kg: float
+    total_kg: float | None = None
     max_kg_per_package: float = 5.0
     price_per_kg: float | None = None
     small_package_price: float | None = None
@@ -32,8 +33,8 @@ class TripCreate(BaseModel):
 
     @field_validator("total_kg", "max_kg_per_package")
     @classmethod
-    def positive_values(cls, v: float) -> float:
-        if v <= 0:
+    def positive_values(cls, v: float | None) -> float | None:
+        if v is not None and v <= 0:
             raise ValueError("La valeur doit etre positive")
         return v
 
@@ -44,6 +45,15 @@ class TripCreate(BaseModel):
         if v <= d.today():
             raise ValueError("La date de depart doit etre dans le futur")
         return v
+
+    @model_validator(mode="after")
+    def at_least_one_mode(self):
+        has_kg = self.total_kg is not None and self.price_per_kg is not None
+        has_small = self.small_package_price is not None
+        if not has_kg and not has_small:
+            raise ValueError("TRIP_NO_MODE")
+        return self
+
 
 class TripResponse(BaseModel):
     id: uuid.UUID
@@ -58,10 +68,10 @@ class TripResponse(BaseModel):
     arrival_time: str | None = None
     flight_number: str | None
     airline: str | None
-    total_kg: float
-    remaining_kg: float
+    total_kg: float | None = None
+    remaining_kg: float | None = None
     max_kg_per_package: float
-    price_per_kg: float
+    price_per_kg: float | None = None
     small_package_price: float | None = None
     status: str
     trust_score: float | None = None

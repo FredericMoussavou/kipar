@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -48,6 +48,13 @@ export default function BookPage() {
   })
 
   const trip = tripData || selectedTrip
+  const hasKg = trip?.price_per_kg != null
+  const hasSmall = trip?.small_package_price != null
+  const [packageMode, setPackageMode] = useState<'kg' | 'small'>('kg')
+  useEffect(() => {
+    if (hasSmall && !hasKg) setPackageMode('small')
+    else if (hasKg && !hasSmall) setPackageMode('kg')
+  }, [hasKg, hasSmall])
   const [withInsurance, setWithInsurance] = useState(false)
   const [reminderHours, setReminderHours] = useState<number | null>(null)
   const [photos, setPhotos] = useState<string[]>([])
@@ -116,7 +123,11 @@ export default function BookPage() {
   const pricePerKg = trip?.price_per_kg || 0
   const SMALL_PACKAGE_MAX_KG = 1.0
   const SMALL_PACKAGE_KIPAR_FEE = 5.0
-  const isSmallPackage = weight > 0 && weight < SMALL_PACKAGE_MAX_KG && !!trip?.small_package_price
+  const isSmallPackage = packageMode === 'small'
+  const weightModeError =
+    weight > 0 && packageMode === 'kg' && weight < SMALL_PACKAGE_MAX_KG ? t.booking.weight_too_small_for_kg :
+    weight > 0 && packageMode === 'small' && weight >= SMALL_PACKAGE_MAX_KG ? t.booking.weight_too_big_for_small :
+    null
   const transport = isSmallPackage ? (trip?.small_package_price || 0) : weight * pricePerKg
   const senderFee = isSmallPackage ? SMALL_PACKAGE_KIPAR_FEE : transport * 0.15
   const hoursUntilDep = trip?.departure_date
@@ -124,7 +135,7 @@ export default function BookPage() {
     : Infinity
   const isUrgentTrip = hoursUntilDep <= 36
   const canBookUrgent = trip?.accepts_urgent ?? false
-  const bookingFlatFee = transport > 0 ? (isUrgentTrip && canBookUrgent ? 10.0 : 1.50) : 0
+  const bookingFlatFee = isSmallPackage ? 0 : (transport > 0 ? (isUrgentTrip && canBookUrgent ? 10.0 : 1.50) : 0)
   const commission = senderFee + bookingFlatFee
   const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
@@ -261,7 +272,7 @@ export default function BookPage() {
           </h1>
           {trip && (
             <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
-              {trip.origin_airport_code} → {trip.destination_airport_code} · {trip.price_per_kg}€/kg
+              {trip.origin_airport_code} → {trip.destination_airport_code}{trip.price_per_kg != null ? ` · ${trip.price_per_kg}€/kg` : ''}
             </p>
           )}
         </div>
@@ -349,13 +360,26 @@ export default function BookPage() {
               error={errors.content_description?.message}
               {...register('content_description')}
             />
+            {hasKg && hasSmall && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                <button type="button" onClick={() => setPackageMode('kg')}
+                  style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1px solid ${packageMode === 'kg' ? RED : BORDER}`, background: packageMode === 'kg' ? 'rgba(220,0,41,0.05)' : WHITE, color: packageMode === 'kg' ? RED : CHARCOAL, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                  {t.booking.mode_kg}
+                </button>
+                <button type="button" onClick={() => setPackageMode('small')}
+                  style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1px solid ${packageMode === 'small' ? RED : BORDER}`, background: packageMode === 'small' ? 'rgba(220,0,41,0.05)' : WHITE, color: packageMode === 'small' ? RED : CHARCOAL, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                  {t.booking.mode_small}
+                </button>
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <Input
                 label={t.booking.weight_label}
                 type="number"
-                placeholder="2.5"
+                placeholder={packageMode === 'small' ? '0.5' : '2.5'}
                 step="0.1"
                 min="0.1"
+                max={packageMode === 'small' ? '0.99' : undefined}
                 error={errors.weight_kg?.message}
                 {...register('weight_kg')}
               />
@@ -366,6 +390,14 @@ export default function BookPage() {
                 min="0"
                 {...register('declared_value')}
               />
+            </div>
+            {weightModeError && (
+              <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px', marginTop: 10 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>{weightModeError}</p>
+              </div>
+            )}
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 12px', marginTop: 10 }}>
+              <p style={{ fontSize: 11, color: '#92400E', margin: 0, lineHeight: 1.5 }}>{t.booking.small_package_disclaimer}</p>
             </div>
           </div>
         </div>
@@ -450,11 +482,6 @@ export default function BookPage() {
               <span>{value}</span>
             </div>
           ))}
-          {isSmallPackage && (
-            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 12px', marginTop: 10 }}>
-              <p style={{ fontSize: 11, color: '#92400E', margin: 0, lineHeight: 1.5 }}>{t.booking.small_package_disclaimer}</p>
-            </div>
-          )}
           <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 10, marginTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
             <span>{t.booking.total}</span>
             <span>{total > 0 ? `${total.toFixed(2)}€` : '—'}</span>
@@ -484,14 +511,14 @@ export default function BookPage() {
       </div>
     )}
     {/* Validation kg */}
-    {weight > 0 && trip && weight > trip.remaining_kg && (
+    {packageMode === 'kg' && weight > 0 && trip && trip.remaining_kg != null && weight > trip.remaining_kg && (
       <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
           {t.booking.weight_exceeds_available ?? `Seulement ${trip.remaining_kg} kg disponibles`}
         </p>
       </div>
     )}
-    {weight > 0 && trip && weight > trip.max_kg_per_package && (
+    {packageMode === 'kg' && weight > 0 && trip && trip.max_kg_per_package != null && weight > trip.max_kg_per_package && (
       <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
           {t.booking.weight_exceeds_max ?? `Maximum ${trip.max_kg_per_package} kg par colis`}
@@ -499,9 +526,9 @@ export default function BookPage() {
       </div>
     )}
     <Button type="submit" fullWidth size="lg" loading={mutation.isPending}
-      disabled={(isUrgentTrip && !canBookUrgent) || (weight > 0 && trip && (weight > trip.remaining_kg || weight > trip.max_kg_per_package))}>
-          {t.booking.confirm_btn}
-        </Button>
+      disabled={!!weightModeError || (isUrgentTrip && !canBookUrgent) || (packageMode === 'kg' && weight > 0 && trip && trip.remaining_kg != null && trip.max_kg_per_package != null && (weight > trip.remaining_kg || weight > trip.max_kg_per_package))}>
+      {t.booking.confirm_btn}
+    </Button>
       </form>
     </div>
   )

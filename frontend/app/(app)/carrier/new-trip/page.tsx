@@ -32,8 +32,8 @@ const schema = z.object({
   arrival_date: z.string().optional(),
   arrival_time: z.string().optional(),
   flight_number: z.string().optional(),
-  total_kg: z.string(),
-  max_kg_per_package: z.string(),
+  total_kg: z.string().optional(),
+  max_kg_per_package: z.string().optional(),
   price_per_kg: z.string().optional(),
 })
 
@@ -130,6 +130,16 @@ export default function NewTripPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    const hasKg = !!(data.total_kg && data.price_per_kg)
+    const hasSmall = acceptsSmallPackage && !!smallPackagePrice
+    if (!hasKg && !hasSmall) {
+      toast.error(t.carrier.at_least_one_mode)
+      return
+    }
+    if ((data.total_kg && !data.price_per_kg) || (!data.total_kg && data.price_per_kg)) {
+      toast.error(t.carrier.kg_mode_incomplete)
+      return
+    }
     // Validation delai minimum avant depart
     if (data.departure_date) {
       const depTime = departureTime || '00:00'
@@ -142,17 +152,19 @@ export default function NewTripPage() {
         return
       }
       if (acceptsUrgent && hoursUntil < 72) {
+        toast.error(t.errors.trip_too_close_urgent)
         return
       }
       if (!acceptsUrgent && hoursUntil < 7 * 24) {
+        toast.error(t.errors.trip_too_close_normal)
         return
-      }
+      } 
     }
     try {
       await api.post('/trips', {
         ...data,
-        total_kg: parseFloat(data.total_kg),
-        max_kg_per_package: parseFloat(data.max_kg_per_package),
+        total_kg: data.total_kg ? parseFloat(data.total_kg) : null,
+        max_kg_per_package: data.max_kg_per_package ? parseFloat(data.max_kg_per_package) : undefined,
         price_per_kg: data.price_per_kg ? parseFloat(data.price_per_kg) : null,
         weight_unit: weightUnit,
         currency: tripCurrency,

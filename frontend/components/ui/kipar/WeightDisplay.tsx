@@ -30,7 +30,7 @@ export function unitLabel(unit: WeightUnit): string {
 }
 
 interface WeightDisplayProps {
-  value: number         // valeur dans l'unite du trip (source)
+  value: number | null  // valeur dans l'unite du trip (source)
   unit: WeightUnit      // unite native du trip
   userUnit?: WeightUnit // preference utilisateur
   showConversion?: boolean
@@ -38,6 +38,10 @@ interface WeightDisplayProps {
 }
 
 export function WeightDisplay({ value, unit, userUnit, showConversion = true, style }: WeightDisplayProps) {
+  if (value == null) {
+    return <span style={style}><span style={{ fontWeight: 500, color: COLORS.charcoal }}>—</span></span>
+  }
+  
   const needsConversion = showConversion && userUnit && userUnit !== unit
   const altValue = needsConversion ? convertWeight(value, unit, userUnit!) : null
 

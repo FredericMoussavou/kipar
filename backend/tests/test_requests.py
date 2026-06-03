@@ -221,3 +221,40 @@ async def test_accept_application_sets_receiver(client, db_session):
     inv = inv_res.scalar_one_or_none()
     assert inv is not None
     assert inv.contact == "recepteur@test.com"
+
+async def test_apply_corridor_mismatch(client, db_session):
+    """Un transporteur sur un corridor different de la demande est refuse."""
+    # Demande expediteur : CDG -> DSS (corridor du REQUEST_PAYLOAD)
+    sender_token = await register_and_login(client, "sender_r12@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+
+    # Transporteur avec un trajet sur un AUTRE corridor : LBV -> ORY
+    carrier_token = await register_and_login(client, "carrier_r12@kipar.com")
+    await db_session.execute(update(User).where(User.email == "carrier_r12@kipar.com").values(kyc_status="approved", is_carrier=True))
+    await db_session.commit()
+    other_trip = {**TRIP_PAYLOAD, "origin_airport_code": "LBV", "origin_city": "Libreville", "destination_airport_code": "ORY", "destination_city": "Paris Orly"}
+    trip_res = await client.post("/api/v1/trips", json=other_trip, headers={"Authorization": f"Bearer {carrier_token}"})
+    trip_id = trip_res.json()["id"]
+
+    # Candidature hors corridor -> refus 400
+    res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={trip_id}",
+        headers={"Authorization": f"Bearer {carrier_token}"}
+    )
+    assert res.status_code == 400
+
+
+async def test_apply_same_corridor_ok(client, db_session):
+    """Non-regression : un transporteur sur le meme corridor peut toujours candidater."""
+    sender_token = await register_and_login(client, "sender_r13@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+
+    # make_verified_carrier cree un trajet CDG -> DSS, meme corridor que la demande
+    carrier = await make_verified_carrier(client, db_session, "carrier_r13@kipar.com")
+    res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    assert res.status_code == 201

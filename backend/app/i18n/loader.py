@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from functools import lru_cache
 
-SUPPORTED_LANGUAGES = ["fr", "en"]
+SUPPORTED_LANGUAGES = ["fr", "en", "es"]
 DEFAULT_LANGUAGE = "fr"
 
 I18N_DIR = Path(__file__).parent

@@ -6,12 +6,14 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.core.deps import get_verified_user, get_current_user, get_optional_user
 from app.core.lang import get_lang
+from app.core.config import settings
 from app.models.user import User
 from app.models.trip import Trip
 from app.schemas.trip import TripCreate, TripResponse
 from app.i18n.loader import t
 from app.models.package_request import PackageRequest
 from app.services.notif_db_service import notify_trip_match
+from app.services.flight_service import validate_flight_number
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -95,10 +97,10 @@ async def create_trip(
         from app.api.v1.endpoints.premium import is_premium_active
         if not is_premium_active(current_user):
             raise HTTPException(status_code=403, detail=t("errors.premium_required_urgent", lang))
-        if hours_until2 < 72:
+        if hours_until2 < settings.TRIP_PUBLISH_URGENT_MIN_HOURS:
             raise HTTPException(status_code=400, detail=t("errors.trip_too_close_urgent", lang))
     else:
-        if hours_until2 < 7 * 24:
+        if hours_until2 < settings.TRIP_PUBLISH_NORMAL_MIN_HOURS:
             raise HTTPException(status_code=400, detail=t("errors.trip_too_close_normal", lang))
 
     # Validation : au moins price_per_kg ou small_package_price requis
@@ -127,7 +129,7 @@ async def create_trip(
         total_kg=payload.total_kg,
         remaining_kg=payload.total_kg,
         max_kg_per_package=payload.max_kg_per_package,
-        price_per_kg=payload.price_per_kg or 0.0,
+        price_per_kg=payload.price_per_kg,
         small_package_price=payload.small_package_price,
         weight_unit=payload.weight_unit if hasattr(payload, "weight_unit") else "kg",
         currency=payload.currency if hasattr(payload, "currency") else "EUR",
@@ -215,6 +217,7 @@ async def search_trips(
             "remaining_kg": trip.remaining_kg,
             "max_kg_per_package": trip.max_kg_per_package,
             "price_per_kg": trip.price_per_kg,
+            "small_package_price": trip.small_package_price,
             "weight_unit": trip.weight_unit,
             "currency": trip.currency,
             "status": trip.status,
@@ -433,6 +436,7 @@ async def get_trip(
         remaining_kg=trip.remaining_kg,
         max_kg_per_package=trip.max_kg_per_package,
         price_per_kg=trip.price_per_kg,
+        small_package_price=trip.small_package_price,
         weight_unit=trip.weight_unit,
         currency=trip.currency,
         status=trip.status,

@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     SMALL_PACKAGE_KIPAR_FEE: float = 5.0         # Part KIPAR sur petit colis
     SMALL_PACKAGE_CARRIER_MAX: float = 10.0      # Part max transporteur sur petit colis
     SMALL_PACKAGE_CARRIER_MIN: float = 5.0       # Part min transporteur sur petit colis
+    BOOKING_URGENT_THRESHOLD_HOURS: float = 36.0  # <= ce delai (h) avant depart = urgent
+    BOOKING_MIN_HOURS_BEFORE_DEPARTURE: float = 5.0  # en dessous, booking refuse
+    TRIP_PUBLISH_URGENT_MIN_HOURS: float = 72.0  # delai mini publication trajet urgent (h)
+    TRIP_PUBLISH_NORMAL_MIN_HOURS: float = 168.0  # delai mini publication trajet normal (7j)
     MIN_COMMISSION: float = 2.50                 # Commission minimum absolue
     CARRIER_CANCEL_FEE_PERCENT: float = 0.05     # 5% annulation transporteur non justifiee
     CARRIER_CANCEL_FEE_MIN: float = 5.00         # Plancher annulation transporteur

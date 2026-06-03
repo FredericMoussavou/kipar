@@ -106,24 +106,24 @@ async def create_booking(
     trip = result.scalar_one_or_none()
     if not trip:
         raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
-    if trip.status != "open":
+    # Determination du type de colis
+    is_small = payload.weight_kg < settings.SMALL_PACKAGE_MAX_KG
+
+    # Verification du statut du trajet
+    if trip.status == "full":
+        # Trajet complet (kg epuises) : n'accepte plus que les petits colis
+        if not (is_small and trip.has_small_package):
+            raise HTTPException(status_code=400, detail=t("errors.trip_full_small_only", lang))
+    elif trip.status != "open":
         raise HTTPException(status_code=400, detail=t("errors.trip_not_open", lang))
+
     # Empêche l'auto-expédition
     if trip.carrier_id == current_user.id:
         raise HTTPException(status_code=400, detail=t("errors.carrier_cannot_send", lang))
     if payload.receiver_email_or_phone in (current_user.email, current_user.phone):
         raise HTTPException(status_code=400, detail=t("errors.cannot_send_to_self", lang))
-    if payload.weight_kg > trip.remaining_kg:
-        raise HTTPException(status_code=400, detail=t(
-            "errors.weight_exceeds_capacity", lang,
-            requested=payload.weight_kg, available=trip.remaining_kg
-        ))
-    if payload.weight_kg > trip.max_kg_per_package:
-        raise HTTPException(status_code=400, detail=t(
-            "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
-        ))
 
-    # Regle delai minimum 36h avant depart
+    # Regle delai minimum avant depart
     from datetime import date as dclass, time as tclass, datetime as dtclass, timezone as tz
     dep_time = trip.departure_time if hasattr(trip, 'departure_time') and trip.departure_time else tclass(0, 0)
     if isinstance(dep_time, str):
@@ -131,20 +131,33 @@ async def create_booking(
         dep_time = tclass(int(h), int(m))
     dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=tz.utc)
     hours_until_dep = (dep_dt - dtclass.now(tz.utc)).total_seconds() / 3600
-    is_urgent = hours_until_dep <= 36
+    is_urgent = hours_until_dep <= settings.BOOKING_URGENT_THRESHOLD_HOURS
     if is_urgent and not trip.accepts_urgent:
         raise HTTPException(status_code=400, detail=t("errors.trip_not_urgent", lang))
-    if hours_until_dep <= 5:
+    if hours_until_dep <= settings.BOOKING_MIN_HOURS_BEFORE_DEPARTURE:
         raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
 
     # Calcul prix selon type de colis
-    is_small = payload.weight_kg < settings.SMALL_PACKAGE_MAX_KG
-    if is_small and trip.small_package_price is not None:
+    if is_small:
+        if not trip.has_small_package:
+            raise HTTPException(status_code=400, detail=t("errors.trip_no_small_package", lang))
         # Petit colis : forfait fixe (prix transporteur + part KIPAR)
         flat_fee = settings.SMALL_PACKAGE_KIPAR_FEE
         base_amount = trip.small_package_price  # Part transporteur
         amount = round(trip.small_package_price + settings.SMALL_PACKAGE_KIPAR_FEE, 2)
     else:
+        if not trip.has_kg_capacity:
+            raise HTTPException(status_code=400, detail=t("errors.trip_small_package_only", lang))
+        # Colis au kg : verifications de capacite
+        if payload.weight_kg > trip.remaining_kg:
+            raise HTTPException(status_code=400, detail=t(
+                "errors.weight_exceeds_capacity", lang,
+                requested=payload.weight_kg, available=trip.remaining_kg
+            ))
+        if payload.weight_kg > trip.max_kg_per_package:
+            raise HTTPException(status_code=400, detail=t(
+                "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
+            ))
         flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
         base_amount = payload.weight_kg * trip.price_per_kg
         amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)

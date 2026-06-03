@@ -216,6 +216,10 @@ async def apply_to_request(
     trip = trip_result.scalar_one_or_none()
     if not trip or trip.carrier_id != current_user.id or trip.deleted_at is not None:
         raise HTTPException(status_code=404, detail=t("errors.trip_not_found", lang))
+    # Verif corridor : le trajet doit relier les memes aeroports que la demande
+    if (trip.origin_airport_code != req.origin_airport_code
+            or trip.destination_airport_code != req.destination_airport_code):
+        raise HTTPException(status_code=400, detail=t("errors.trip_corridor_mismatch", lang))
     if trip.price_per_kg > req.budget_per_kg:
         raise HTTPException(status_code=400, detail=t("errors.price_above_budget", lang))
     if trip.remaining_kg < req.weight_kg:
@@ -229,9 +233,9 @@ async def apply_to_request(
         dep_time = tclass(int(h), int(m))
     dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
     hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
-    if hours_until_dep <= 5:
+    if hours_until_dep <= settings.BOOKING_MIN_HOURS_BEFORE_DEPARTURE:
         raise HTTPException(status_code=400, detail=t("errors.trip_too_close", lang))
-    if hours_until_dep <= 36 and not trip.accepts_urgent:
+    if hours_until_dep <= settings.BOOKING_URGENT_THRESHOLD_HOURS and not trip.accepts_urgent:        
         raise HTTPException(status_code=400, detail=t("errors.trip_not_urgent", lang))
 
     # Pas de double candidature
@@ -355,7 +359,7 @@ async def accept_application(
         dep_time = tclass(int(h), int(m))
     dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
     hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
-    is_urgent = hours_until_dep <= 36
+    is_urgent = hours_until_dep <= settings.BOOKING_URGENT_THRESHOLD_HOURS
     flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
     transport = req.weight_kg * trip.price_per_kg
     amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)

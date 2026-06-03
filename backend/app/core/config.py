@@ -81,6 +81,11 @@ class Settings(BaseSettings):
     CARRIER_CANCEL_FEE_MIN: float = 5.00         # Plancher annulation transporteur
     DISPUTE_FEE: float = 10.00                   # Frais litige conteste (a charge du fautif)
     LATE_CANCEL_HOURS: int = 72                  # Seuil annulation tardive expediteur
+    SENDER_CANCEL_MID_HOURS: int = 24
+    SENDER_CANCEL_MID_REFUND_PERCENT: float = 0.50
+    SENDER_CANCEL_MID_CARRIER_PERCENT: float = 0.25
+    SENDER_CANCEL_LATE_CARRIER_PERCENT: float = 0.83
+    MAX_EVIDENCE_FILES: int = 5
     INCIDENT_RESPONSE_HOURS: int = 48            # Fenetre justification pickup/delivery failed
     LISTING_MIN_DELAY_HOURS: int = 24            # Delai min avant suppression annonce
     PRICE_SUGGESTION_WINDOW_DAYS: int = 90       # Historique fourchette prix corridor

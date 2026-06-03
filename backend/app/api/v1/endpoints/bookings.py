@@ -630,19 +630,19 @@ async def cancel_booking(
             else:
                 # Classique : tableau 72h/24h
                 hours_until = (trip.departure_date - dclass.today()).days * 24
-                if hours_until >= 72:
+                if hours_until >= s.LATE_CANCEL_HOURS:
                     # accepted >= 72h -> remboursement montant - 1.50EUR
                     refund_amount = round(booking.amount - FLAT_FEE, 2)
                     carrier_amount = 0.0
-                elif hours_until > 24:
+                elif hours_until > s.SENDER_CANCEL_MID_HOURS:
                     # accepted <72h et >24h -> exp 50%, tra 25%, kipar 25% + 1.50EUR
                     base = round(booking.amount - FLAT_FEE, 2)
-                    refund_amount = round(base * 0.50, 2)
-                    carrier_amount = round(base * 0.25, 2)
+                    refund_amount = round(base * s.SENDER_CANCEL_MID_REFUND_PERCENT, 2)
+                    carrier_amount = round(base * s.SENDER_CANCEL_MID_CARRIER_PERCENT, 2)
                 else:
                     # accepted <=24h -> exp 0%, tra 83%, kipar 17%
                     refund_amount = 0.0
-                    carrier_amount = round(booking.amount * 0.83, 2)
+                    carrier_amount = round(booking.amount * s.SENDER_CANCEL_LATE_CARRIER_PERCENT, 2)
         else:
             refund_amount = booking.amount
 
@@ -1374,9 +1374,9 @@ async def request_cancellation(
     evidence_urls = payload.get("evidence_urls", [])
 
     if not justification:
-        raise HTTPException(status_code=400, detail="Une justification est requise")
-    if len(evidence_urls) > 5:
-        raise HTTPException(status_code=400, detail="Maximum 5 fichiers de preuve")
+        raise HTTPException(status_code=400, detail=t("errors.justification_required", lang))
+    if len(evidence_urls) > settings.MAX_EVIDENCE_FILES:
+        raise HTTPException(status_code=400, detail=t("errors.too_many_evidence_files", lang, n=settings.MAX_EVIDENCE_FILES))
 
     # Valider que les URLs appartiennent bien a notre Cloudinary
     from app.core.config import settings as s
@@ -1453,11 +1453,11 @@ async def review_cancellation(
     if not booking:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
     if booking.cancellation_review_status != "pending_review":
-        raise HTTPException(status_code=400, detail="Aucune demande en attente de review")
+        raise HTTPException(status_code=400, detail=t("errors.no_pending_review", lang))
 
     decision = payload.get("decision", "").strip()
     if decision not in ("justified", "unjustified"):
-        raise HTTPException(status_code=400, detail="decision doit etre 'justified' ou 'unjustified'")
+        raise HTTPException(status_code=400, detail=t("errors.invalid_decision", lang))
 
     booking.cancellation_review_status = decision
 
@@ -1466,7 +1466,7 @@ async def review_cancellation(
         booking.carrier_penalty_due = 0.0
     else:
         booking.cancellation_justified = False
-        booking.carrier_penalty_due = 5.0
+        booking.carrier_penalty_due = settings.CARRIER_CANCEL_FEE_MIN
         # Prelevement reel Stripe si le transporteur a un compte Connect
         trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
         trip_penalty = trip_r.scalar_one_or_none()

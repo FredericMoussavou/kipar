@@ -16,6 +16,7 @@ import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 import { useLimits } from '@/hooks/useLimits'
 import { useInsuranceConfig, calculateInsurancePremium } from '@/hooks/useInsuranceConfig'
+import { useConfig } from '@/hooks/useConfig'
 import { useAuthStore } from '@/stores/auth.store'
 import { useKyc } from '@/hooks/useKyc'
 
@@ -37,6 +38,7 @@ export default function BookPage() {
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const insuranceConfig = useInsuranceConfig()
+  const config = useConfig()
 
   const { data: tripData } = useQuery({
     queryKey: ['trip', id],
@@ -121,21 +123,21 @@ export default function BookPage() {
   const weight = parseFloat(watch('weight_kg') || '0') || 0
   const value = parseFloat(watch('declared_value') || '0') || 0
   const pricePerKg = trip?.price_per_kg || 0
-  const SMALL_PACKAGE_MAX_KG = 1.0
-  const SMALL_PACKAGE_KIPAR_FEE = 5.0
+  const SMALL_PACKAGE_MAX_KG = config.small_package.max_kg
+  const SMALL_PACKAGE_KIPAR_FEE = config.small_package.kipar_fee
   const isSmallPackage = packageMode === 'small'
   const weightModeError =
     weight > 0 && packageMode === 'kg' && weight < SMALL_PACKAGE_MAX_KG ? t.booking.weight_too_small_for_kg :
     weight > 0 && packageMode === 'small' && weight >= SMALL_PACKAGE_MAX_KG ? t.booking.weight_too_big_for_small :
     null
   const transport = isSmallPackage ? (trip?.small_package_price || 0) : weight * pricePerKg
-  const senderFee = isSmallPackage ? SMALL_PACKAGE_KIPAR_FEE : transport * 0.15
+  const senderFee = isSmallPackage ? SMALL_PACKAGE_KIPAR_FEE : transport * config.fees.service_fee_sender_percent
   const hoursUntilDep = trip?.departure_date
     ? (new Date(trip.departure_date).getTime() - Date.now()) / 3600000
     : Infinity
-  const isUrgentTrip = hoursUntilDep <= 36
+  const isUrgentTrip = hoursUntilDep <= config.booking.urgent_threshold_hours
   const canBookUrgent = trip?.accepts_urgent ?? false
-  const bookingFlatFee = isSmallPackage ? 0 : (transport > 0 ? (isUrgentTrip && canBookUrgent ? 10.0 : 1.50) : 0)
+  const bookingFlatFee = isSmallPackage ? 0 : (transport > 0 ? (isUrgentTrip && canBookUrgent ? config.fees.urgent_flat_fee : config.fees.booking_flat_fee) : 0)
   const commission = senderFee + bookingFlatFee
   const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
@@ -379,7 +381,7 @@ export default function BookPage() {
                 placeholder={packageMode === 'small' ? '0.5' : '2.5'}
                 step="0.1"
                 min="0.1"
-                max={packageMode === 'small' ? '0.99' : undefined}
+                max={packageMode === 'small' ? SMALL_PACKAGE_MAX_KG - 0.01 : undefined}
                 error={errors.weight_kg?.message}
                 {...register('weight_kg')}
               />

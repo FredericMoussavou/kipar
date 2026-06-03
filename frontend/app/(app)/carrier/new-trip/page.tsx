@@ -20,6 +20,7 @@ import { useLimits } from '@/hooks/useLimits'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useResponsive } from '@/hooks/useResponsive'
+import { useConfig } from '@/hooks/useConfig'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
 const schema = z.object({
@@ -44,6 +45,7 @@ export default function NewTripPage() {
   const router = useRouter()
   const { tripsBlocked, limits } = useLimits()
   const { user } = useAuthStore()
+  const config = useConfig()
   const isMobile = useIsMobile()
   const { gridCols } = useResponsive()
   const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
@@ -151,11 +153,11 @@ export default function NewTripPage() {
         toast.error(t.errors.trip_departure_past)
         return
       }
-      if (acceptsUrgent && hoursUntil < 72) {
+      if (acceptsUrgent && hoursUntil < config.trip.publish_urgent_min_hours) {
         toast.error(t.errors.trip_too_close_urgent)
         return
       }
-      if (!acceptsUrgent && hoursUntil < 7 * 24) {
+      if (!acceptsUrgent && hoursUntil < config.trip.publish_normal_min_hours) {
         toast.error(t.errors.trip_too_close_normal)
         return
       } 
@@ -341,7 +343,7 @@ export default function NewTripPage() {
                 error={errors.departure_date?.message}
                 min={(() => {
                   const d = new Date()
-                  d.setHours(d.getHours() + (acceptsUrgent ? 72 : 7 * 24))
+                  d.setHours(d.getHours() + (acceptsUrgent ? config.trip.publish_urgent_min_hours : config.trip.publish_normal_min_hours))
                   return d.toISOString().slice(0, 10)
                 })()} />
               {dateTouched && (

@@ -110,7 +110,11 @@
     "trip_departure_past": "La date de départ est déjà passée",
     "trip_too_close_normal": "Un trajet standard doit être créé au moins 7 jours avant le départ",
     "trip_too_close_urgent": "Un trajet urgent doit être créé au moins 72h avant le départ",
-    "premium_required_urgent": "L'option urgent est réservée aux transporteurs Premium"
+    "premium_required_urgent": "L'option urgent est réservée aux transporteurs Premium",
+    "justification_required": "Une justification est requise",
+    "too_many_evidence_files": "Maximum {n} fichiers de preuve",
+    "no_pending_review": "Aucune demande en attente de révision",
+    "invalid_decision": "La décision doit être 'justified' ou 'unjustified'"
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",

@@ -110,7 +110,11 @@
     "trip_departure_past": "La fecha de salida ya ha pasado",
     "trip_too_close_normal": "Un viaje estándar debe crearse al menos 7 días antes de la salida",
     "trip_too_close_urgent": "Un viaje urgente debe crearse al menos 72 horas antes de la salida",
-    "premium_required_urgent": "La opción urgente está reservada para transportistas Premium"
+    "premium_required_urgent": "La opción urgente está reservada para transportistas Premium",
+    "justification_required": "Se requiere una justificación",
+    "too_many_evidence_files": "Máximo {n} archivos de prueba",
+    "no_pending_review": "No hay solicitud de revisión pendiente",
+    "invalid_decision": "La decisión debe ser 'justified' o 'unjustified'"
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

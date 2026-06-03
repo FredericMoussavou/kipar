@@ -111,7 +111,11 @@
     "trip_departure_past": "The departure date has already passed",
     "trip_too_close_normal": "A standard trip must be created at least 7 days before departure",
     "trip_too_close_urgent": "An urgent trip must be created at least 72 hours before departure",
-    "premium_required_urgent": "The urgent option is reserved for Premium carriers"
+    "premium_required_urgent": "The urgent option is reserved for Premium carriers",
+    "justification_required": "A justification is required",
+    "too_many_evidence_files": "Maximum {n} evidence files",
+    "no_pending_review": "No pending review request",
+    "invalid_decision": "Decision must be 'justified' or 'unjustified'"
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

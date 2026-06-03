@@ -8,6 +8,7 @@ import { getTrustGradient } from '@/lib/trust'
 import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
 import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
+import { useConfig } from '@/hooks/useConfig'
 
 interface Trip {
   id: string
@@ -47,6 +48,7 @@ export default function TripCard({ trip, onClick, className }: {
   const tripCurrency = trip.currency || 'EUR'
   const userCurrency = user?.currency || 'EUR'
   const rates = useExchangeRates()
+  const config = useConfig()
   const initials = `${trip.carrier_first_name?.[0] ?? ''}${trip.carrier_last_name?.[0] ?? ''}`.toUpperCase()
 
   return (
@@ -93,7 +95,7 @@ export default function TripCard({ trip, onClick, className }: {
             )}
             {trip.small_package_price != null && (
               <p style={{ fontSize: 11, color: '#92400E', background: '#FFF3CD', border: '1px solid #FFE082', borderRadius: 99, padding: '2px 8px', margin: '4px 0 0', display: 'inline-block', fontWeight: 600 }}>
-                📦 Petit colis : {trip.small_package_price + 5}€
+                📦 Petit colis : {trip.small_package_price + config.small_package.kipar_fee}€
               </p>
             )}
           </div>

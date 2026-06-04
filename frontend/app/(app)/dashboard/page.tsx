@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const [showOwnTrips, setShowOwnTrips] = useState(false)
   const [showUrgentOnly, setShowUrgentOnly] = useState(false)
+  const [showSmallOnly, setShowSmallOnly] = useState(false)
   const router = useRouter()
   const { setSelectedTrip } = useBookingStore()
   const { unreadCount } = useNotifications()
@@ -143,6 +144,9 @@ export default function DashboardPage() {
             </button>
             <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
               {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+              </button>
+              <button onClick={() => setShowSmallOnly(v => !v)} style={{ fontSize: 11, color: showSmallOnly ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showSmallOnly ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+                {t.search.filter_small_packages ?? '📦 Petits colis'}
             </button>
           </div>
         </div>
@@ -162,7 +166,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
-            {trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent)).map((trip: any) => (
+            {trips.filter((trip: any) => (showOwnTrips || String(trip.carrier_id) !== String(user?.id)) && (!showUrgentOnly || trip.accepts_urgent) && (!showSmallOnly || trip.small_package_price != null)).map((trip: any) => (
               <TripCard key={trip.id} trip={trip} onClick={() => handleTripClick(trip)} />
             ))}
           </div>

@@ -14,7 +14,7 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 import { useDrawerStore } from '@/stores/drawer.store'
-import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { WeightDisplay, unitLabel } from '@/components/ui/kipar/WeightDisplay'
 import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
 import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
@@ -365,7 +365,7 @@ export default function CarrierPage() {
                       <Plane size={14} color={TAUPE} />
                       <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.destination_airport_code}</span>
                     </div>
-                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {t.trip.kg_available.replace('{n}', String(trip.remaining_kg))} · <PricePerWeightDisplay price={trip.price_per_kg} currency={trip.currency ?? 'EUR'} unit={(trip.weight_unit ?? 'kg') as any} userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {t.trip.kg_available.replace('{n}', String(trip.remaining_kg)).replace('{unit}', unitLabel((trip.weight_unit ?? 'kg') as any))} · <PricePerWeightDisplay price={trip.price_per_kg} currency={trip.currency ?? 'EUR'} unit={(trip.weight_unit ?? 'kg') as any} userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <StatusBadge status={trip.status} />

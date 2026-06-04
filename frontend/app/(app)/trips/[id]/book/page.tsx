@@ -20,6 +20,7 @@ import { useConfig } from '@/hooks/useConfig'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useAuthStore } from '@/stores/auth.store'
 import { useKyc } from '@/hooks/useKyc'
+import { unitLabel } from '@/components/ui/kipar/WeightDisplay'
 
 const schema = z.object({
   receiver_email_or_phone: z.string().min(3, 'Requis'),
@@ -518,14 +519,14 @@ export default function BookPage() {
     {packageMode === 'kg' && weight > 0 && trip && trip.remaining_kg != null && weight > trip.remaining_kg && (
       <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
-          {t.booking.weight_exceeds_available ?? `Seulement ${trip.remaining_kg} kg disponibles`}
+          {t.booking.weight_exceeds_available.replace('{n}', String(trip.remaining_kg)).replace('{unit}', unitLabel((trip.weight_unit ?? 'kg') as any))}
         </p>
       </div>
     )}
     {packageMode === 'kg' && weight > 0 && trip && trip.max_kg_per_package != null && weight > trip.max_kg_per_package && (
       <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 12, padding: '10px 14px' }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#DC0029', margin: 0 }}>
-          {t.booking.weight_exceeds_max ?? `Maximum ${trip.max_kg_per_package} kg par colis`}
+          {t.booking.weight_exceeds_max.replace('{n}', String(trip.max_kg_per_package)).replace('{unit}', unitLabel((trip.weight_unit ?? 'kg') as any))}
         </p>
       </div>
     )}

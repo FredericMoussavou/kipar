@@ -6,7 +6,9 @@ import { ArrowLeft, CreditCard, Smartphone, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from '@/hooks/useTranslation'
-import { Button } from '@/components/ui/kipar'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
+import { useAuthStore } from '@/stores/auth.store'
+import { Button, CurrencyDisplay } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
@@ -92,13 +94,15 @@ export default function PaymentPage() {
   const { id } = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuthStore()
+  const rates = useExchangeRates()
   const { t } = useTranslation()
   const bookingId = searchParams.get('booking_id')
   const amount = searchParams.get('amount')
+  const currency = searchParams.get('currency') ?? 'EUR'
   const [selectedPM, setSelectedPM] = useState<'stripe' | 'pawapay'>('stripe')
   const declaredValue = parseFloat(searchParams.get('declared_value') || '0') || 0
   const baseAmount = parseFloat(amount || '0') || 0
-  const totalAmount = baseAmount.toFixed(2)
   const transportAmount = parseFloat(searchParams.get('transport') || '0') || 0
   const feesAmount = transportAmount > 0 ? baseAmount - transportAmount : 0
 
@@ -187,18 +191,18 @@ export default function PaymentPage() {
           {transportAmount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: CHARCOAL2 }}>
               <span>{t.booking.transport_cost}</span>
-              <span>{transportAmount.toFixed(2)}€</span>
+              <span><CurrencyDisplay amount={transportAmount} currency={currency} userCurrency={user?.currency} rates={rates ?? undefined} exact /></span>
             </div>
           )}
           {feesAmount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: CHARCOAL2 }}>
               <span>{t.booking.commission}</span>
-              <span>{feesAmount.toFixed(2)}€</span>
+              <span><CurrencyDisplay amount={feesAmount} currency={currency} userCurrency={user?.currency} rates={rates ?? undefined} exact /></span>
             </div>
           )}
           <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 700, color: CHARCOAL }}>
             <span>{t.payment.total}</span>
-            <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}>{totalAmount}€</span>
+            <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 800, color: CHARCOAL }}><CurrencyDisplay amount={baseAmount} currency={currency} userCurrency={user?.currency} rates={rates ?? undefined} exact /></span>
           </div>
         </div>
 

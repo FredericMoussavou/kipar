@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
 import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
-import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
+import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useConfig } from '@/hooks/useConfig'
 
@@ -81,12 +81,7 @@ export default function TripCard({ trip, onClick, className }: {
           <div style={{ textAlign: 'right' }}>
             {trip.price_per_kg != null ? (
               <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: CHARCOAL, lineHeight: 1, margin: 0 }}>
-                {trip.price_per_kg} {tripCurrency}/{tripUnit}
-                {tripCurrency !== userCurrency && rates && (() => {
-                  const inEur = tripCurrency === 'EUR' ? trip.price_per_kg! : trip.price_per_kg! / (rates[tripCurrency] ?? 1)
-                  const converted = userCurrency === 'EUR' ? inEur : inEur * (rates[userCurrency] ?? 1)
-                  return <span style={{ fontSize: 12, fontWeight: 400, color: TAUPE }}> ≃ {Math.ceil(converted)} {userCurrency}/{userUnit}</span>
-                })()}
+                <PricePerWeightDisplay price={trip.price_per_kg} currency={tripCurrency} unit={tripUnit} userCurrency={userCurrency} userUnit={userUnit} rates={rates ?? undefined} />
               </p>
             ) : (
               <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 13, fontWeight: 700, color: '#92400E', lineHeight: 1, margin: 0 }}>

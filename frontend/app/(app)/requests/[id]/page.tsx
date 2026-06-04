@@ -5,6 +5,9 @@ import { ArrowLeft, Plane, User, Check, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import Modal from '@/components/ui/kipar/Modal'
@@ -20,6 +23,7 @@ export default function RequestDetailPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const rates = useExchangeRates()
   const queryClient = useQueryClient()
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState(false)
@@ -94,11 +98,11 @@ export default function RequestDetailPage() {
           <p style={L}>{t.package_detail.section_package}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              [t.package_detail.field_content, req.content_description],
-              [t.package_detail.field_weight, `${req.weight_kg} kg`],
-              [t.requests.budget_label, `${req.budget_per_kg}€/kg`],
-              [t.requests.deadline_label, req.deadline_date],
-            ].map(([label, value]) => (
+              { label: t.package_detail.field_content, value: req.content_description },
+              { label: t.package_detail.field_weight, value: <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> },
+              { label: t.requests.budget_label, value: <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> },
+              { label: t.requests.deadline_label, value: req.deadline_date },
+            ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingBottom: 6, borderBottom: '1px solid ' + SAND }}>
                 <span style={{ color: TAUPE }}>{label}</span>
                 <span style={{ fontWeight: 500, color: CHARCOAL }}>{value}</span>
@@ -137,7 +141,7 @@ export default function RequestDetailPage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL }}>{app.carrier_first_name} {app.carrier_last_name}</p>
-                        <p style={{ fontSize: 11, color: TAUPE }}>{app.trip_departure_date} · {app.trip_price_per_kg}€/kg {app.trip_flight_number ? `· ${app.trip_flight_number}` : ''}</p>
+                        <p style={{ fontSize: 11, color: TAUPE }}>{app.trip_departure_date} · <PricePerWeightDisplay price={app.trip_price_per_kg} currency={app.trip_currency ?? 'EUR'} unit={(app.trip_weight_unit ?? 'kg') as any} userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> {app.trip_flight_number ? `· ${app.trip_flight_number}` : ''}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                           <div style={{ flex: 1, height: 3, background: BORDER, borderRadius: 99 }}>
                             <div style={{ width: `${Math.min(score, 100)}%`, height: '100%', background: gradient, borderRadius: 99 }} />

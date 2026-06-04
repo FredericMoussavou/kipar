@@ -17,6 +17,9 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useInsuranceConfig } from '@/hooks/useInsuranceConfig'
 import { useAuthStore } from '@/stores/auth.store'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import api from '@/lib/api'
 import { CHARCOAL, TAUPE, SAND, BORDER, WHITE, RED, GREEN, AMBER } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
@@ -118,7 +121,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid ' + SAND }}>
       <span style={{ fontSize: 13, color: TAUPE }}>{label}</span>
@@ -172,6 +175,7 @@ export default function BookingDetailPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const rates = useExchangeRates()
   const insuranceConfig = useInsuranceConfig()
   const queryClient = useQueryClient()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -548,9 +552,9 @@ const handleCancel = () => {
         {/* ── INFOS COLIS ──────────────────────────────────────────────────── */}
         <Section title={t.package_detail.section_package}>
           <InfoRow label={t.package_detail.field_content} value={booking.content_description} />
-          <InfoRow label={t.package_detail.field_weight} value={booking.weight_kg ? `${booking.weight_kg} kg` : null} />
-          <InfoRow label={t.package_detail.field_declared_value} value={booking.declared_value ? `${booking.declared_value}€` : null} />
-          <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? `${booking.amount.toFixed(2)}€` : null} />
+          <InfoRow label={t.package_detail.field_weight} value={booking.weight_kg ? <WeightDisplay value={booking.weight_kg} unit={(booking.weight_unit ?? 'kg') as any} userUnit={user?.weight_unit as any} /> : null} />
+          <InfoRow label={t.package_detail.field_declared_value} value={booking.declared_value ? <CurrencyDisplay amount={booking.declared_value} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /> : null} />
+          <InfoRow label={t.package_detail.field_amount_paid} value={booking.amount ? <CurrencyDisplay amount={booking.amount} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /> : null} />
           {insuranceConfig.enabled && (
             <InfoRow label={t.package_detail.field_insurance} value={booking.insurance_subscribed ? t.package_detail.insurance_yes : t.package_detail.insurance_no} />
           )}

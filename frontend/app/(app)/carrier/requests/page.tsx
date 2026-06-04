@@ -13,12 +13,16 @@ import Select from '@/components/ui/kipar/Select'
 import api from '@/lib/api'
 import { CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, RED, GREEN } from '@/lib/theme'
 import { getTrustGradient } from '@/lib/trust'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { PricePerWeightDisplay, formatPricePerWeight } from '@/components/ui/kipar/PricePerWeightDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useState } from 'react'
 
 export default function CarrierRequestsPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { user } = useAuthStore()
+  const rates = useExchangeRates()
   const queryClient = useQueryClient()
   const [applyingId, setApplyingId] = useState<string | null>(null)
   const [selectedTripId, setSelectedTripId] = useState<string>('')
@@ -87,8 +91,8 @@ export default function CarrierRequestsPage() {
                       <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{req.destination_airport_code}</p>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: RED }}>{req.budget_per_kg}€/kg max</p>
-                      <p style={{ fontSize: 11, color: TAUPE }}>{req.weight_kg} kg</p>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL }}><PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> max</p>
+                      <p style={{ fontSize: 11, color: TAUPE }}><WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /></p>
                     </div>
                   </div>
 
@@ -122,7 +126,7 @@ export default function CarrierRequestsPage() {
                         <option value="">-- {t.carrier.my_trips} --</option>
                         {myTrips.filter((trip: any) => trip.status === 'open').map((trip: any) => (
                           <option key={trip.id} value={trip.id}>
-                            {trip.origin_airport_code} → {trip.destination_airport_code} · {trip.departure_date} · {trip.price_per_kg}€/kg
+                            {trip.origin_airport_code} → {trip.destination_airport_code} · {trip.departure_date} · {(() => { const f = formatPricePerWeight(trip.price_per_kg, trip.currency ?? 'EUR', (trip.weight_unit ?? 'kg') as any, user?.currency, user?.weight_unit as any, rates ?? undefined); return f.converted ? `${f.native} ≃ ${f.converted}` : f.native })()}
                           </option>
                         ))}
                       </Select>

@@ -5,6 +5,9 @@ import { Inbox, ChevronRight, Trash2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import HeroHeader from '@/components/layout/HeroHeader'
 import Modal from '@/components/ui/kipar/Modal'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
@@ -18,6 +21,7 @@ export default function RequestsPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { user } = useAuthStore()
+  const rates = useExchangeRates()
   const queryClient = useQueryClient()
   const [toDelete, setToDelete] = useState<{ id: string; label: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -87,7 +91,7 @@ export default function RequestsPage() {
                     </p>
                     <StatusBadge status={req.status} />
                   </div>
-                  <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · {req.weight_kg}kg · {req.budget_per_kg}€/kg</p>
+                  <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> · <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
                   <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.requests.deadline_label}: {req.deadline_date} · {t.requests.applications}: {req.applications_count}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

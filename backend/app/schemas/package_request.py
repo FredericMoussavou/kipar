@@ -17,6 +17,8 @@ class ApplicationResponse(BaseModel):
     carrier_kyc_status: str | None = None
     trip_departure_date: date | None = None
     trip_price_per_kg: float | None = None
+    trip_currency: str | None = None
+    trip_weight_unit: str | None = None
     trip_flight_number: str | None = None
     model_config = {"from_attributes": False}
 

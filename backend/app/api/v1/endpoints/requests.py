@@ -435,6 +435,8 @@ def _enrich_application(app: Application, carrier: User | None, trip: Trip | Non
         "carrier_kyc_status": carrier.kyc_status if carrier else None,
         "trip_departure_date": trip.departure_date if trip else None,
         "trip_price_per_kg": trip.price_per_kg if trip else None,
+        "trip_currency": trip.currency if trip else None,
+        "trip_weight_unit": trip.weight_unit if trip else None,
         "trip_flight_number": trip.flight_number if trip else None,
     }
 

@@ -436,6 +436,8 @@ async def list_carrier_bookings(
             declared_value=pkg.declared_value if pkg else None,
             is_urgent=b.is_urgent,
             booking_flat_fee_amount=b.booking_flat_fee_amount,
+            currency=b.currency,
+            weight_unit=b.weight_unit,
         ))
     return responses
 
@@ -480,6 +482,8 @@ async def list_my_bookings_detailed(
             declared_value=pkg.declared_value if pkg else None,
             is_urgent=b.is_urgent,
             booking_flat_fee_amount=b.booking_flat_fee_amount,
+            currency=b.currency,
+            weight_unit=b.weight_unit,
         ))
     return responses
 
@@ -533,6 +537,8 @@ async def get_booking_full(
         declared_value=pkg.declared_value if pkg else None,
         is_urgent=b.is_urgent,
         booking_flat_fee_amount=b.booking_flat_fee_amount,
+        currency=b.currency,
+        weight_unit=b.weight_unit,
         ai_scan_result=pkg.ai_scan_result if pkg else None,
         ai_prohibited_flag=pkg.ai_prohibited_flag if pkg else None,
         origin_airport_code=trip.origin_airport_code if trip else None,

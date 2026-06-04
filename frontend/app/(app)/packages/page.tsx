@@ -10,6 +10,10 @@ import Textarea from '@/components/ui/kipar/Textarea'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useState } from 'react'
 import { useAuthStore } from '@/stores/auth.store'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
+import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import StatusBadge from '@/components/ui/kipar/StatusBadge'
 import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
@@ -22,6 +26,7 @@ export default function PackagesPage() {
   const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
   const { isAuthenticated, user } = useAuthStore()
+  const rates = useExchangeRates()
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -202,7 +207,7 @@ export default function PackagesPage() {
                       </p>
                       <StatusBadge status={req.status} />
                     </div>
-                    <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · {req.weight_kg} kg · {req.budget_per_kg} €/kg</p>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> · <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
                     <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>
                       {t.requests.deadline_label}: {req.deadline_date} · {t.requests.applications}: {req.applications_count}
                     </p>
@@ -255,8 +260,8 @@ export default function PackagesPage() {
                           {booking.origin_airport_code} → {booking.destination_airport_code}
                         </span>
                       )}
-                      <span>{booking.weight_kg} kg</span>
-                      <span>{booking.amount?.toFixed(2)} €</span>
+                      <span><WeightDisplay value={booking.weight_kg} unit={(booking.weight_unit ?? 'kg') as any} userUnit={user?.weight_unit as any} /></span>
+                      <span><CurrencyDisplay amount={booking.amount ?? 0} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /></span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

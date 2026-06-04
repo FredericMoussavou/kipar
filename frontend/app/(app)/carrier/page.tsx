@@ -14,6 +14,10 @@ import HeroHeader from '@/components/layout/HeroHeader'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 import { useDrawerStore } from '@/stores/drawer.store'
+import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
+import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
+import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
+import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useKyc } from '@/hooks/useKyc'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80'
@@ -22,6 +26,7 @@ export default function CarrierPage() {
   const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
   const { user, setUser } = useAuthStore()
+  const rates = useExchangeRates()
   const router = useRouter()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'pending' | 'treated' | 'trips'>('pending')
@@ -259,7 +264,7 @@ export default function CarrierPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
-                      <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                      <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}><WeightDisplay value={booking.weight_kg} unit={(booking.weight_unit ?? 'kg') as any} userUnit={user?.weight_unit as any} /> · <CurrencyDisplay amount={booking.amount ?? 0} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /></p>
                     </div>
                     <StatusBadge status={booking.status} />
                   </div>
@@ -299,7 +304,7 @@ export default function CarrierPage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: canPickup || canDeliver ? 10 : 0 }}>
                       <div>
                         <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
-                        <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}>{booking.weight_kg} kg · {booking.amount?.toFixed(2)}€</p>
+                        <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}><WeightDisplay value={booking.weight_kg} unit={(booking.weight_unit ?? 'kg') as any} userUnit={user?.weight_unit as any} /> · <CurrencyDisplay amount={booking.amount ?? 0} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /></p>
                       </div>
                       <StatusBadge status={booking.status} />
                     </div>
@@ -360,7 +365,7 @@ export default function CarrierPage() {
                       <Plane size={14} color={TAUPE} />
                       <span style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{trip.destination_airport_code}</span>
                     </div>
-                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {t.trip.kg_available.replace('{n}', String(trip.remaining_kg))} · {trip.price_per_kg}€/kg</p>
+                    <p style={{ fontSize: 12, color: TAUPE }}>{trip.departure_date} · {t.trip.kg_available.replace('{n}', String(trip.remaining_kg))} · <PricePerWeightDisplay price={trip.price_per_kg} currency={trip.currency ?? 'EUR'} unit={(trip.weight_unit ?? 'kg') as any} userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <StatusBadge status={trip.status} />

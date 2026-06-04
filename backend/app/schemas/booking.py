@@ -29,6 +29,8 @@ class BookingResponse(BaseModel):
     declared_value: float | None = None
     is_urgent: bool = False
     booking_flat_fee_amount: float = 1.5
+    currency: str = "EUR"
+    weight_unit: str = "kg"
 
     model_config = {"from_attributes": True}
 
@@ -50,6 +52,8 @@ class BookingDetailResponse(BaseModel):
     declared_value: float | None = None
     is_urgent: bool = False
     booking_flat_fee_amount: float = 1.5
+    currency: str = "EUR"
+    weight_unit: str = "kg"
     ai_scan_result: dict | None = None
     ai_prohibited_flag: bool | None = None
     photo_urls: list | None = None

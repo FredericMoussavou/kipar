@@ -97,7 +97,7 @@ export const en = {
     loading: 'Loading...', 
   },
   trip: { 
-    available_kg: 'kg available', 
+    available_kg: 'available',
     small_package_only: 'Small packages only',
     small_package_label: 'Small package',
     max_per_package: 'Max/package', 

@@ -97,7 +97,7 @@ export const fr = {
     loading: 'Chargement...',
   },
   trip: {
-    available_kg: 'kg disponibles',
+    available_kg: 'disponibles',
     small_package_only: 'Petits colis uniquement',
     small_package_label: 'Petit colis',
     max_per_package: 'Max/colis',

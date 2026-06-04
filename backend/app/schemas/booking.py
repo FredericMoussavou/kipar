@@ -31,6 +31,7 @@ class BookingResponse(BaseModel):
     booking_flat_fee_amount: float = 1.5
     currency: str = "EUR"
     weight_unit: str = "kg"
+    package_mode: str = "kg"
 
     model_config = {"from_attributes": True}
 
@@ -54,6 +55,7 @@ class BookingDetailResponse(BaseModel):
     booking_flat_fee_amount: float = 1.5
     currency: str = "EUR"
     weight_unit: str = "kg"
+    package_mode: str = "kg"
     ai_scan_result: dict | None = None
     ai_prohibited_flag: bool | None = None
     photo_urls: list | None = None

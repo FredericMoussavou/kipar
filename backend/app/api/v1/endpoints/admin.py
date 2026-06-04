@@ -656,6 +656,25 @@ async def get_finance(
         })
 
     # Revenus urgence (part Kipar uniquement)
+    # Segmentation CA + marge Kipar (2 axes : mode kg/small, urgence)
+    _rate = settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT
+    def _kg_margin(b):
+        fee = (settings.URGENT_FEE_KIPAR if b.is_urgent else settings.BOOKING_FLAT_FEE) if b.booking_fee_collected else 0.0
+        return b.amount * _rate + fee
+    _d_kg = [b for b in delivered if b.package_mode != 'small']
+    _d_small = [b for b in delivered if b.package_mode == 'small']
+    _d_urgent = [b for b in delivered if b.is_urgent]
+    _d_standard = [b for b in delivered if not b.is_urgent]
+    segments = {
+        'by_mode': {
+            'kg': {'ca': round(sum(b.amount for b in _d_kg), 2), 'margin': round(sum(_kg_margin(b) for b in _d_kg), 2), 'count': len(_d_kg)},
+            'small': {'ca': round(sum(b.amount for b in _d_small), 2), 'margin': round(len(_d_small) * settings.SMALL_PACKAGE_KIPAR_FEE, 2), 'count': len(_d_small)},
+        },
+        'by_urgency': {
+            'urgent': {'ca': round(sum(b.amount for b in _d_urgent), 2), 'margin': round(sum((settings.SMALL_PACKAGE_KIPAR_FEE if b.package_mode == 'small' else _kg_margin(b)) for b in _d_urgent), 2), 'count': len(_d_urgent)},
+            'standard': {'ca': round(sum(b.amount for b in _d_standard), 2), 'margin': round(sum((settings.SMALL_PACKAGE_KIPAR_FEE if b.package_mode == 'small' else _kg_margin(b)) for b in _d_standard), 2), 'count': len(_d_standard)},
+        },
+    }
     urgent_fees = sum(
         settings.URGENT_FEE_KIPAR for b in bookings
         if b.is_urgent and b.booking_fee_collected
@@ -672,6 +691,7 @@ async def get_finance(
         "since": since.isoformat(),
         "summary": {
             "total_revenue": round(total_revenue, 2),
+            "segments": segments,
             "total_fees": round(total_fees, 2),
             "total_in_progress": round(total_in_progress, 2),
             "total_blocked": round(total_blocked, 2),

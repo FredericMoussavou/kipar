@@ -180,6 +180,7 @@ async def create_booking(
         reminder_hours=payload.reminder_hours,
         status="pending",
         is_urgent=is_urgent,
+        package_mode='small' if is_small else 'kg',
         booking_flat_fee_amount=flat_fee,
     )
     db.add(booking)
@@ -438,6 +439,7 @@ async def list_carrier_bookings(
             booking_flat_fee_amount=b.booking_flat_fee_amount,
             currency=b.currency,
             weight_unit=b.weight_unit,
+            package_mode=b.package_mode,
         ))
     return responses
 
@@ -484,6 +486,7 @@ async def list_my_bookings_detailed(
             booking_flat_fee_amount=b.booking_flat_fee_amount,
             currency=b.currency,
             weight_unit=b.weight_unit,
+            package_mode=b.package_mode,
         ))
     return responses
 
@@ -539,6 +542,7 @@ async def get_booking_full(
         booking_flat_fee_amount=b.booking_flat_fee_amount,
         currency=b.currency,
         weight_unit=b.weight_unit,
+        package_mode=b.package_mode,
         ai_scan_result=pkg.ai_scan_result if pkg else None,
         ai_prohibited_flag=pkg.ai_prohibited_flag if pkg else None,
         origin_airport_code=trip.origin_airport_code if trip else None,

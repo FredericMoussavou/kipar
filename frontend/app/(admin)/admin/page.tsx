@@ -541,6 +541,21 @@ function FinanceTab({ isMobile }: { isMobile: boolean }) {
       ['Primes collectées (à reverser assureur)', ins?.collected, `${ins?.count} dossiers`],
     ]
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), 'Résumé')
+    const sg = data.summary?.segments
+    if (sg) {
+      const segRows = [
+        ['SEGMENTS — ' + period.toUpperCase()],
+        [],
+        ['Type', 'CA (€)', 'Marge Kipar (€)', 'Nb livraisons'],
+        ['Au kilo', sg.by_mode?.kg?.ca ?? 0, sg.by_mode?.kg?.margin ?? 0, sg.by_mode?.kg?.count ?? 0],
+        ['Petit colis', sg.by_mode?.small?.ca ?? 0, sg.by_mode?.small?.margin ?? 0, sg.by_mode?.small?.count ?? 0],
+        [],
+        ['Urgence', 'CA (€)', 'Marge Kipar (€)', 'Nb livraisons'],
+        ['Urgent', sg.by_urgency?.urgent?.ca ?? 0, sg.by_urgency?.urgent?.margin ?? 0, sg.by_urgency?.urgent?.count ?? 0],
+        ['Standard', sg.by_urgency?.standard?.ca ?? 0, sg.by_urgency?.standard?.margin ?? 0, sg.by_urgency?.standard?.count ?? 0],
+      ]
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(segRows), 'Segments')
+    }
 
     // Feuille 2 — Evolution
     const chartRows = [['Période', 'CA livré (€)', 'Frais service (€)', 'Nb transactions'],
@@ -607,6 +622,7 @@ function FinanceTab({ isMobile }: { isMobile: boolean }) {
   }
 
   const bd = data?.revenue_breakdown
+  const seg = data?.summary?.segments
   const summary = data?.summary
   const escrow = data?.escrow
   const insurance = data?.insurance_transit
@@ -688,6 +704,37 @@ function FinanceTab({ isMobile }: { isMobile: boolean }) {
             <p style={{ fontSize: 28, fontWeight: 800, color: '#4ADE80', margin: 0, fontFamily: 'var(--font-syne,Syne)' }}>{fmt(bd?.total ?? 0)} €</p>
           </div>
 
+          {/* Repartition par segment (CA + marge Kipar) */}
+          <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 16px', marginBottom: 16 }}>
+            <SectionTitle title="Repartition par segment (livraisons)" />
+            <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 12px' }}>CA = montant paye par l'expediteur. Marge = revenu Kipar (commissions + frais).</p>
+            {[
+              { title: 'Par type de colis', rows: [
+                { label: 'Au kilo', ca: seg?.by_mode?.kg?.ca ?? 0, margin: seg?.by_mode?.kg?.margin ?? 0, count: seg?.by_mode?.kg?.count ?? 0 },
+                { label: 'Petit colis', ca: seg?.by_mode?.small?.ca ?? 0, margin: seg?.by_mode?.small?.margin ?? 0, count: seg?.by_mode?.small?.count ?? 0 },
+              ] },
+              { title: 'Par urgence', rows: [
+                { label: 'Urgent', ca: seg?.by_urgency?.urgent?.ca ?? 0, margin: seg?.by_urgency?.urgent?.margin ?? 0, count: seg?.by_urgency?.urgent?.count ?? 0 },
+                { label: 'Standard', ca: seg?.by_urgency?.standard?.ca ?? 0, margin: seg?.by_urgency?.standard?.margin ?? 0, count: seg?.by_urgency?.standard?.count ?? 0 },
+              ] },
+            ].map((grp) => (
+              <div key={grp.title} style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>{grp.title}</p>
+                <div style={{ display: 'flex', fontSize: 10, color: TAUPE, padding: '0 12px 4px' }}>
+                  <span style={{ flex: 1 }}></span>
+                  <span style={{ width: 90, textAlign: 'right' }}>CA</span>
+                  <span style={{ width: 90, textAlign: 'right' }}>Marge Kipar</span>
+                </div>
+                {grp.rows.map((r, i) => (
+                  <div key={r.label} style={{ display: 'flex', alignItems: 'center', padding: '10px 12px', background: i % 2 === 0 ? SAND : WHITE, borderRadius: 8 }}>
+                    <span style={{ flex: 1, fontSize: isMobile ? 12 : 13, color: CHARCOAL }}>{r.label} <span style={{ color: TAUPE, fontSize: 11 }}>({r.count})</span></span>
+                    <span style={{ width: 90, textAlign: 'right', fontSize: 13, fontWeight: 600, color: CHARCOAL }}>{fmt(r.ca)} €</span>
+                    <span style={{ width: 90, textAlign: 'right', fontSize: 13, fontWeight: 700, color: r.margin > 0 ? '#16A34A' : TAUPE }}>{fmt(r.margin)} €</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
           {/* Escrow */}
           <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 16px', marginBottom: 16 }}>
             <SectionTitle title="Escrow & Remboursements" />

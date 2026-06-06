@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import BottomNav from '@/components/layout/BottomNav'
 import TopNav from '@/components/layout/TopNav'
+import VisitorNav from '@/components/layout/VisitorNav'
 import { BG } from '@/lib/theme'
 import { NotificationsProvider } from '@/contexts/notifications.context'
 import TawkButton from '@/components/ui/kipar/TawkButton'
@@ -74,7 +75,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ minHeight: '100vh', background: BG }}>
       {/* Desktop top nav */}
       <div className="hidden md:block">
-        <TopNav />
+        {isAuthenticated() ? <TopNav /> : <VisitorNav />}
       </div>
       {/* Contenu */}
       <main style={{ paddingBottom: 80 }} className="md:max-w-5xl md:mx-auto md:px-6 md:pt-6 md:pb-12">

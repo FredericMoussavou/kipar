@@ -1,5 +1,6 @@
 'use client'
 import { RED, TAUPE, WHITE } from '@/lib/theme'
+import { useAuthStore } from '@/stores/auth.store'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, Package, User, Plane } from 'lucide-react'
@@ -8,6 +9,8 @@ import { useTranslation } from '@/hooks/useTranslation'
 export default function BottomNav() {
   const pathname = usePathname()
   const { t } = useTranslation()
+  const { isAuthenticated } = useAuthStore()
+  if (!isAuthenticated()) return null
 
   const items = [
     { href: '/dashboard', icon: Home,    label: t.nav.home },

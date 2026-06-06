@@ -85,6 +85,7 @@ export const en = {
     profile: 'Profile', 
     carrier: 'Carrier', 
     messages: 'Messages', 
+    login: 'Log in',
   },
   dashboard: { 
     greeting: 'Hello', 

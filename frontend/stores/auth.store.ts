@@ -125,7 +125,7 @@ export const useAuthStore = create<AuthStore>()(
         const token = get().token
         if (typeof window !== 'undefined') localStorage.removeItem('kipar_refresh_token')
         // Redirection immediate
-        set({ token: null, user: null })
+        set({ token: null, user: null, unreadCount: 0 })
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')
           document.cookie = 'kipar_token=; path=/; max-age=0'
@@ -142,7 +142,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'kipar-auth',
-      partialize: (state) => ({ token: state.token, user: state.user, unreadCount: state.unreadCount }),
+      partialize: (state) => ({ token: state.token, user: state.user }),
     }
   )
 )

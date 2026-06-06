@@ -85,6 +85,7 @@ export const es = {
     profile: 'Perfil',
     carrier: 'Transportista',
     messages: 'Mensajes',
+    login: 'Iniciar sesión',
   },
   dashboard: {
     greeting: 'Hola',

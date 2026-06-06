@@ -83,7 +83,7 @@ function AnimatedDot() {
 export default function LoginPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { setToken, setUser, setRefreshToken } = useAuthStore()
+  const { setToken, setUser, setRefreshToken, isAuthenticated } = useAuthStore()
   const { paddingH, paddingV } = useResponsive()
   const [showPassword, setShowPassword] = useState(false)
   const [step, setStep] = useState<'credentials' | '2fa'>('credentials')
@@ -99,9 +99,13 @@ export default function LoginPage() {
   })
 
   const _pending = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('pending_trip') || undefined) : undefined
+  useEffect(() => {
+    // Deja connecte (ex: retour arriere sur /login) -> filer au dashboard.
+    if (isAuthenticated()) router.replace('/dashboard')
+  }, [])
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await api.post('/auth/login', { ...data, pending_trip_id: _pending })
+      const res = await api.post('/auth/login', data)
       if (res.data.token_type === '2fa_required') {
         setSessionId(res.data.user.session_id)
         setStep('2fa')

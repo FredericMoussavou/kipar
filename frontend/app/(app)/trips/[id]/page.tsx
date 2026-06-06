@@ -11,7 +11,7 @@ import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { PricePerWeightDisplay } from '@/components/ui/kipar/PricePerWeightDisplay'
 import { useConfig } from '@/hooks/useConfig'
 import HeroHeader from '@/components/layout/HeroHeader'
-import api from '@/lib/api'
+import api, { publicApi } from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 import { useInsuranceConfig } from '@/hooks/useInsuranceConfig'
 
@@ -35,13 +35,14 @@ export default function TripDetailPage() {
   const { data: trip, isLoading } = useQuery({
     queryKey: ['trip', id],
     queryFn: async () => {
+      if (!isAuthenticated()) return await publicApi(`/trips/${id}`)
       const res = await api.get(`/trips/${id}`)
       return res.data
     },
   })
 
   const handleBook = () => {
-    if (!isAuthenticated()) { router.push('/login'); return }
+    if (!isAuthenticated()) { router.push(`/login?pending_trip=${id}`); return }
     setSelectedTrip(trip)
     router.push(`/trips/${id}/book`)
   }
@@ -106,7 +107,7 @@ export default function TripDetailPage() {
       <div style={{ padding: '16px 16px 100px' }} className="md:max-w-2xl md:mx-auto">
 
         {/* Transporteur */}
-        <div onClick={() => router.push(`/profile/${trip.carrier_id}`)} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+        <div onClick={isAuthenticated() ? () => router.push(`/profile/${trip.carrier_id}`) : undefined} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', cursor: isAuthenticated() ? 'pointer' : 'default' }}>
           {/* Header : avatar + nom + prix */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: CHARCOAL, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -178,8 +179,15 @@ export default function TripDetailPage() {
           </div>
         )}
 
+        {/* encart visiteur avant le bouton */}
+        {!isAuthenticated() && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: SAND, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
+            <Shield size={18} color={RED} style={{ flexShrink: 0 }} />
+            <p style={{ fontSize: 12, color: CHARCOAL, margin: 0, lineHeight: 1.4 }}>{t.trip.visitor_book_hint}</p>
+          </div>
+        )}
         <Button fullWidth size="lg" onClick={handleBook}>
-          {t.trip.send_package}
+          {isAuthenticated() ? t.trip.send_package : t.trip.login_to_book}
         </Button>
       </div>
     </div>

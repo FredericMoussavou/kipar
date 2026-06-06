@@ -49,6 +49,7 @@ class User(Base):
 
     # KiparTrust
     trust_score: Mapped[float] = mapped_column(Float, default=50.0)
+    pending_trip_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)  # trajet d'interet memorise avant inscription
 
     # Paiements
     stripe_account_id: Mapped[str | None] = mapped_column(String(100), nullable=True)

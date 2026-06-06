@@ -20,7 +20,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       const publicPaths = ['/', '/login', '/register', '/faq', '/cgu', '/privacy', '/cookies', '/mentions-legales']
-      const isPublic = publicPaths.some(p => window.location.pathname === p || window.location.pathname.startsWith('/receiver/'))
+      const isPublic = publicPaths.some(p => window.location.pathname === p || window.location.pathname.startsWith('/receiver/') || window.location.pathname.startsWith('/trips/'))
       if (!isPublic) {
         localStorage.removeItem('kipar_token')
         document.cookie = 'kipar_token=; path=/; max-age=0'
@@ -30,5 +30,16 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+
+// Appels publics : sans token, sans intercepteur (vitrine accessible aux visiteurs).
+export async function publicApi<T = any>(path: string): Promise<T> {
+  const base = process.env.NEXT_PUBLIC_API_URL || ''
+  const res = await fetch(`${base}/public${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error(`public_api_${res.status}`)
+  return res.json()
+}
 
 export default api

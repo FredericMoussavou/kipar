@@ -97,6 +97,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const currentLang = getLangCookie()
+      const _pending = new URLSearchParams(window.location.search).get('pending_trip') || undefined
       await api.post('/auth/register', {
         first_name: data.first_name,
         last_name: data.last_name,
@@ -104,6 +105,7 @@ export default function RegisterPage() {
         password: data.password,
         language: currentLang,
         cgu_accepted: cguAccepted,
+        pending_trip_id: _pending,
       })
       toast.success('Compte créé avec succès !')
       router.push('/onboarding')

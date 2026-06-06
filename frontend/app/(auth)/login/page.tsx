@@ -100,7 +100,8 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await api.post('/auth/login', data)
+      const _pending = new URLSearchParams(window.location.search).get('pending_trip') || undefined
+      const res = await api.post('/auth/login', { ...data, pending_trip_id: _pending })
       if (res.data.token_type === '2fa_required') {
         setSessionId(res.data.user.session_id)
         setStep('2fa')

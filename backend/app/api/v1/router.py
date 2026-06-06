@@ -7,7 +7,7 @@ from app.api.v1.endpoints import (
     auth, trips, bookings, messages,
     delivery, tracking, payments, users, kyc, reviews,
     kiparscan, pir, insurance, airports, oauth, requests, notifications, verify, admin,
-    currencies, config
+    currencies, config, public
 )
 
 api_router = APIRouter()
@@ -17,6 +17,7 @@ api_router.include_router(oauth.router)
 api_router.include_router(users.router)
 api_router.include_router(airports.router)
 api_router.include_router(trips.router)
+api_router.include_router(public.router)
 api_router.include_router(bookings.router)
 api_router.include_router(messages.router)
 api_router.include_router(delivery.router)

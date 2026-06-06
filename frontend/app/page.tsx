@@ -6,6 +6,9 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useLanguage } from '@/hooks/useLanguage'
 import { getT } from '@/lib/i18n'
+import { publicApi } from '@/lib/api'
+import PublicTripCard, { PublicTrip } from '@/components/trips/PublicTripCard'
+import { useRouter } from 'next/navigation'
 
 const R = '#DC0029'
 const CHARCOAL = '#1A1A1A'
@@ -129,6 +132,9 @@ function LaptopMockup({ t }: { t: any }) {
 }
 
 export default function LandingPage() {
+  const router = useRouter()
+  const [publicTrips, setPublicTrips] = useState<PublicTrip[]>([])
+  useEffect(() => { publicApi<PublicTrip[]>('/trips').then(setPublicTrips).catch(() => {}) }, [])
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
     const video = videoRef.current
@@ -298,6 +304,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+{/* TRAJETS DISPONIBLES */}
+{publicTrips.length > 0 && (
+  <section style={{ padding: isMobile ? '60px 20px' : '100px 48px', background: WHITE }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: R, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t.landing.trips_tag}</p>
+        <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 32 : 44, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', margin: 0 }}>{t.landing.trips_title}</h2>
+        <p style={{ fontSize: 14, color: TAUPE, marginTop: 12, maxWidth: 540, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>{t.landing.trips_subtitle}</p>
+      </div>
+      <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 12, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {publicTrips.map(tr => (
+          <PublicTripCard key={tr.id} trip={tr} onClick={() => router.push(`/trips/${tr.id}`)}
+            smallLabel={t.landing.trips_small_only} kgLabel={t.landing.trips_kg_left} trustLabel={t.landing.trips_trust} />
+        ))}
+      </div>
+    </div>
+  </section>
+)}
 {/* VIDEO */}
       <section style={{ padding: isMobile ? '60px 20px' : '80px 48px', background: WHITE }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>

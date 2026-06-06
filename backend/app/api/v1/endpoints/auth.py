@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,6 +48,7 @@ class RegisterRequest(BaseModel):
     phone: str | None = None
     language: str = "fr"
     cgu_accepted: bool = False
+    pending_trip_id: uuid.UUID | None = None
 
     @field_validator("password")
     @classmethod
@@ -70,6 +72,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    pending_trip_id: uuid.UUID | None = None
 
 
 class TokenResponse(BaseModel):
@@ -100,6 +103,7 @@ async def register(request: Request, payload: RegisterRequest, db: AsyncSession 
         last_name=payload.last_name,
         language=payload.language,
         cgu_accepted_at=datetime.now(timezone.utc) if payload.cgu_accepted else None,
+        pending_trip_id=payload.pending_trip_id,
     )
     db.add(user)
     await db.commit()
@@ -126,6 +130,9 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     if not user.is_active:
         raise HTTPException(status_code=401, detail=t("errors.invalid_credentials", lang))
     from app.api.v1.endpoints.users import _serialize_me
+    if payload.pending_trip_id:
+        user.pending_trip_id = payload.pending_trip_id
+        await db.commit()
     # Verifier si 2FA est active
     if user.totp_enabled:
         import uuid

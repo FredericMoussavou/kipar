@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Search, Bell, Package2 } from 'lucide-react'
@@ -23,7 +23,7 @@ const DEFAULT_CORRIDORS: Corridor[] = [{ label: 'Tous', origin: null, dest: null
 
 export default function DashboardPage() {
   const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const { user, setUser } = useAuthStore()
   const [showOwnTrips, setShowOwnTrips] = useState(false)
   const [showUrgentOnly, setShowUrgentOnly] = useState(false)
   const [showSmallOnly, setShowSmallOnly] = useState(false)
@@ -37,6 +37,17 @@ export default function DashboardPage() {
   const { open: openDrawer } = useDrawerStore()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+  const _pendingConsumed = useRef(false)
+  useEffect(() => {
+    if (_pendingConsumed.current) return
+    if (user?.pending_trip_id && user?.onboarding_completed) {
+      _pendingConsumed.current = true
+      const tid = user.pending_trip_id
+      setUser({ ...user, pending_trip_id: null } as any)
+      api.delete('/users/me/pending-trip').catch(() => {})
+      router.push(`/trips/${tid}`)
+    }
+  }, [user])
   const corridor = corridors[activeCorr] ?? DEFAULT_CORRIDORS[0]
 
   useState(() => {

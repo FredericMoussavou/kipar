@@ -598,6 +598,7 @@ def _serialize_me(user: User) -> dict:
         "is_premium": bool(user.is_premium),
         "premium_expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None,
         "premium_plan": user.premium_plan,
+        "pending_trip_id": str(user.pending_trip_id) if user.pending_trip_id else None,
     }
 
 
@@ -661,3 +662,14 @@ async def accept_cgu(
     current_user.cgu_accepted_at = datetime.now(timezone.utc)
     await db.commit()
     return {"cgu_accepted_at": current_user.cgu_accepted_at.isoformat()}
+
+
+@router.delete("/me/pending-trip")
+async def clear_pending_trip(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Efface le trajet d'interet memorise (consomme apres redirection)."""
+    current_user.pending_trip_id = None
+    await db.commit()
+    return {"message": "pending_trip_cleared"}

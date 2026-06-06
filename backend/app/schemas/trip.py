@@ -87,3 +87,27 @@ class TripResponse(BaseModel):
     currency: str | None = None
     accepts_urgent: bool = False
     model_config = {"from_attributes": False}
+
+
+class PublicTripResponse(BaseModel):
+    # Version expurgee pour la vitrine publique : AUCUNE donnee personnelle du transporteur.
+    id: uuid.UUID
+    origin_city: str
+    origin_airport_code: str
+    destination_city: str
+    destination_airport_code: str
+    departure_date: date
+    departure_time: str | None = None
+    arrival_date: date | None = None
+    arrival_time: str | None = None
+    flight_number: str | None = None
+    airline: str | None = None
+    total_kg: float | None = None
+    remaining_kg: float | None = None
+    max_kg_per_package: float
+    price_per_kg: float | None = None
+    small_package_price: float | None = None
+    weight_unit: str | None = None
+    currency: str | None = None
+    status: str
+    trust_score: float | None = None

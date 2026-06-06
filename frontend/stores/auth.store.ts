@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import api from '@/lib/api'
 
 interface User {
+  pending_trip_id?: string | null
   id: string
   email: string
   first_name: string

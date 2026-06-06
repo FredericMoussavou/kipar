@@ -120,6 +120,7 @@ export default function LoginPage() {
         if (!userData.onboarding_completed) {
           router.push('/onboarding')
         } else {
+          router.refresh()
           router.push(_pending ? `/trips/${_pending}` : '/dashboard')
         }
       } else {
@@ -129,6 +130,7 @@ export default function LoginPage() {
         if (!me.data.onboarding_completed) {
           router.push('/onboarding')
         } else {
+          router.refresh()
           router.push(_pending ? `/trips/${_pending}` : '/dashboard')
         }
       }

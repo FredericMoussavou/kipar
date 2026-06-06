@@ -98,9 +98,9 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
   })
 
+  const _pending = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('pending_trip') || undefined) : undefined
   const onSubmit = async (data: FormData) => {
     try {
-      const _pending = new URLSearchParams(window.location.search).get('pending_trip') || undefined
       const res = await api.post('/auth/login', { ...data, pending_trip_id: _pending })
       if (res.data.token_type === '2fa_required') {
         setSessionId(res.data.user.session_id)
@@ -116,7 +116,7 @@ export default function LoginPage() {
         if (!userData.onboarding_completed) {
           router.push('/onboarding')
         } else {
-          router.push('/dashboard')
+          router.push(_pending ? `/trips/${_pending}` : '/dashboard')
         }
       } else {
         const me = await api.get('/users/me')
@@ -125,7 +125,7 @@ export default function LoginPage() {
         if (!me.data.onboarding_completed) {
           router.push('/onboarding')
         } else {
-          router.push('/dashboard')
+          router.push(_pending ? `/trips/${_pending}` : '/dashboard')
         }
       }
     } catch (err: any) {
@@ -185,7 +185,7 @@ export default function LoginPage() {
       if (!me.data.onboarding_completed) {
         router.push('/onboarding')
       } else {
-        router.push('/dashboard')
+        router.push(_pending ? `/trips/${_pending}` : '/dashboard')
       }
     } catch {
       toast.error(t.errors.generic)

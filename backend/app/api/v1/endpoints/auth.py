@@ -133,6 +133,7 @@ async def login(request: Request, payload: LoginRequest, db: AsyncSession = Depe
     if payload.pending_trip_id:
         user.pending_trip_id = payload.pending_trip_id
         await db.commit()
+        await db.refresh(user)
     # Verifier si 2FA est active
     if user.totp_enabled:
         import uuid

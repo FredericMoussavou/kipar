@@ -19,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useInactivityLogout()
 
   useEffect(() => {
+    const hadToken = typeof window !== 'undefined' && !!(localStorage.getItem('kipar_token') || localStorage.getItem('kipar_refresh_token'))
     const initAuth = async () => {
       // Si token present mais potentiellement expire, tenter un silent refresh
       const token = localStorage.getItem('kipar_token')
@@ -33,12 +34,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const unsub = useAuthStore.persist.onFinishHydration(async () => {
       setHydrated(true)
       await initAuth()
-      if (!useAuthStore.getState().isAuthenticated() && window.location.pathname !== '/login' && !window.location.pathname.startsWith('/trips/')) router.replace('/login')
+      if (!useAuthStore.getState().isAuthenticated() && window.location.pathname !== '/login') {
+        const _p = window.location.pathname
+        if (_p.startsWith('/trips/')) {
+          if (hadToken) {
+            const _tid = _p.split('/trips/')[1]?.split('/')[0]
+            router.replace(_tid ? `/login?pending_trip=${_tid}` : '/login')
+          }
+        } else {
+          router.replace('/login')
+        }
+      }
     })
     if (useAuthStore.persist.hasHydrated()) {
       setHydrated(true)
       initAuth().then(() => {
-        if (!isAuthenticated() && window.location.pathname !== '/login' && !window.location.pathname.startsWith('/trips/')) router.replace('/login')
+        if (!isAuthenticated() && window.location.pathname !== '/login') {
+        const _p = window.location.pathname
+        if (_p.startsWith('/trips/')) {
+          if (hadToken) {
+            const _tid = _p.split('/trips/')[1]?.split('/')[0]
+            router.replace(_tid ? `/login?pending_trip=${_tid}` : '/login')
+          }
+        } else {
+          router.replace('/login')
+        }
+      }
       })
     }
     return () => unsub()

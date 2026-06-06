@@ -53,13 +53,13 @@ export default function PublicTripCard({ trip, onClick, smallLabel, kgLabel, tru
       {/* Trajet */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 17, fontWeight: 800, color: CHARCOAL, margin: 0, lineHeight: 1.1 }}>{trip.origin_city}</p>
-          <p style={{ fontSize: 10, color: TAUPE, margin: '2px 0 0', letterSpacing: '0.05em' }}>{trip.origin_airport_code}</p>
+          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, margin: 0, lineHeight: 1 }}>{trip.origin_airport_code}</p>
+          <p style={{ fontSize: 11, color: TAUPE, margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.origin_city}</p>
         </div>
         <Plane size={16} color={R} style={{ flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 17, fontWeight: 800, color: CHARCOAL, margin: 0, lineHeight: 1.1 }}>{trip.destination_city}</p>
-          <p style={{ fontSize: 10, color: TAUPE, margin: '2px 0 0', letterSpacing: '0.05em' }}>{trip.destination_airport_code}</p>
+          <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: CHARCOAL, margin: 0, lineHeight: 1 }}>{trip.destination_airport_code}</p>
+          <p style={{ fontSize: 11, color: TAUPE, margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.destination_city}</p>
         </div>
       </div>
       {/* Date + prix */}

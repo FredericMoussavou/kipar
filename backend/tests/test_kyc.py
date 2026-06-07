@@ -52,7 +52,7 @@ async def test_kyc_simulate_verify(client, db_session):
         headers={"Authorization": f"Bearer {token}"}
     )
     assert res.status_code == 200
-    assert res.json()["kyc_status"] == "verified"
+    assert res.json()["kyc_status"] == "approved"
     assert "trust_score" in res.json()
 
 

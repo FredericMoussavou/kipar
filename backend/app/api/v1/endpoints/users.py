@@ -233,7 +233,7 @@ async def update_me(
             current_user.username_updated_at = datetime.now(timezone.utc)
 
     if payload.is_carrier is True:
-        if current_user.kyc_status != "verified":
+        if current_user.kyc_status != "approved":
             raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
         if not current_user.email_verified:
             raise HTTPException(status_code=403, detail=t("errors.already_verified", lang))

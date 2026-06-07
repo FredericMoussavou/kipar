@@ -29,7 +29,7 @@ async def init_kyc(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    if current_user.kyc_status == "verified":
+    if current_user.kyc_status == "approved":
         raise HTTPException(status_code=400, detail=t("errors.kyc_already_verified", lang))
 
     if not current_user.onfido_applicant_id:
@@ -91,7 +91,7 @@ async def submit_kyc_docs(
     lang: str = Depends(get_lang),
 ):
     """Soumet les documents KYC uploadés via Cloudinary."""
-    if current_user.kyc_status == "verified":
+    if current_user.kyc_status == "approved":
         raise HTTPException(status_code=400, detail=t("errors.kyc_already_verified", lang))
 
     docs = {}
@@ -129,10 +129,10 @@ async def simulate_kyc_verification(
     if settings.is_production:
         raise HTTPException(status_code=404, detail=t("errors.unauthorized", lang))
 
-    current_user.kyc_status = "verified"
+    current_user.kyc_status = "approved"
     new_score = await update_trust_score(current_user, db)
     return {
         "message": t("success.kyc_simulate_ok", lang),
-        "kyc_status": "verified",
+        "kyc_status": "approved",
         "trust_score": new_score
     }

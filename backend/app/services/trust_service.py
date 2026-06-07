@@ -33,7 +33,7 @@ async def compute_trust_score(user: User, db: AsyncSession) -> float:
     score = BASE_SCORE
 
     # +15 KYC vérifié
-    if user.kyc_status == "verified":
+    if user.kyc_status == "approved":
         score += 15.0
 
     # +1pt/mois d'ancienneté, max +10

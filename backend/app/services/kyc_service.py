@@ -68,7 +68,7 @@ async def create_sdk_token(applicant_id: str) -> str | None:
 async def process_webhook(payload: dict) -> dict | None:
     """
     Traite le webhook Onfido après vérification.
-    Retourne {"applicant_id": ..., "status": "verified"|"rejected"}
+    Retourne {"applicant_id": ..., "status": "approved"|"rejected"}
     """
     resource_type = payload.get("payload", {}).get("resource_type")
     action = payload.get("payload", {}).get("action")
@@ -83,5 +83,5 @@ async def process_webhook(payload: dict) -> dict | None:
     if not applicant_id:
         return None
 
-    status = "verified" if result == "clear" else "rejected"
+    status = "approved" if result == "clear" else "rejected"
     return {"applicant_id": applicant_id, "status": status}

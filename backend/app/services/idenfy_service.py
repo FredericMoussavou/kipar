@@ -62,7 +62,7 @@ async def create_verification_session(
 async def process_webhook(payload: dict) -> dict | None:
     """
     Traite le webhook iDenfy.
-    Retourne {"applicant_id": ..., "status": "verified"|"rejected"|"in_review"}
+    Retourne {"applicant_id": ..., "status": "approved"|"rejected"|"in_review"}
     """
     # iDenfy envoie clientId + status
     client_id = payload.get("clientId")
@@ -72,7 +72,7 @@ async def process_webhook(payload: dict) -> dict | None:
         return None
 
     kyc_status = {
-        "APPROVED": "verified",
+        "APPROVED": "approved",
         "DENIED": "rejected",
         "SUSPECTED": "in_review",
         "EXPIRED": "rejected",

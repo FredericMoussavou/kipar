@@ -103,6 +103,15 @@ class Booking(Base):
     # Soft delete
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # --- Lot B : hold pre-reservation pending_kyc ---
+    kg_held: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    pending_kyc_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    promoted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     # Statut : pending / awaiting_receiver / accepted / refused /
     #          paid / in_transit / delivered / disputed / refunded
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)

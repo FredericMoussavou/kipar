@@ -156,7 +156,7 @@ async def test_cancel_booking_restores_kg(client, db_session):
     await db_session.execute(
         update(__import__('app.models.booking', fromlist=['Booking']).Booking)
         .where(__import__('app.models.booking', fromlist=['Booking']).Booking.id == uuid.UUID(booking_id))
-        .values(status="accepted")
+        .values(status="accepted", kg_held=True)
     )
     await db_session.commit()
 
@@ -201,7 +201,7 @@ async def test_cancel_booking_by_carrier_restores_kg(client, db_session):
     booking_id = booking_res.json()["id"]
 
     await db_session.execute(
-        update(Booking).where(Booking.id == uuid.UUID(booking_id)).values(status="accepted")
+        update(Booking).where(Booking.id == uuid.UUID(booking_id)).values(status="accepted", kg_held=True)
     )
     await db_session.commit()
 

@@ -12,7 +12,7 @@ def expire_pending_bookings():
     Planifié toutes les 30 min via Celery Beat.
     """
     import asyncio
-    from sqlalchemy import select, update
+    from sqlalchemy import select, update, func
     from app.core.database import AsyncSessionLocal
     from app.models.booking import Booking
 
@@ -22,7 +22,7 @@ def expire_pending_bookings():
             result = await db.execute(
                 select(Booking).where(
                     Booking.status == "pending",
-                    Booking.created_at < cutoff,
+                    func.coalesce(Booking.promoted_at, Booking.created_at) < cutoff,
                 )
             )
             bookings = result.scalars().all()
@@ -34,7 +34,7 @@ def expire_pending_bookings():
             result_ar = await db.execute(
                 select(Booking).where(
                     Booking.status == "awaiting_receiver",
-                    Booking.created_at < cutoff_48h,
+                    func.coalesce(Booking.promoted_at, Booking.created_at) < cutoff_48h,
                 )
             )
             bookings_ar = result_ar.scalars().all()
@@ -528,7 +528,7 @@ def expire_awaiting_receiver_bookings():
     """
     import asyncio
     from datetime import datetime, timezone, timedelta
-    from sqlalchemy import select
+    from sqlalchemy import select, func
     from app.core.database import AsyncSessionLocal
     from app.models.booking import Booking
     from app.models.trip import Trip
@@ -543,7 +543,7 @@ def expire_awaiting_receiver_bookings():
             result = await db.execute(
                 select(Booking).where(
                     Booking.status == "awaiting_receiver",
-                    Booking.created_at < cutoff,
+                    func.coalesce(Booking.promoted_at, Booking.created_at) < cutoff,
                 )
             )
             bookings = result.scalars().all()
@@ -569,10 +569,11 @@ def expire_awaiting_receiver_bookings():
                 trip = trip_r.scalar_one_or_none()
                 pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
                 pkg = pkg_r.scalar_one_or_none()
-                if trip and pkg:
+                if trip and pkg and booking.kg_held:
                     trip.remaining_kg += pkg.weight_kg
                     if trip.status == "full":
                         trip.status = "open"
+                    booking.kg_held = False
 
                 # Notifier expediteur
                 await create_notification(
@@ -594,5 +595,68 @@ def expire_awaiting_receiver_bookings():
                 logger.info(f"[AWAITING] Booking {booking.id} annule apres 48h sans reponse")
             await db.commit()
             logger.info(f"[AWAITING] {len(bookings)} booking(s) expires")
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.expire_pending_kyc_bookings")
+def expire_pending_kyc_bookings():
+    """
+    Expire les pre-reservations pending_kyc dont le delai KYC est depasse.
+    Restitue les kg (si tenus) et notifie transporteur + expediteur. Horaire via Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.package import Package
+    from app.services.notif_db_service import create_notification
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "pending_kyc",
+                    Booking.pending_kyc_expires_at.isnot(None),
+                    Booking.pending_kyc_expires_at < now,
+                )
+            )
+            bookings = result.scalars().all()
+            for booking in bookings:
+                booking.status = "kyc_expired"
+                booking.cancellation_reason = "pending_kyc_timeout"
+
+                trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+                trip = trip_r.scalar_one_or_none()
+                if booking.kg_held and trip:
+                    pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
+                    pkg = pkg_r.scalar_one_or_none()
+                    if pkg:
+                        trip.remaining_kg += pkg.weight_kg
+                        if trip.status == "full":
+                            trip.status = "open"
+                    booking.kg_held = False
+
+                await create_notification(
+                    db=db, user_id=booking.sender_id,
+                    type="pending_kyc_expired",
+                    title="Pre-reservation expiree",
+                    body="Votre identite n'a pas ete validee a temps. La pre-reservation a expire.",
+                    link=f"/packages/{booking.id}",
+                )
+                if trip:
+                    await create_notification(
+                        db=db, user_id=trip.carrier_id,
+                        type="pending_kyc_expired",
+                        title="Creneau de nouveau disponible",
+                        body="Une pre-reservation en attente KYC a expire. Les kg sont de nouveau disponibles.",
+                        link="/carrier",
+                    )
+                logger.info(f"[PENDING_KYC] Booking {booking.id} expire (delai KYC depasse)")
+            await db.commit()
+            logger.info(f"[PENDING_KYC] {len(bookings)} pre-reservation(s) expiree(s)")
 
     asyncio.run(_run())

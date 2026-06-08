@@ -16,6 +16,7 @@ from app.models.review import Review
 from app.models.package_request import PackageRequest
 from app.models.package import Package
 from app.i18n.loader import t
+from app.services.kyc_promotion_service import promote_pending_kyc_bookings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -425,6 +426,8 @@ async def update_kyc(
         raise HTTPException(status_code=404, detail=t("errors.user_not_found", lang))
 
     user.kyc_status = decision
+    if decision == "approved":
+        await promote_pending_kyc_bookings(user, db)
     await db.commit()
     if decision == "approved":
         user.trust_score = min(100.0, user.trust_score + 20.0)

@@ -10,6 +10,7 @@ from app.core.lang import get_lang
 from app.models.user import User
 from app.services.idenfy_service import create_verification_session, process_webhook
 from app.services.trust_service import update_trust_score
+from app.services.kyc_promotion_service import promote_pending_kyc_bookings
 from app.i18n.loader import t
 
 router = APIRouter(prefix="/kyc", tags=["kyc"])
@@ -71,6 +72,8 @@ async def kyc_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         return {"status": "user_not_found"}
 
     user.kyc_status = result["status"]
+    if result["status"] == "approved":
+        await promote_pending_kyc_bookings(user, db)
     await update_trust_score(user, db)
     return {"status": "processed", "kyc_status": result["status"]}
 
@@ -130,6 +133,7 @@ async def simulate_kyc_verification(
         raise HTTPException(status_code=404, detail=t("errors.unauthorized", lang))
 
     current_user.kyc_status = "approved"
+    await promote_pending_kyc_bookings(current_user, db)
     new_score = await update_trust_score(current_user, db)
     return {
         "message": t("success.kyc_simulate_ok", lang),

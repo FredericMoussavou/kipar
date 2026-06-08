@@ -74,6 +74,11 @@ celery_app.conf.update(
             "task": "app.workers.booking_tasks.expire_awaiting_receiver_bookings",
             "schedule": crontab(minute=0, hour="*/1"),
         },
+        # Expire les pre-reservations pending_kyc (delai KYC depasse) - horaire
+        "expire-pending-kyc-bookings": {
+            "task": "app.workers.booking_tasks.expire_pending_kyc_bookings",
+            "schedule": crontab(minute=0, hour="*/1"),
+        },
         # Expire les abonnements premium une fois par jour
         "expire-premium-subscriptions": {
             "task": "app.workers.booking_tasks.expire_premium_subscriptions",

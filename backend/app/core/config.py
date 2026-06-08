@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     # Frais de service - modele financier v2
     SERVICE_FEE_SENDER_PERCENT: float = 0.15     # 15% cote expediteur
     SERVICE_FEE_CARRIER_PERCENT: float = 0.02    # 2% cote transporteur
+    PENDING_KYC_TTL_HOURS: int = 48              # TTL pre-reservation pending_kyc (heures)
     BOOKING_FLAT_FEE: float = 1.50               # Forfait dossier a la confirmation
     URGENT_FLAT_FEE: float = 10.0                # Forfait dossier urgence
     URGENT_FEE_KIPAR: float = 3.0                # Part KIPAR sur forfait urgence

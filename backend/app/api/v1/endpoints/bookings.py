@@ -88,15 +88,14 @@ async def create_booking(
     lang: str = Depends(get_lang),
 ):
     import os
-    if os.environ.get("ENVIRONMENT") != "test" and current_user.kyc_status != "approved":
-        raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
+    _kyc_ok = os.environ.get("ENVIRONMENT") == "test" or current_user.kyc_status == "approved"
     from app.api.v1.endpoints.premium import is_premium_active
     from sqlalchemy import func
     if not is_premium_active(current_user):
         active_count_result = await db.execute(
             select(func.count()).where(
                 Booking.sender_id == current_user.id,
-                Booking.status.in_(["pending", "accepted", "paid", "in_transit"]),
+                Booking.status.in_(["pending", "pending_kyc", "accepted", "paid", "in_transit"]),
             )
         )
         if active_count_result.scalar() >= 3:
@@ -196,6 +195,16 @@ async def create_booking(
     else:
         booking.status = "awaiting_receiver"
 
+    if not _kyc_ok:
+        booking.status = "pending_kyc"
+        booking.pending_kyc_expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.PENDING_KYC_TTL_HOURS)
+        if not is_small:
+            trip.remaining_kg = max(0.0, trip.remaining_kg - payload.weight_kg)
+            if trip.remaining_kg <= 0:
+                trip.status = "full"
+            booking.kg_held = True
+        return booking
+
     # Notifie le transporteur
     result = await db.execute(select(User).where(User.id == trip.carrier_id))
     carrier = result.scalar_one_or_none()
@@ -249,9 +258,11 @@ async def accept_booking(
     pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
     pkg = pkg_result.scalar_one_or_none()
     weight = pkg.weight_kg if pkg else round(booking.amount / (trip.price_per_kg * (1 + settings.SERVICE_FEE_SENDER_PERCENT)), 3)
-    trip.remaining_kg = max(0.0, trip.remaining_kg - weight)
-    if trip.remaining_kg <= 0:
-        trip.status = "full"
+    if not booking.kg_held:
+        trip.remaining_kg = max(0.0, trip.remaining_kg - weight)
+        if trip.remaining_kg <= 0:
+            trip.status = "full"
+        booking.kg_held = True
 
     booking.status = "accepted"
     booking.accepted_at = datetime.now(timezone.utc)
@@ -605,7 +616,7 @@ async def cancel_booking(
 
     if not is_sender and not is_carrier:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if is_sender and booking.status not in ("pending", "awaiting_receiver", "paid", "accepted"):
+    if is_sender and booking.status not in ("pending", "pending_kyc", "awaiting_receiver", "paid", "accepted"):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
     if is_carrier and booking.status not in ("accepted",):
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
@@ -711,10 +722,11 @@ async def cancel_booking(
     if trip:
         pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg:
+        if pkg and booking.kg_held:
             trip.remaining_kg += pkg.weight_kg
             if trip.status == "full":
                 trip.status = "open"
+            booking.kg_held = False
 
     await db.commit()
 
@@ -1407,10 +1419,11 @@ async def request_cancellation(
     # Restituer les kg au trip
     pkg_result = await db.execute(select(Package).where(Package.id == booking.package_id))
     pkg = pkg_result.scalar_one_or_none()
-    if pkg and trip:
+    if pkg and trip and booking.kg_held:
         trip.remaining_kg += pkg.weight_kg
         if trip.status == "full":
             trip.status = "open"
+        booking.kg_held = False
 
     # Remboursement immediat 100% expediteur
     import stripe as stripe_lib

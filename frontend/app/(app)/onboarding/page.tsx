@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { extractApiError } from '@/lib/apiError'
 import { ChevronRight, ChevronLeft, Check, Upload, X, CheckCircle, XCircle, Loader } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -171,7 +172,7 @@ export default function OnboardingPage() {
         setStep(s => s + 1)
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t.errors.generic)
+      toast.error(extractApiError(err, t.errors.generic))
     } finally {
       setSaving(false)
     }

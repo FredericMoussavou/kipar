@@ -157,6 +157,7 @@ async def update_language(
 ):
     new_lang = payload.language if payload.language in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE
     current_user.language = new_lang
+    await db.commit()
     return {"message": t("success.language_updated", lang), "language": new_lang}
 
 

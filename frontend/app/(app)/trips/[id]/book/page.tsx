@@ -20,6 +20,7 @@ import { useConfig } from '@/hooks/useConfig'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useAuthStore } from '@/stores/auth.store'
 import { useKyc } from '@/hooks/useKyc'
+import KycPlaneLoader from '@/components/booking/KycPlaneLoader'
 import { unitLabel } from '@/components/ui/kipar/WeightDisplay'
 
 const schema = z.object({
@@ -37,6 +38,7 @@ export default function BookPage() {
   const { bookingsBlocked, limits } = useLimits()
   const { user } = useAuthStore()
   const kyc = useKyc()
+  const [pendingKycBookingId, setPendingKycBookingId] = useState<string | null>(null)
   const { t } = useTranslation()
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const insuranceConfig = useInsuranceConfig()
@@ -145,6 +147,12 @@ export default function BookPage() {
   const insurance = withInsurance ? calculateInsurancePremium(insuranceConfig, value) : 0
   const total = transport + commission + insurance
 
+  useEffect(() => {
+    if (kyc.isApproved && pendingKycBookingId) {
+      router.push(`/trips/${id}/book/payment?booking_id=${pendingKycBookingId}&amount=${(transport + commission).toFixed(2)}&transport=${transport.toFixed(2)}&declared_value=${value}&currency=${trip?.currency ?? 'EUR'}`)
+    }
+  }, [kyc.isApproved, pendingKycBookingId])
+
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await api.post('/bookings', { photos,
@@ -160,6 +168,10 @@ export default function BookPage() {
     },
     onSuccess: (data) => {
       setCurrentBookingId(data.id)
+      if (data.status === 'pending_kyc') {
+        setPendingKycBookingId(data.id)
+        return
+      }
       router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${(transport + commission).toFixed(2)}&transport=${transport.toFixed(2)}&declared_value=${value}&currency=${trip?.currency ?? 'EUR'}`)
     },
     onError: (err: any) => {
@@ -171,7 +183,7 @@ export default function BookPage() {
     },
   })
 
-  if (user && user.kyc_status !== 'approved') {
+  if (pendingKycBookingId) {
     return (
       <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
         <div style={{ background: '#FFFFFF', border: '1px solid #E5E1DC', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
@@ -205,9 +217,15 @@ export default function BookPage() {
 
           {(kyc.isStarted || kyc.isPolling) && (
             <div style={{ marginTop: 8 }}>
-              <div style={{ width: 40, height: 40, border: '3px solid #DC0029', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+              <KycPlaneLoader />
               <p style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A', marginBottom: 4 }}>{t.onboarding.kyc_waiting}</p>
               <p style={{ fontSize: 12, color: '#7A736B' }}>{t.onboarding.kyc_waiting_sub}</p>
+              {process.env.NODE_ENV !== 'production' && (
+                <button type="button" onClick={async () => { try { await api.post('/kyc/simulate-verify') } catch {} }}
+                  style={{ marginTop: 16, background: '#F5F2EE', color: '#1A1A1A', border: '1px dashed #DC0029', borderRadius: 10, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  DEV : simuler la validation KYC
+                </button>
+              )}
             </div>
           )}
 

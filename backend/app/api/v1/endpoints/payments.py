@@ -14,6 +14,7 @@ from app.schemas.payment import PaymentIntentResponse, PawapayPaymentResponse
 from app.services.stripe_service import create_payment_intent, capture_payment_intent, release_payment_to_carrier
 from app.services.pawapay_service import initiate_deposit, initiate_refund, initiate_payout
 from app.i18n.loader import t
+from app.services.notif_db_service import notify_carrier_booking_payable
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -150,6 +151,10 @@ async def confirm_payment(
     if not booking.paid_at:
         booking.paid_at = datetime.now(timezone.utc)
 
+    # Notif transporteur : reservation payee = acceptable (Stripe ; PawaPay au webhook COMPLETED)
+    if not booking.package_request_id and booking.payment_rail != "pawapay":
+        await notify_carrier_booking_payable(db, booking)
+
     # Flux request : booking issu d'accept_application -> capture + accepted automatique
     if booking.package_request_id:
         if booking.payment_rail == "stripe" and booking.escrow_ref and not booking.escrow_ref.startswith("pi_simulated"):
@@ -265,6 +270,8 @@ async def pawapay_webhook(
             body="Votre paiement Mobile Money a ete confirme.",
             link=f"/packages/{booking.id}",
         )
+        if not booking.package_request_id:
+            await notify_carrier_booking_payable(db, booking)
         await db.commit()
     elif status == "FAILED" and booking.status == "paid":
         # Deposit echoue apres acceptation initiale - on repasse en pending

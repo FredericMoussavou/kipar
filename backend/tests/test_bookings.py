@@ -99,12 +99,43 @@ async def test_carrier_accept_booking(client, db_session):
     }, headers={"Authorization": f"Bearer {sender['token']}"})
     booking_id = booking_res.json()["id"]
 
+    # Simule le paiement : le transporteur ne peut accepter qu'une resa payee
+    from sqlalchemy import update
+    from app.models.booking import Booking
+    import uuid
+    await db_session.execute(
+        update(Booking).where(Booking.id == uuid.UUID(booking_id)).values(status="paid", escrow_ref="pi_simulated_test")
+    )
+    await db_session.commit()
+
     res = await client.patch(
         f"/api/v1/bookings/{booking_id}/accept",
         headers={"Authorization": f"Bearer {carrier['token']}"}
     )
     assert res.status_code == 200
     assert res.json()["status"] == "accepted"
+
+
+async def test_carrier_cannot_accept_unpaid_booking(client, db_session):
+    """Non-regression : un booking NON paye ne peut pas etre accepte (400)."""
+    carrier = await create_verified_carrier(client, db_session, "carrier_unpaid@kipar.com")
+    trip = await create_trip(client, carrier["token"])
+    sender = await register_and_login(client, "sender_unpaid@kipar.com")
+    booking_res = await client.post("/api/v1/bookings", json={
+        "trip_id": trip["id"],
+        "receiver_email_or_phone": "receiver@kipar.com",
+        "weight_kg": 3.0,
+        "content_description": "Livres",
+        "declared_value": 30.0
+    }, headers={"Authorization": f"Bearer {sender['token']}"})
+    booking_id = booking_res.json()["id"]
+
+    # PAS de paiement -> /accept doit etre refuse
+    res = await client.patch(
+        f"/api/v1/bookings/{booking_id}/accept",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    assert res.status_code == 400
 
 
 async def test_carrier_refuse_booking(client, db_session):

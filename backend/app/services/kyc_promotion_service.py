@@ -54,18 +54,5 @@ async def promote_pending_kyc_bookings(user: User, db: AsyncSession) -> int:
             link=f"/packages/{booking.id}",
         )
 
-        trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-        trip = trip_r.scalar_one_or_none()
-        if trip:
-            carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
-            carrier = carrier_r.scalar_one_or_none()
-            clang = (carrier.language if carrier else None) or "fr"
-            await create_notification(
-                db=db, user_id=trip.carrier_id,
-                type="pending_kyc_promoted_carrier",
-                title=_CARRIER_TITLE.get(clang, _CARRIER_TITLE["fr"]),
-                body=_CARRIER_BODY.get(clang, _CARRIER_BODY["fr"]),
-                link="/carrier",
-            )
 
     return len(bookings)

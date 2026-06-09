@@ -101,6 +101,37 @@ async def notify_booking_received_db(
     )
 
 
+async def notify_carrier_booking_payable(db, booking) -> None:
+    """Notifie le transporteur qu une reservation PAYEE est disponible a l acceptation."""
+    from sqlalchemy import select
+    from app.models.trip import Trip
+    from app.models.user import User
+    from app.services.notification_service import notify_booking_received
+    trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+    trip = trip_r.scalar_one_or_none()
+    if not trip:
+        return
+    carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
+    carrier = carrier_r.scalar_one_or_none()
+    if not carrier:
+        return
+    route = f"{trip.origin_airport_code} → {trip.destination_airport_code}"
+    await notify_booking_received(
+        carrier_fcm_token=carrier.fcm_token,
+        carrier_phone=carrier.phone,
+        carrier_email=carrier.email,
+        route=route,
+        lang=carrier.language,
+    )
+    await notify_booking_received_db(
+        db=db,
+        carrier_id=carrier.id,
+        route=route,
+        booking_id=booking.id,
+        lang=carrier.language or "fr",
+    )
+
+
 async def notify_booking_accepted_db(
     db: AsyncSession,
     sender_id: uuid.UUID,

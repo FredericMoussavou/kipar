@@ -205,26 +205,6 @@ async def create_booking(
             booking.kg_held = True
         return booking
 
-    # Notifie le transporteur
-    result = await db.execute(select(User).where(User.id == trip.carrier_id))
-    carrier = result.scalar_one_or_none()
-    route = f"{trip.origin_airport_code} → {trip.destination_airport_code}"
-    await notify_booking_received(
-        carrier_fcm_token=carrier.fcm_token,
-        carrier_phone=carrier.phone,
-        carrier_email=carrier.email,
-        route=route,
-        lang=carrier.language,
-    )
-
-    await notify_booking_received_db(
-        db=db,
-        carrier_id=carrier.id,
-        route=route,
-        booking_id=booking.id,
-        lang=carrier.language or "fr",
-    )
-
     return booking
 
 
@@ -244,7 +224,7 @@ async def accept_booking(
     trip = result.scalar_one_or_none()
     if trip.carrier_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
-    if booking.status not in ("pending", "awaiting_receiver", "paid"):
+    if booking.status != "paid":
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
 
     # Capture Stripe si paiement en escrow

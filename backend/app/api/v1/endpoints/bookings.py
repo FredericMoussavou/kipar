@@ -141,9 +141,11 @@ async def create_booking(
         if not trip.has_small_package:
             raise HTTPException(status_code=400, detail=t("errors.trip_no_small_package", lang))
         # Petit colis : forfait fixe (prix transporteur + part KIPAR)
-        flat_fee = settings.SMALL_PACKAGE_KIPAR_FEE
-        base_amount = trip.small_package_price  # Part transporteur
-        amount = round(trip.small_package_price + settings.SMALL_PACKAGE_KIPAR_FEE, 2)
+        from app.services.pricing_service import compute_small_amount
+        _pricing = compute_small_amount(trip.small_package_price)
+        flat_fee = _pricing["flat_fee"]
+        base_amount = _pricing["base"]
+        amount = _pricing["total"]
     else:
         if not trip.has_kg_capacity:
             raise HTTPException(status_code=400, detail=t("errors.trip_small_package_only", lang))
@@ -157,9 +159,11 @@ async def create_booking(
             raise HTTPException(status_code=400, detail=t(
                 "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
             ))
-        flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
-        base_amount = payload.weight_kg * trip.price_per_kg
-        amount = round(base_amount * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
+        from app.services.pricing_service import compute_kg_amount
+        _pricing = compute_kg_amount(payload.weight_kg, trip.price_per_kg, is_urgent)
+        flat_fee = _pricing["flat_fee"]
+        base_amount = _pricing["base"]
+        amount = _pricing["total"]
     package = Package(
         sender_id=current_user.id,
         weight_kg=payload.weight_kg,

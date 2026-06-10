@@ -360,9 +360,11 @@ async def accept_application(
     dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
     hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
     is_urgent = hours_until_dep <= settings.BOOKING_URGENT_THRESHOLD_HOURS
-    flat_fee = settings.URGENT_FLAT_FEE if is_urgent else settings.BOOKING_FLAT_FEE
-    transport = req.weight_kg * trip.price_per_kg
-    amount = round(transport * (1 + settings.SERVICE_FEE_SENDER_PERCENT) + flat_fee, 2)
+    from app.services.pricing_service import compute_kg_amount
+    _pricing = compute_kg_amount(req.weight_kg, trip.price_per_kg, is_urgent)
+    flat_fee = _pricing["flat_fee"]
+    transport = _pricing["base"]
+    amount = _pricing["total"]
 
     # Creer booking en pending - l'expediteur doit payer
     booking = Booking(

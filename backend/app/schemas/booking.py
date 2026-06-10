@@ -29,6 +29,7 @@ class BookingResponse(BaseModel):
     declared_value: float | None = None
     is_urgent: bool = False
     booking_flat_fee_amount: float = 1.5
+    base_amount: float | None = None
     currency: str = "EUR"
     weight_unit: str = "kg"
     package_mode: str = "kg"
@@ -53,6 +54,7 @@ class BookingDetailResponse(BaseModel):
     declared_value: float | None = None
     is_urgent: bool = False
     booking_flat_fee_amount: float = 1.5
+    base_amount: float | None = None
     currency: str = "EUR"
     weight_unit: str = "kg"
     package_mode: str = "kg"

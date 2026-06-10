@@ -185,6 +185,7 @@ async def create_booking(
         is_urgent=is_urgent,
         package_mode='small' if is_small else 'kg',
         booking_flat_fee_amount=flat_fee,
+        base_amount=base_amount,
     )
     db.add(booking)
     await db.flush()

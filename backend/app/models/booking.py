@@ -24,6 +24,7 @@ class Booking(Base):
     # Financials
     amount: Mapped[float] = mapped_column(Float)
     amount_local: Mapped[float | None] = mapped_column(Float, nullable=True)  # montant dans la devise du trip
+    base_amount: Mapped[float | None] = mapped_column(Float, nullable=True)  # part transporteur (transport seul)
     weight_unit: Mapped[str] = mapped_column(String(5), default="kg")  # kg | lb - herite du trip
     currency: Mapped[str] = mapped_column(String(5), default="EUR")  # ISO 4217 - herite du trip
     package_mode: Mapped[str] = mapped_column(String(8), default="kg")  # kg | small - mode de tarification de la reservation

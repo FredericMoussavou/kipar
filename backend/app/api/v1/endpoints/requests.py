@@ -376,6 +376,7 @@ async def accept_application(
         package_request_id=req.id,
         is_urgent=is_urgent,
         booking_flat_fee_amount=flat_fee,
+        base_amount=transport,
     )
     db.add(booking)
     await db.flush()

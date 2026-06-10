@@ -42,7 +42,10 @@ export default function TripDetailPage() {
   })
 
   const handleBook = () => {
-    if (!isAuthenticated()) { router.push(`/login?pending_trip=${id}`); return }
+    if (!isAuthenticated()) {
+      if (typeof window !== 'undefined') localStorage.setItem('kipar_pending_trip', String(id))
+      router.push(`/login?pending_trip=${id}`); return
+    }
     setSelectedTrip(trip)
     router.push(`/trips/${id}/book`)
   }

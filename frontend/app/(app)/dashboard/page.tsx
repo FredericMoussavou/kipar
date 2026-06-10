@@ -44,6 +44,7 @@ export default function DashboardPage() {
       _pendingConsumed.current = true
       const tid = user.pending_trip_id
       setUser({ ...user, pending_trip_id: null } as any)
+      if (typeof window !== 'undefined') localStorage.removeItem('kipar_pending_trip')
       api.delete('/users/me/pending-trip').catch(() => {})
       router.push(`/trips/${tid}`)
     }

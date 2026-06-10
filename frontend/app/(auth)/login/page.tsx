@@ -98,7 +98,7 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
   })
 
-  const _pending = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('pending_trip') || undefined) : undefined
+  const _pending = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('pending_trip') || localStorage.getItem('kipar_pending_trip') || undefined) : undefined
   useEffect(() => {
     // Deja connecte (ex: retour arriere sur /login) -> filer au dashboard.
     if (isAuthenticated()) router.replace('/dashboard')
@@ -399,7 +399,7 @@ export default function LoginPage() {
 
           <p style={{ textAlign: 'center', fontSize: 13, color: TAUPE, marginTop: 28 }}>
             {t.auth.no_account}{' '}
-            <Link href="/register" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>
+            <Link href={_pending ? `/register?pending_trip=${_pending}` : '/register'} style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>
               {t.auth.sign_up}
             </Link>
           </p>

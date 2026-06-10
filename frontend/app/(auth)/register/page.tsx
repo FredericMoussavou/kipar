@@ -97,7 +97,9 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const currentLang = getLangCookie()
-      const _pending = new URLSearchParams(window.location.search).get('pending_trip') || undefined
+      const _pending = new URLSearchParams(window.location.search).get('pending_trip')
+        || (typeof window !== 'undefined' ? localStorage.getItem('kipar_pending_trip') : null)
+        || undefined
       await api.post('/auth/register', {
         first_name: data.first_name,
         last_name: data.last_name,
@@ -108,6 +110,7 @@ export default function RegisterPage() {
         pending_trip_id: _pending,
       })
       toast.success('Compte créé avec succès !')
+      if (typeof window !== 'undefined') localStorage.removeItem('kipar_pending_trip')
       router.push('/onboarding')
     } catch (err: any) {
       const detail = err.response?.data?.detail

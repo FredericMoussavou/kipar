@@ -135,6 +135,67 @@ async def test_delete_request(client):
     assert res.status_code == 204
 
 
+async def test_delete_request_too_soon(client, db_session):
+    """Suppression refusee si candidature recente (delai LISTING_MIN_DELAY_HOURS)."""
+    sender_token = await register_and_login(client, "sender_del_soon@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+    carrier = await make_verified_carrier(client, db_session, "carrier_del_soon@kipar.com")
+    await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    # candidature a l'instant -> dans le delai -> suppression refusee
+    res = await client.delete(f"/api/v1/requests/{req_id}", headers={"Authorization": f"Bearer {sender_token}"})
+    assert res.status_code == 400
+
+
+async def test_delete_request_matched(client, db_session):
+    """Suppression refusee si annonce matched (candidature acceptee)."""
+    sender_token = await register_and_login(client, "sender_del_matched@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+    carrier = await make_verified_carrier(client, db_session, "carrier_del_matched@kipar.com")
+    app_res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    app_id = app_res.json()["id"]
+    await client.post(
+        f"/api/v1/requests/{req_id}/applications/{app_id}/accept",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    # annonce matched -> suppression refusee
+    res = await client.delete(f"/api/v1/requests/{req_id}", headers={"Authorization": f"Bearer {sender_token}"})
+    assert res.status_code == 400
+
+
+async def test_delete_request_after_delay(client, db_session):
+    """Suppression OK si le delai depuis la derniere candidature est ecoule."""
+    from sqlalchemy import update as _update
+    from app.models.package_request import Application
+    from app.core.config import settings
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    import uuid as _uuid
+    sender_token = await register_and_login(client, "sender_del_ok@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+    carrier = await make_verified_carrier(client, db_session, "carrier_del_ok@kipar.com")
+    app_res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    app_id = app_res.json()["id"]
+    # forcer created_at de la candidature dans le passe (> delai) -> suppression autorisee
+    past = _dt.now(_tz.utc) - _td(hours=settings.LISTING_MIN_DELAY_HOURS + 1)
+    await db_session.execute(
+        _update(Application).where(Application.id == _uuid.UUID(app_id)).values(created_at=past)
+    )
+    await db_session.commit()
+    res = await client.delete(f"/api/v1/requests/{req_id}", headers={"Authorization": f"Bearer {sender_token}"})
+    assert res.status_code == 204
+
+
 async def test_get_request_by_id(client):
     """GET /requests/{id} retourne l'annonce publiquement."""
     token = await register_and_login(client, "sender_r7@kipar.com")

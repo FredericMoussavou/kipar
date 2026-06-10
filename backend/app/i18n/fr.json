@@ -20,6 +20,8 @@
     "booking_not_in_transit": "Le colis doit être en transit",
     "booking_already_actioned": "Cette réservation ne peut plus être modifiée",
     "unauthorized": "Non autorisé",
+    "request_delete_matched": "Suppression impossible. Candidature acceptée.",
+    "listing_delete_too_soon": "Délai à respecter avant de supprimer une annonce avec candidatures.",
     "conversation_not_found": "Conversation introuvable",
     "delivery_code_already_generated": "Code déjà généré",
     "delivery_no_code": "Aucun code de remise généré",

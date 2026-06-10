@@ -20,6 +20,8 @@
     "booking_not_in_transit": "El paquete debe estar en tránsito",
     "booking_already_actioned": "Esta reserva ya no puede ser modificada",
     "unauthorized": "No autorizado",
+    "request_delete_matched": "No se puede eliminar. Candidatura aceptada.",
+    "listing_delete_too_soon": "Debes esperar antes de eliminar un anuncio con candidaturas.",
     "conversation_not_found": "Conversación no encontrada",
     "delivery_code_already_generated": "Código ya generado",
     "delivery_no_code": "No se ha generado ningún código de entrega",

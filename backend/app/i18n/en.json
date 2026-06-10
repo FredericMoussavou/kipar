@@ -20,6 +20,8 @@
     "booking_not_in_transit": "Package must be in transit",
     "booking_already_actioned": "This booking can no longer be modified",
     "unauthorized": "Unauthorized",
+    "request_delete_matched": "Cannot delete. Application accepted.",
+    "listing_delete_too_soon": "You must wait before deleting a listing with applications.",
     "conversation_not_found": "Conversation not found",
     "delivery_code_already_generated": "Code already generated",
     "delivery_no_code": "No delivery code generated",

@@ -561,6 +561,16 @@ const handleCancel = () => {
         </Section>
 
         {/* ── INFOS VOL ─────────────────────────────────────────────────── */}
+        {/* Paiement a finaliser (reservation non payee) */}
+        {['pending', 'awaiting_receiver'].includes(booking.status) && isSender && (
+          <Section title={t.packages.awaiting_payment_title}>
+            <p style={{ fontSize: 13, color: TAUPE, lineHeight: 1.6, margin: '0 0 12px' }}>{t.packages.awaiting_payment_desc}</p>
+            <Button variant="primary" size="lg" fullWidth onClick={() => router.push(`/trips/${booking.trip_id}/book/payment?booking_id=${booking.id}&amount=${booking.amount ?? 0}&transport=${booking.base_amount ?? 0}&declared_value=${booking.declared_value ?? 0}&currency=${booking.currency ?? 'EUR'}`)}>
+              {t.packages.awaiting_payment_cta}
+            </Button>
+          </Section>
+        )}
+
         {['paid', 'accepted', 'in_transit', 'delivery_reported', 'delivered'].includes(booking.status) && booking.flight_number && (
           <Section title={t.package_detail.section_flight ?? 'Vol'}>
             <InfoRow label={t.package_detail.field_route ?? 'Trajet'} value={`${booking.origin_airport_code} → ${booking.destination_airport_code}`} />

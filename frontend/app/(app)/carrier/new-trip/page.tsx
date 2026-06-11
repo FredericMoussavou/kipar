@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { usePersistedForm } from '@/hooks/usePersistedForm'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Search, X } from 'lucide-react'
@@ -51,6 +52,11 @@ export default function NewTripPage() {
   const [weightUnit, setWeightUnit] = useState<WeightUnit>((user?.weight_unit ?? 'kg') as WeightUnit)
   const [tripCurrency, setTripCurrency] = useState(user?.currency ?? 'EUR')
 
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  // Local state used by the form (declare before usePersistedForm)
   const [originInput, setOriginInput] = useState('')
   const [flightValid, setFlightValid] = useState<boolean | null>(null)
   const [flightReason, setFlightReason] = useState<string | null>(null)
@@ -60,6 +66,33 @@ export default function NewTripPage() {
   const [departureTime, setDepartureTime] = useState('')
   const [arrivalDate, setArrivalDate] = useState('')
   const [arrivalTime, setArrivalTime] = useState('')
+
+  // Persistance du formulaire (sessionStorage)
+  const { clear: clearPersist } = usePersistedForm(
+    'kipar_form_newtrip',
+    {
+      flight_number: watch('flight_number'),
+      total_kg: watch('total_kg'),
+      max_kg_per_package: watch('max_kg_per_package'),
+      price_per_kg: watch('price_per_kg'),
+      weightUnit, tripCurrency, originInput, departureDate, departureTime, arrivalDate, arrivalTime,
+    },
+    (s: any) => {
+      reset({
+        flight_number: s.flight_number,
+        total_kg: s.total_kg,
+        max_kg_per_package: s.max_kg_per_package,
+        price_per_kg: s.price_per_kg,
+      })
+      if (s.weightUnit) setWeightUnit(s.weightUnit)
+      if (s.tripCurrency) setTripCurrency(s.tripCurrency)
+      if (s.originInput) setOriginInput(s.originInput)
+      if (s.departureDate) setDepartureDate(s.departureDate)
+      if (s.departureTime) setDepartureTime(s.departureTime)
+      if (s.arrivalDate) setArrivalDate(s.arrivalDate)
+      if (s.arrivalTime) setArrivalTime(s.arrivalTime)
+    },
+  )
   const [destInput, setDestInput] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<any[]>([])
   const [destSuggestions, setDestSuggestions] = useState<any[]>([])
@@ -70,10 +103,6 @@ export default function NewTripPage() {
   const [acceptsSmallPackage, setAcceptsSmallPackage] = useState(false)
   const [smallPackagePrice, setSmallPackagePrice] = useState('')
   const [dateTouched, setDateTouched] = useState(false)
-
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  })
 
   const validateFlight = (value: string) => {
     if (flightDebounce.current) clearTimeout(flightDebounce.current)
@@ -175,6 +204,7 @@ export default function NewTripPage() {
         arrival_date: arrivalDate || undefined,
       })
       toast.success(t.carrier.trip_published)
+      clearPersist()
       router.push('/carrier')
     } catch (err: any) {
       const detail = err.response?.data?.detail

@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { usePersistedForm } from '@/hooks/usePersistedForm'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Search, X, Upload, Image as ImageIcon, Scan, AlertTriangle, CheckCircle } from 'lucide-react'
@@ -48,6 +49,35 @@ export default function NewRequestPage() {
   const [originSelected, setOriginSelected] = useState(false)
   const [destSelected, setDestSelected] = useState(false)
   const [photos, setPhotos] = useState<string[]>([])
+
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  // Persistance du formulaire (sessionStorage)
+  const { clear: clearPersist } = usePersistedForm(
+    'kipar_form_newrequest',
+    {
+      content_description: watch('content_description'),
+      weight_kg: watch('weight_kg'),
+      declared_value: watch('declared_value'),
+      budget_per_kg: watch('budget_per_kg'),
+      receiver_email_or_phone: watch('receiver_email_or_phone'),
+      originInput, destInput, photos,
+    },
+    (s: any) => {
+      reset({
+        content_description: s.content_description,
+        weight_kg: s.weight_kg,
+        declared_value: s.declared_value,
+        budget_per_kg: s.budget_per_kg,
+        receiver_email_or_phone: s.receiver_email_or_phone,
+      })
+      if (s.originInput) setOriginInput(s.originInput)
+      if (s.destInput) setDestInput(s.destInput)
+      if (Array.isArray(s.photos)) setPhotos(s.photos)
+    },
+  )
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const scanRef = useRef<HTMLInputElement>(null)
@@ -56,9 +86,6 @@ export default function NewRequestPage() {
   const [scanQuota, setScanQuota] = useState<{ free_remaining: number } | null>(null)
   const [deadlineDate, setDeadlineDate] = useState('')
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  })
 
   const searchAirports = async (q: string, setSuggestions: (s: any[]) => void) => {
     if (q.length < 1) { setSuggestions([]); return }
@@ -136,6 +163,7 @@ export default function NewRequestPage() {
         photos,
       })
       toast.success(t.requests.success_created)
+      clearPersist()
       router.push(`/requests/${res.data.id}`)
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t.errors.generic)

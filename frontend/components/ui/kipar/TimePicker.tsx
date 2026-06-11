@@ -15,6 +15,12 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
   const [hh, mm] = value ? value.split(':') : ['', '']
   const [selH, setSelH] = useState(hh ? parseInt(hh) : -1)
   const [selM, setSelM] = useState(mm ? parseInt(mm) : -1)
+  // Resync si `value` change de l'exterieur (ex: restauration de formulaire)
+  useEffect(() => {
+    const [h, m] = value ? value.split(':') : ['', '']
+    setSelH(h ? parseInt(h) : -1)
+    setSelM(m ? parseInt(m) : -1)
+  }, [value])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }

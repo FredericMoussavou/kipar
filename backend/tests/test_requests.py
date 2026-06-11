@@ -319,3 +319,42 @@ async def test_apply_same_corridor_ok(client, db_session):
         headers={"Authorization": f"Bearer {carrier['token']}"}
     )
     assert res.status_code == 201
+
+
+async def test_cancel_request_booking_restores_kg(client, db_session):
+    """Annuler un booking issu d une candidature acceptee restaure les kg du trip."""
+    from sqlalchemy import select as _select
+    from app.models.trip import Trip
+    import uuid as _uuid
+    sender_token = await register_and_login(client, "sender_kgback@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+    carrier = await make_verified_carrier(client, db_session, "carrier_kgback@kipar.com")
+    trip_id = carrier["trip_id"]
+    # kg avant
+    trip_before = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
+    kg_before = trip_before.remaining_kg
+    # candidature + acceptation -> kg deduits + kg_held=True
+    app_res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={trip_id}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    app_id = app_res.json()["id"]
+    acc_res = await client.post(
+        f"/api/v1/requests/{req_id}/applications/{app_id}/accept",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    booking_id = acc_res.json()["booking_id"]
+    db_session.expire_all()
+    trip_mid = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
+    assert trip_mid.remaining_kg < kg_before  # kg bien deduits
+    # annulation du booking -> kg restaures (grace a kg_held=True)
+    cancel_res = await client.patch(
+        f"/api/v1/bookings/{booking_id}/cancel",
+        json={"reason": "test"},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    assert cancel_res.status_code == 200
+    db_session.expire_all()
+    trip_after = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
+    assert trip_after.remaining_kg == kg_before  # kg restaures

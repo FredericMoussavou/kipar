@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import BottomNav from '@/components/layout/BottomNav'
 import TopNav from '@/components/layout/TopNav'
@@ -14,6 +14,8 @@ import { useInactivityLogout } from '@/hooks/useInactivityLogout'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
+  const hideNav = pathname?.includes('/book/payment') ?? false
   const { isAuthenticated, silentRefresh } = useAuthStore()
   const [hydrated, setHydrated] = useState(false)
   const { isOpen: drawerOpen, close: closeDrawer } = useDrawerStore()
@@ -71,22 +73,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <NotificationsProvider>
-    <div className="md:hidden"><Drawer isOpen={drawerOpen} onClose={closeDrawer} /></div>
+    {/* hide-on-payment:drawer */}
+    {!hideNav && <div className="md:hidden"><Drawer isOpen={drawerOpen} onClose={closeDrawer} /></div>}
     <div style={{ minHeight: '100vh', background: BG }}>
-      {/* Desktop top nav */}
+      {/* hide-on-payment:topnav */}
+      {!hideNav && (
       <div className="hidden md:block">
         {isAuthenticated() ? <TopNav /> : <VisitorNav />}
       </div>
+      )}
       {/* Contenu */}
       <main style={{ paddingBottom: 80 }} className="md:max-w-5xl md:mx-auto md:px-6 md:pt-6 md:pb-12">
         {children}
       </main>
-      {/* Mobile bottom nav */}
+      {/* hide-on-payment:bottomnav */}
+      {!hideNav && (
       <div className="md:hidden">
         <BottomNav />
       </div>
+      )}
     </div>
-      <TawkButton />
+      {!hideNav && <TawkButton />}
       <footer style={{ textAlign: 'center', padding: '16px 20px 80px', display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
         <a href="/cgu" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>CGU</a>
         <a href="/privacy" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>Confidentialité</a>

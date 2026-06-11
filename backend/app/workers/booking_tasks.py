@@ -8,17 +8,22 @@ logger = logging.getLogger(__name__)
 @celery_app.task(name="app.workers.booking_tasks.expire_pending_bookings")
 def expire_pending_bookings():
     """
-    Annule les réservations PENDING sans réponse après 12h.
-    Planifié toutes les 30 min via Celery Beat.
+    Expire les reservations PENDING non payees apres PENDING_BOOKING_TTL_HOURS (1h).
+    Recredite les kg, reouvre l'annonce (request), passe le booking en 'expired'.
+    Planifie toutes les 30 min via Celery Beat.
     """
     import asyncio
     from sqlalchemy import select, update, func
     from app.core.database import AsyncSessionLocal
+    from app.core.config import settings
     from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.package import Package
+    from app.models.package_request import PackageRequest, Application
 
     async def _run():
         async with AsyncSessionLocal() as db:
-            cutoff = datetime.now(timezone.utc) - timedelta(hours=12)
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.PENDING_BOOKING_TTL_HOURS)
             result = await db.execute(
                 select(Booking).where(
                     Booking.status == "pending",
@@ -28,8 +33,37 @@ def expire_pending_bookings():
             bookings = result.scalars().all()
 
             for booking in bookings:
-                booking.status = "refused"
-                logger.info(f"Booking {booking.id} expired after 12h")
+                # Recrediter les kg tenus
+                if booking.kg_held:
+                    trip = (await db.execute(select(Trip).where(Trip.id == booking.trip_id))).scalar_one_or_none()
+                    pkg = (await db.execute(select(Package).where(Package.id == booking.package_id))).scalar_one_or_none()
+                    if trip and pkg:
+                        trip.remaining_kg += pkg.weight_kg
+                        if trip.status == "full":
+                            trip.status = "open"
+                    booking.kg_held = False
+                # Liberer une eventuelle autorisation Stripe (rare : un pending n'a normalement pas d'escrow)
+                if booking.escrow_ref and not booking.escrow_ref.startswith("pi_simulated"):
+                    try:
+                        from app.services.stripe_service import cancel_payment_intent
+                        await cancel_payment_intent(booking.escrow_ref)
+                    except Exception as _e:
+                        logger.warning(f"Booking {booking.id} cancel PI echec: {_e}")
+                # Reouvrir l'annonce + refuser la candidature acceptee (flux request)
+                if booking.package_request_id:
+                    req = (await db.execute(select(PackageRequest).where(PackageRequest.id == booking.package_request_id))).scalar_one_or_none()
+                    if req and req.status == "matched":
+                        req.status = "open"
+                    app_acc = (await db.execute(
+                        select(Application).where(
+                            Application.package_request_id == booking.package_request_id,
+                            Application.status == "accepted",
+                        )
+                    )).scalars().all()
+                    for _app in app_acc:
+                        _app.status = "refused"
+                booking.status = "expired"
+                logger.info(f"Booking {booking.id} expired after {settings.PENDING_BOOKING_TTL_HOURS}h")
             cutoff_48h = datetime.now(timezone.utc) - timedelta(hours=48)
             result_ar = await db.execute(
                 select(Booking).where(

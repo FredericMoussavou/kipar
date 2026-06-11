@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     MAX_EVIDENCE_FILES: int = 5
     INCIDENT_RESPONSE_HOURS: int = 48            # Fenetre justification pickup/delivery failed
     LISTING_MIN_DELAY_HOURS: int = 24            # Delai min avant suppression annonce
+    PENDING_BOOKING_TTL_HOURS: int = 1           # Reservation non payee retenue 1h max
     PRICE_SUGGESTION_WINDOW_DAYS: int = 90       # Historique fourchette prix corridor
     PRICE_SUGGESTION_MIN_SAMPLES: int = 5        # Seuil donnees corridor suffisantes
     DELIVERY_TIMEOUT_DAYS: int = 7               # Timeout livraison sans confirmation

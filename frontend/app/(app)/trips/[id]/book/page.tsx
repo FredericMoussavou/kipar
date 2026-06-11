@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { usePersistedForm } from '@/hooks/usePersistedForm'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Upload, X, Scan, AlertTriangle, CheckCircle } from 'lucide-react'
@@ -121,9 +122,33 @@ export default function BookPage() {
     }
   }
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+
+  // Persistance du formulaire (sessionStorage) : survit au retour / navigation
+  const { clear: clearPersist } = usePersistedForm(
+    `kipar_form_book_${id}`,
+    {
+      receiver_email_or_phone: watch('receiver_email_or_phone'),
+      content_description: watch('content_description'),
+      weight_kg: watch('weight_kg'),
+      declared_value: watch('declared_value'),
+      packageMode, withInsurance, reminderHours, photos,
+    },
+    (s: any) => {
+      reset({
+        receiver_email_or_phone: s.receiver_email_or_phone,
+        content_description: s.content_description,
+        weight_kg: s.weight_kg,
+        declared_value: s.declared_value,
+      })
+      if (s.packageMode) setPackageMode(s.packageMode)
+      if (typeof s.withInsurance === 'boolean') setWithInsurance(s.withInsurance)
+      if (s.reminderHours !== undefined) setReminderHours(s.reminderHours)
+      if (Array.isArray(s.photos)) setPhotos(s.photos)
+    },
+  )
 
   const weight = parseFloat(watch('weight_kg') || '0') || 0
   const value = parseFloat(watch('declared_value') || '0') || 0
@@ -168,6 +193,7 @@ export default function BookPage() {
     },
     onSuccess: (data) => {
       setCurrentBookingId(data.id)
+      clearPersist()
       if (data.status === 'pending_kyc') {
         setPendingKycBookingId(data.id)
         return

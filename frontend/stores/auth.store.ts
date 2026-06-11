@@ -129,6 +129,15 @@ export const useAuthStore = create<AuthStore>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('kipar_token')
           document.cookie = 'kipar_token=; path=/; max-age=0'
+          // Purge de tout ce qui pourrait fuiter vers un autre utilisateur
+          try {
+            Object.keys(localStorage).forEach((k) => {
+              if (k.startsWith('kipar_') && k !== 'kipar-auth') localStorage.removeItem(k)
+            })
+            Object.keys(sessionStorage).forEach((k) => {
+              if (k.startsWith('kipar_')) sessionStorage.removeItem(k)
+            })
+          } catch {}
           // Appel API en arriere-plan
           if (token) {
             fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/logout', {

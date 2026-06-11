@@ -358,3 +358,40 @@ async def test_cancel_request_booking_restores_kg(client, db_session):
     db_session.expire_all()
     trip_after = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
     assert trip_after.remaining_kg == kg_before  # kg restaures
+
+
+async def test_cancel_request_booking_reopens_listing(client, db_session):
+    """Annuler manuellement un booking request reouvre l annonce (open) et refuse la candidature."""
+    from sqlalchemy import select as _select
+    from app.models.package_request import PackageRequest, Application
+    import uuid as _uuid
+    sender_token = await register_and_login(client, "sender_reopen@kipar.com")
+    req_res = await client.post("/api/v1/requests", json=REQUEST_PAYLOAD, headers={"Authorization": f"Bearer {sender_token}"})
+    req_id = req_res.json()["id"]
+    carrier = await make_verified_carrier(client, db_session, "carrier_reopen@kipar.com")
+    app_res = await client.post(
+        f"/api/v1/requests/{req_id}/apply?trip_id={carrier['trip_id']}",
+        headers={"Authorization": f"Bearer {carrier['token']}"}
+    )
+    app_id = app_res.json()["id"]
+    acc = await client.post(
+        f"/api/v1/requests/{req_id}/applications/{app_id}/accept",
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    booking_id = acc.json()["booking_id"]
+    # annonce passee a matched
+    db_session.expire_all()
+    r = (await db_session.execute(_select(PackageRequest).where(PackageRequest.id == _uuid.UUID(req_id)))).scalar_one()
+    assert r.status == "matched"
+    # annulation manuelle par l'expediteur
+    cancel = await client.patch(
+        f"/api/v1/bookings/{booking_id}/cancel",
+        json={"reason": "test"},
+        headers={"Authorization": f"Bearer {sender_token}"}
+    )
+    assert cancel.status_code == 200
+    db_session.expire_all()
+    r = (await db_session.execute(_select(PackageRequest).where(PackageRequest.id == _uuid.UUID(req_id)))).scalar_one()
+    assert r.status == "open"  # annonce reouverte
+    a = (await db_session.execute(_select(Application).where(Application.id == _uuid.UUID(app_id)))).scalar_one()
+    assert a.status == "refused"  # candidature refusee

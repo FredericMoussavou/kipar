@@ -716,6 +716,19 @@ async def cancel_booking(
                 trip.status = "open"
             booking.kg_held = False
 
+    # Reouverture annonce (booking issu d'une candidature)
+    if booking.package_request_id:
+        from app.models.package_request import PackageRequest, Application
+        _req = (await db.execute(select(PackageRequest).where(PackageRequest.id == booking.package_request_id))).scalar_one_or_none()
+        if _req and _req.status == "matched":
+            _req.status = "open"
+        _apps = (await db.execute(select(Application).where(
+            Application.package_request_id == booking.package_request_id,
+            Application.status == "accepted",
+        ))).scalars().all()
+        for _app in _apps:
+            _app.status = "refused"
+
     await db.commit()
 
     # Notifications annulation

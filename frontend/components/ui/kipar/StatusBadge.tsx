@@ -14,6 +14,7 @@ const STATUS_STYLES: Record<string, { background: string; color: string }> = {
   refunded:          { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
   open:              { background: '#ECFDF5', color: '#059669' },
   full:              { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
+  expired:           { background: 'rgba(255,255,255,0.9)', color: '#6B6560' },
 }
 
 export default function StatusBadge({ status }: { status: string }) {

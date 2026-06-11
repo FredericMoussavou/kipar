@@ -41,7 +41,7 @@ interface ChatModalProps {
 }
 
 const WRITABLE_STATUSES = ['accepted', 'paid', 'in_transit']
-const READONLY_STATUSES = ['delivered', 'refused', 'cancelled']
+const READONLY_STATUSES = ['delivered', 'refused', 'cancelled', 'expired']
 
 export default function ChatModal({ bookingId, bookingStatus, onClose }: ChatModalProps) {
   const { t } = useTranslation()

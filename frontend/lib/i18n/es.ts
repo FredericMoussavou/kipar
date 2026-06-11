@@ -4,6 +4,7 @@ export const es = {
     pending: 'Pendiente de aceptación',
     accepted: 'Aceptado',
     refused: 'Rechazado',
+    expired: 'Expirada',
     paid: 'Pagado',
     in_transit: 'En tránsito',
     delivered: 'Entregado',

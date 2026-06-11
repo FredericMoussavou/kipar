@@ -70,7 +70,7 @@ export default function PackagesPage() {
     finally { setCancelling(false) }
   }
 
-  const TERMINAL_STATUSES = ['cancelled', 'cancelled_by_sender', 'cancelled_by_carrier', 'refused', 'refunded', 'delivered']
+  const TERMINAL_STATUSES = ['cancelled', 'cancelled_by_sender', 'cancelled_by_carrier', 'refused', 'refunded', 'delivered', 'expired']
   const isOlderThanOneYear = (dateStr: string) => {
     const d = new Date(dateStr)
     const oneYearAgo = new Date()

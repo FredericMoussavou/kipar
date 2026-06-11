@@ -160,6 +160,12 @@ export const es = {
     weight_exceeds_max: 'Máximo {n} {unit} por paquete',
   },
   payment: {
+    exit_title: '¿Salir del pago?',
+    exit_desc: 'Tu reserva se mantiene 1h. Sin pago, se cancelará y se liberará el espacio.',
+    exit_continue: 'Continuar el pago',
+    exit_postpone: 'Pagar más tarde',
+    exit_cancel: 'Cancelar la reserva',
+    exit_cancel_error: 'Error al cancelar',
     title: 'Método de pago',
     card: 'Tarjeta bancaria',
     card_desc: 'Visa, Mastercard, Apple Pay',

@@ -160,6 +160,12 @@ export const en = {
     weight_exceeds_max: 'Maximum {n} {unit} per package',
   },
   payment: { 
+    exit_title: 'Leave payment?',
+    exit_desc: 'Your booking is held for 1h. Without payment, it will be cancelled and the space released.',
+    exit_continue: 'Continue payment',
+    exit_postpone: 'Pay later',
+    exit_cancel: 'Cancel booking',
+    exit_cancel_error: 'Error while cancelling',
     title: 'Payment method', 
     card: 'Bank card', 
     card_desc: 'Visa, Mastercard, Apple Pay', 

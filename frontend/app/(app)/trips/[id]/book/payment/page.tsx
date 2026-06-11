@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, CreditCard, Smartphone, Lock } from 'lucide-react'
 import { toast } from 'sonner'
@@ -12,6 +12,7 @@ import { Button, CurrencyDisplay } from '@/components/ui/kipar'
 import HeroHeader from '@/components/layout/HeroHeader'
 import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
+import Modal from '@/components/ui/kipar/Modal'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN } from '@/lib/theme'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -106,6 +107,37 @@ export default function PaymentPage() {
   const transportAmount = parseFloat(searchParams.get('transport') || '0') || 0
   const feesAmount = transportAmount > 0 ? baseAmount - transportAmount : 0
 
+  // ── Modal de sortie (reservation retenue 1h) ──
+  const [showExitModal, setShowExitModal] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const allowExitRef = useRef(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.history.pushState(null, '', window.location.href)
+    const onPop = () => {
+      if (allowExitRef.current) return
+      setShowExitModal(true)
+      window.history.pushState(null, '', window.location.href)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const handleExitContinue = () => setShowExitModal(false)
+  const handleExitPostpone = () => { allowExitRef.current = true; router.push('/dashboard') }
+  const handleExitCancel = async () => {
+    setCancelling(true)
+    try {
+      if (bookingId) await api.patch(`/bookings/${bookingId}/cancel`, { reason: 'exit_payment' })
+      allowExitRef.current = true
+      router.push('/dashboard')
+    } catch {
+      toast.error(t.payment.exit_cancel_error ?? 'Erreur lors de l annulation')
+      setCancelling(false)
+    }
+  }
+
   const handleStripeSuccess = () => {
     toast.success(t.payment.success ?? 'Paiement confirmé !')
     router.replace(`/packages/${bookingId}?success=true`)
@@ -163,6 +195,7 @@ export default function PaymentPage() {
         title={t.payment.title}
         minHeight={160}
         gradient="vertical"
+        onBack={() => setShowExitModal(true)}
       />
 
       <div style={{ padding: '24px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}
@@ -280,6 +313,28 @@ export default function PaymentPage() {
           🔒 {t.payment.secure}
         </p>
       </div>
+
+      {showExitModal && (
+        <Modal
+          isOpen={showExitModal}
+          onClose={handleExitContinue}
+          title={t.payment.exit_title ?? 'Quitter le paiement ?'}
+          description={t.payment.exit_desc}
+          closeDisabled={cancelling}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+            <Button fullWidth variant="outline" onClick={handleExitContinue} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
+              {t.payment.exit_continue ?? 'Continuer le paiement'}
+            </Button>
+            <Button fullWidth variant="outline" onClick={handleExitPostpone} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
+              {t.payment.exit_postpone ?? 'Payer plus tard'}
+            </Button>
+            <Button fullWidth variant="danger" loading={cancelling} onClick={handleExitCancel}>
+              {t.payment.exit_cancel ?? 'Annuler la reservation'}
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

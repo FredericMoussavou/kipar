@@ -160,6 +160,12 @@ export const fr = {
     weight_exceeds_max: 'Maximum {n} {unit} par colis',
   },
   payment: {
+    exit_title: 'Quitter le paiement ?',
+    exit_desc: 'Votre réservation est maintenue 1 h. Sans paiement, elle sera annulée et la place libérée.',
+    exit_continue: 'Continuer le paiement',
+    exit_postpone: 'Payer plus tard',
+    exit_cancel: 'Annuler la réservation',
+    exit_cancel_error: 'Erreur lors de l\'annulation',
     title: 'Moyen de paiement',
     card: 'Carte bancaire',
     card_desc: 'Visa, Mastercard, Apple Pay',

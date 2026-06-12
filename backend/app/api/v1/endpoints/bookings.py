@@ -15,7 +15,7 @@ from app.models.trip import Trip
 from app.models.package import Package
 from app.models.booking import Booking
 from app.models.receiver_invitation import ReceiverInvitation
-from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse
+from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse, BookingUpdate
 from app.schemas.delivery import MeetingDateRequest, PickupCodeResponse, ValidatePickupRequest
 from app.services.delivery_service import generate_and_hash_code, verify_code
 from app.i18n.loader import t
@@ -756,6 +756,94 @@ async def cancel_booking(
         await db.commit()
 
     return {"status": booking.status, "refund_amount": refund_amount, "carrier_amount": carrier_amount, "amount": booking.amount}
+
+@router.patch("/{booking_id}")
+async def update_booking(
+    booking_id: str,
+    payload: BookingUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Modifier une reservation PENDING (poids, description, valeur, assurance).
+    Recalcule le prix et reajuste les kg tenus si le poids change."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if booking.status not in ("pending", "pending_kyc", "awaiting_receiver"):
+        raise HTTPException(status_code=400, detail=t("errors.booking_not_editable", lang))
+
+    trip = (await db.execute(select(Trip).where(Trip.id == booking.trip_id))).scalar_one_or_none()
+    pkg = (await db.execute(select(Package).where(Package.id == booking.package_id))).scalar_one_or_none()
+    if not trip or not pkg:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+
+    # Valeurs cibles (payload ou conservees)
+    new_weight = payload.weight_kg if payload.weight_kg is not None else pkg.weight_kg
+    new_desc = payload.content_description if payload.content_description is not None else pkg.content_description
+    new_value = payload.declared_value if payload.declared_value is not None else pkg.declared_value
+    new_ins = payload.insurance_subscribed if payload.insurance_subscribed is not None else booking.insurance_subscribed
+    new_is_small = new_weight < settings.SMALL_PACKAGE_MAX_KG
+
+    # Etat initial : le booking tenait-il deja des kg ?
+    was_held = booking.kg_held
+    # Liberer les kg actuellement tenus (avant revalidation)
+    if was_held:
+        trip.remaining_kg += pkg.weight_kg
+        if trip.status == "full":
+            trip.status = "open"
+        booking.kg_held = False
+
+    # Recalcul prix + revalidation capacite
+    if new_is_small:
+        if not trip.has_small_package:
+            raise HTTPException(status_code=400, detail=t("errors.trip_no_small_package", lang))
+        from app.services.pricing_service import compute_small_amount
+        _pricing = compute_small_amount(trip.small_package_price)
+        booking.kg_held = False
+    else:
+        if new_weight > trip.remaining_kg:
+            raise HTTPException(status_code=400, detail=t(
+                "errors.weight_exceeds_capacity", lang,
+                requested=new_weight, available=trip.remaining_kg
+            ))
+        if new_weight > trip.max_kg_per_package:
+            raise HTTPException(status_code=400, detail=t(
+                "errors.weight_exceeds_max", lang, max=trip.max_kg_per_package
+            ))
+        from app.services.pricing_service import compute_kg_amount
+        _pricing = compute_kg_amount(new_weight, trip.price_per_kg, booking.is_urgent)
+        # Re-tenir les kg UNIQUEMENT si le booking les tenait deja
+        if was_held:
+            trip.remaining_kg -= new_weight
+            if trip.remaining_kg <= 0:
+                trip.status = "full"
+            booking.kg_held = True
+
+    # Mise a jour package + booking
+    pkg.weight_kg = new_weight
+    pkg.content_description = new_desc
+    pkg.declared_value = new_value
+    booking.amount = _pricing["total"]
+    booking.base_amount = _pricing["base"]
+    booking.booking_flat_fee_amount = _pricing["flat_fee"]
+    booking.insurance_subscribed = new_ins
+    booking.package_mode = 'small' if new_is_small else 'kg'
+    await db.flush()
+
+    return {
+        "id": str(booking.id),
+        "status": booking.status,
+        "amount": booking.amount,
+        "base_amount": booking.base_amount,
+        "booking_flat_fee_amount": booking.booking_flat_fee_amount,
+        "weight_kg": pkg.weight_kg,
+        "package_mode": booking.package_mode,
+    }
+
 
 @router.patch("/{booking_id}/in-transit")
 async def mark_in_transit(

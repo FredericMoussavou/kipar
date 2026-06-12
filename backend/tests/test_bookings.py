@@ -249,3 +249,67 @@ async def test_cancel_booking_by_carrier_restores_kg(client, db_session):
 
     await db_session.refresh(trip_obj)
     assert trip_obj.remaining_kg == kg_before + 5.0
+
+
+async def test_update_booking(client, db_session):
+    """Modifier un booking pending : prix recalcule + kg reajustes."""
+    from sqlalchemy import select as _select
+    from app.models.trip import Trip
+    import uuid as _uuid
+    carrier = await create_verified_carrier(client, db_session, "carrier_upd@kipar.com")
+    trip = await create_trip(client, carrier["token"])
+    sender = await register_and_login(client, "sender_upd@kipar.com")
+    # rendre le sender KYC ok pour booking pending (pas pending_kyc) et kg tenus
+    from sqlalchemy import update as _update
+    from app.models.user import User
+    await db_session.execute(_update(User).where(User.email == "sender_upd@kipar.com").values(kyc_status="approved"))
+    await db_session.commit()
+    res = await client.post("/api/v1/bookings", json={
+        "trip_id": trip["id"],
+        "receiver_email_or_phone": "receiver_upd@kipar.com",
+        "weight_kg": 3.0, "content_description": "Vetements", "declared_value": 50.0
+    }, headers={"Authorization": f"Bearer {sender['token']}"})
+    assert res.status_code == 201
+    booking_id = res.json()["id"]
+    amount_before = res.json()["amount"]
+    trip_id = trip["id"]
+    trip_after_create = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
+    kg_after_create = trip_after_create.remaining_kg
+    # PATCH : passer a 5kg -> prix recalcule + kg reajustes
+    upd = await client.patch(
+        f"/api/v1/bookings/{booking_id}",
+        json={"weight_kg": 5.0, "content_description": "Livres"},
+        headers={"Authorization": f"Bearer {sender['token']}"}
+    )
+    assert upd.status_code == 200
+    assert upd.json()["weight_kg"] == 5.0
+    assert upd.json()["amount"] != amount_before  # prix recalcule
+    db_session.expire_all()
+    trip_after_update = (await db_session.execute(_select(Trip).where(Trip.id == _uuid.UUID(trip_id)))).scalar_one()
+    # Sender KYC ok -> booking awaiting_receiver sans kg tenus (kg_held=False)
+    # -> remaining_kg inchange apres modification du poids
+    assert trip_after_update.remaining_kg == kg_after_create
+
+
+async def test_update_booking_exceeds_capacity(client, db_session):
+    """Modifier vers un poids depassant la capacite -> 400."""
+    from sqlalchemy import update as _update
+    from app.models.user import User
+    carrier = await create_verified_carrier(client, db_session, "carrier_updcap@kipar.com")
+    trip = await create_trip(client, carrier["token"])
+    sender = await register_and_login(client, "sender_updcap@kipar.com")
+    await db_session.execute(_update(User).where(User.email == "sender_updcap@kipar.com").values(kyc_status="approved"))
+    await db_session.commit()
+    res = await client.post("/api/v1/bookings", json={
+        "trip_id": trip["id"],
+        "receiver_email_or_phone": "r_updcap@kipar.com",
+        "weight_kg": 3.0, "content_description": "x", "declared_value": 10.0
+    }, headers={"Authorization": f"Bearer {sender['token']}"})
+    booking_id = res.json()["id"]
+    # capacite trip = total_kg ; on demande un poids absurde
+    upd = await client.patch(
+        f"/api/v1/bookings/{booking_id}",
+        json={"weight_kg": 9999.0},
+        headers={"Authorization": f"Bearer {sender['token']}"}
+    )
+    assert upd.status_code == 400

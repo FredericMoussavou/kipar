@@ -20,6 +20,7 @@
     "booking_not_in_transit": "El paquete debe estar en tránsito",
     "booking_already_actioned": "Esta reserva ya no puede ser modificada",
     "unauthorized": "No autorizado",
+    "booking_not_editable": "Esta reserva ya no se puede modificar.",
     "request_delete_matched": "No se puede eliminar. Candidatura aceptada.",
     "listing_delete_too_soon": "Debes esperar antes de eliminar un anuncio con candidaturas.",
     "conversation_not_found": "Conversación no encontrada",

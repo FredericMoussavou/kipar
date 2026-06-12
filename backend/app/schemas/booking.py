@@ -14,6 +14,14 @@ class BookingCreate(BaseModel):
     photos: list[str] = []
 
 
+class BookingUpdate(BaseModel):
+    """Modification d'une reservation pending (champs optionnels)."""
+    weight_kg: float | None = None
+    content_description: str | None = None
+    declared_value: float | None = None
+    insurance_subscribed: bool | None = None
+
+
 class BookingResponse(BaseModel):
     id: uuid.UUID
     trip_id: uuid.UUID

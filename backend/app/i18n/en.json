@@ -20,6 +20,7 @@
     "booking_not_in_transit": "Package must be in transit",
     "booking_already_actioned": "This booking can no longer be modified",
     "unauthorized": "Unauthorized",
+    "booking_not_editable": "This booking can no longer be edited.",
     "request_delete_matched": "Cannot delete. Application accepted.",
     "listing_delete_too_soon": "You must wait before deleting a listing with applications.",
     "conversation_not_found": "Conversation not found",

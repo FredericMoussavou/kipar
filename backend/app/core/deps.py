@@ -7,6 +7,22 @@ from app.core.database import get_db
 from app.core.security import decode_token
 from app.models.user import User
 
+import redis as _redis_lib
+from app.core.config import settings as _kipar_settings
+
+_redis_client = None
+
+def _get_redis():
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = _redis_lib.from_url(
+            _kipar_settings.REDIS_URL,
+            decode_responses=True,
+            socket_connect_timeout=0.5,
+            socket_timeout=0.5,
+        )
+    return _redis_client
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
@@ -24,9 +40,7 @@ async def get_current_user(
 
     # Verifier la blacklist Redis
     try:
-        import redis as redis_lib
-        from app.core.config import settings as _settings
-        r = redis_lib.from_url(_settings.REDIS_URL, decode_responses=True)
+        r = _get_redis()
         if r.exists(f"blacklist:{token}") > 0:
             raise HTTPException(status_code=401, detail="Token révoqué")
     except HTTPException:

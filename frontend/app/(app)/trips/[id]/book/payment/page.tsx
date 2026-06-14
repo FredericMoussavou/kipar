@@ -110,6 +110,7 @@ export default function PaymentPage() {
   // ── Modal de sortie (reservation retenue 1h) ──
   const [showExitModal, setShowExitModal] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const allowExitRef = useRef(false)
 
   useEffect(() => {
@@ -126,7 +127,10 @@ export default function PaymentPage() {
 
   const handleExitContinue = () => setShowExitModal(false)
   const handleExitPostpone = () => { allowExitRef.current = true; router.push('/dashboard') }
-  const handleExitCancel = async () => {
+  const handleExitModifier = () => { allowExitRef.current = true; router.push(`/trips/${id}/book?edit=${bookingId}`) }
+  // Annuler ouvre d'abord un sous-modal de confirmation (evite les annulations accidentelles)
+  const handleExitCancel = () => setShowCancelConfirm(true)
+  const confirmCancel = async () => {
     setCancelling(true)
     try {
       if (bookingId) await api.patch(`/bookings/${bookingId}/cancel`, { reason: 'exit_payment' })
@@ -135,6 +139,7 @@ export default function PaymentPage() {
     } catch {
       toast.error(t.payment.exit_cancel_error ?? 'Erreur lors de l annulation')
       setCancelling(false)
+      setShowCancelConfirm(false)
     }
   }
 
@@ -323,14 +328,43 @@ export default function PaymentPage() {
           closeDisabled={cancelling}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-            <Button fullWidth variant="outline" onClick={handleExitContinue} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
-              {t.payment.exit_continue ?? 'Continuer le paiement'}
+            <Button fullWidth variant="outline" onClick={handleExitModifier} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
+              {t.payment.exit_modify ?? 'Modifier la reservation'}
             </Button>
             <Button fullWidth variant="outline" onClick={handleExitPostpone} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
               {t.payment.exit_postpone ?? 'Payer plus tard'}
             </Button>
-            <Button fullWidth variant="danger" loading={cancelling} onClick={handleExitCancel}>
+            <Button fullWidth variant="danger" onClick={handleExitCancel} disabled={cancelling}>
               {t.payment.exit_cancel ?? 'Annuler la reservation'}
+            </Button>
+            <button
+              type="button"
+              onClick={handleExitContinue}
+              disabled={cancelling}
+              style={{ marginTop: 4, background: 'none', border: 'none', color: RED, fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: 8 }}
+            >
+              {t.payment.exit_continue ?? 'Continuer le paiement'}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* sous-modal confirmation annulation */}
+      {showCancelConfirm && (
+        <Modal
+          isOpen={showCancelConfirm}
+          onClose={() => !cancelling && setShowCancelConfirm(false)}
+          title={t.payment.exit_confirm_title ?? 'Annuler definitivement ?'}
+          description={t.payment.exit_confirm_desc}
+          variant="danger"
+          closeDisabled={cancelling}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+            <Button fullWidth variant="danger" loading={cancelling} onClick={confirmCancel}>
+              {t.payment.exit_confirm_yes ?? 'Oui, annuler'}
+            </Button>
+            <Button fullWidth variant="outline" onClick={() => setShowCancelConfirm(false)} disabled={cancelling} style={{ borderColor: CHARCOAL, color: CHARCOAL, borderWidth: 1 }}>
+              {t.payment.exit_confirm_no ?? 'Non, revenir'}
             </Button>
           </div>
         </Modal>

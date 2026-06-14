@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { usePersistedForm } from '@/hooks/usePersistedForm'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,6 +35,9 @@ type FormData = z.infer<typeof schema>
 
 export default function BookPage() {
   const { id } = useParams()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('edit')
+  const isEditMode = !!editId
   const router = useRouter()
   const { bookingsBlocked, limits } = useLimits()
   const { user } = useAuthStore()
@@ -63,6 +66,29 @@ export default function BookPage() {
     if (hasSmall && !hasKg) setPackageMode('small')
     else if (hasKg && !hasSmall) setPackageMode('kg')
   }, [hasKg, hasSmall])
+
+  // Mode edition : charger le booking existant et pre-remplir
+  useEffect(() => {
+    if (!editId) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await api.get(`/bookings/${editId}/full`)
+        if (cancelled) return
+        const bk = res.data
+        setValue('content_description', bk.content_description ?? '')
+        setValue('weight_kg', String(bk.weight_kg ?? ''))
+        setValue('declared_value', String(bk.declared_value ?? ''))
+        if (bk.receiver_email_or_phone) setValue('receiver_email_or_phone', bk.receiver_email_or_phone)
+        if (bk.package_mode) setPackageMode(bk.package_mode)
+        if (typeof bk.insurance_subscribed === 'boolean') setWithInsurance(bk.insurance_subscribed)
+      } catch {
+        toast.error(t.errors?.generic ?? 'Erreur de chargement')
+      }
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
   const [withInsurance, setWithInsurance] = useState(false)
   const [reminderHours, setReminderHours] = useState<number | null>(null)
   const [photos, setPhotos] = useState<string[]>([])
@@ -97,7 +123,8 @@ export default function BookPage() {
       setScanQuota({ free_remaining: res.data.free_remaining })
     } catch { /* silencieux */ }
   }
-  if (typeof window !== 'undefined' && scanQuota === null) { loadScanQuota() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadScanQuota() }, [])
 
   const handlePhotoUpload = async (files: FileList | null) => {
     if (!files) return
@@ -128,7 +155,7 @@ export default function BookPage() {
 
   // Persistance du formulaire (sessionStorage) : survit au retour / navigation
   const { clear: clearPersist } = usePersistedForm(
-    `kipar_form_book_${id}`,
+    isEditMode ? '__edit_noop__' : `kipar_form_book_${id}`,
     {
       receiver_email_or_phone: watch('receiver_email_or_phone'),
       content_description: watch('content_description'),
@@ -137,6 +164,7 @@ export default function BookPage() {
       packageMode, withInsurance, reminderHours, photos,
     },
     (s: any) => {
+      if (isEditMode) return
       reset({
         receiver_email_or_phone: s.receiver_email_or_phone,
         content_description: s.content_description,
@@ -180,6 +208,15 @@ export default function BookPage() {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
+      if (isEditMode) {
+        const res = await api.patch(`/bookings/${editId}`, {
+          content_description: data.content_description,
+          weight_kg: parseFloat(data.weight_kg),
+          declared_value: parseFloat(data.declared_value || '0'),
+          insurance_subscribed: withInsurance,
+        })
+        return res.data
+      }
       const res = await api.post('/bookings', { photos,
         trip_id: id,
         receiver_email_or_phone: data.receiver_email_or_phone,
@@ -194,6 +231,10 @@ export default function BookPage() {
     onSuccess: (data) => {
       setCurrentBookingId(data.id)
       clearPersist()
+      if (isEditMode) {  /* edit-success-redirect */
+        router.push(`/trips/${id}/book/payment?booking_id=${data.id}&amount=${(transport + commission).toFixed(2)}&transport=${transport.toFixed(2)}&declared_value=${value}&currency=${trip?.currency ?? 'EUR'}`)
+        return
+      }
       if (data.status === 'pending_kyc') {
         setPendingKycBookingId(data.id)
         return
@@ -341,6 +382,8 @@ export default function BookPage() {
             placeholder={t.booking.receiver_placeholder}
             type="email"
             error={errors.receiver_email_or_phone?.message}
+            readOnly={isEditMode}
+            style={isEditMode ? { background: SAND, color: TAUPE, cursor: 'not-allowed' } : undefined}
             {...register('receiver_email_or_phone')}
           />
         </div>

@@ -87,6 +87,7 @@ class BookingDetailResponse(BaseModel):
     receiver_first_name: str | None = None
     receiver_last_name: str | None = None
     receiver_email: str | None = None
+    receiver_email_or_phone: str | None = None
     # Sender
     sender_first_name: str | None = None
     sender_last_name: str | None = None

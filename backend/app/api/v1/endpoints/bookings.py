@@ -523,6 +523,13 @@ async def get_booking_full(
     if b.receiver_id:
         receiver_result = await db.execute(select(User).where(User.id == b.receiver_id))
         receiver = receiver_result.scalar_one_or_none()
+    receiver_contact = (receiver.email or receiver.phone) if receiver else None
+    if not receiver_contact:
+        _inv = (await db.execute(
+            select(ReceiverInvitation).where(ReceiverInvitation.booking_id == b.id)
+        )).scalars().first()
+        if _inv:
+            receiver_contact = _inv.contact
     sender = None
     if b.sender_id:
         sender_result = await db.execute(select(User).where(User.id == b.sender_id))
@@ -559,6 +566,7 @@ async def get_booking_full(
         receiver_first_name=receiver.first_name if receiver else None,
         receiver_last_name=receiver.last_name if receiver else None,
         receiver_email=receiver.email if receiver else None,
+        receiver_email_or_phone=receiver_contact,
         sender_first_name=sender.first_name if sender else None,
         sender_last_name=sender.last_name if sender else None,
         sender_email=sender.email if sender else None,

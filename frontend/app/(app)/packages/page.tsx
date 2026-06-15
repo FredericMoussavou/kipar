@@ -202,7 +202,7 @@ export default function PackagesPage() {
                   onMouseLeave={e => (e.currentTarget.style.borderColor = BORDER)}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 15, fontWeight: 800, color: CHARCOAL }}>
+                      <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 16, fontWeight: 800, color: CHARCOAL }}>
                         {req.origin_airport_code} → {req.destination_airport_code}
                       </p>
                       <StatusBadge status={req.status} />

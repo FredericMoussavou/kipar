@@ -176,7 +176,7 @@ export default function CarrierPage() {
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
 
       <HeroHeader onMenuOpen={openDrawer} imageUrl={HERO_IMG} minHeight={180}>
-        <div style={{ padding: '48px 24px 28px' }} className="md:p-8">
+        <div style={{ padding: '48px 24px 28px', textAlign: 'center' }} className="md:p-8">
           <h1 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 22, fontWeight: 800, color: WHITE, marginBottom: 4 }}
             className="md:text-3xl">
             {t.carrier.dashboard_title}
@@ -184,7 +184,7 @@ export default function CarrierPage() {
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 12 }}>
             {user?.first_name} {user?.last_name} · KiparTrust {Math.round(user?.trust_score || 50)}
           </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button onClick={() => router.push('/carrier/finance')}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 600, color: WHITE, cursor: 'pointer' }}>
               Mes finances

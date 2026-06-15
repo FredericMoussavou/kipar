@@ -145,6 +145,8 @@ export const useAuthStore = create<AuthStore>()(
               headers: { Authorization: 'Bearer ' + token },
             }).catch(() => {})
           }
+          // Redirection vers login apres purge complete
+          window.location.replace('/login')
         }
       },
       isAuthenticated: () => !!get().token,

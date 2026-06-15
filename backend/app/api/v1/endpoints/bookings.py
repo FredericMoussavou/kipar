@@ -306,6 +306,9 @@ async def accept_booking(
         sender_phone=sender.phone,
         sender_email=sender.email,
         lang=sender.language,
+        notify_email=sender.notify_by_email,
+        notify_push=sender.notify_by_push,
+        notify_sms=sender.notify_by_sms,
     )
 
     await notify_booking_accepted_db(

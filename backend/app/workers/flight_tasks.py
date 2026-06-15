@@ -95,6 +95,8 @@ def track_flight_notify(trip_id: str, status: str, arrival: str):
                     status=status,
                     arrival=arrival,
                     lang=sender.language if sender else "fr",
+                    sender_push=sender.notify_by_push if sender else True,
+                    receiver_push=receiver.notify_by_push if receiver else True,
                 )
 
     asyncio.run(_run())

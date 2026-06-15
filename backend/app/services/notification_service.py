@@ -120,14 +120,18 @@ async def notify_booking_accepted(
     sender_phone: str | None,
     sender_email: str,
     lang: str = "fr",
+    notify_email: bool = True,
+    notify_push: bool = True,
+    notify_sms: bool = True,
 ) -> None:
     """Notifie l'expéditeur que sa demande a été acceptée."""
     body = t("notifications.booking_accepted", lang)
-    if sender_fcm_token:
+    if notify_push and sender_fcm_token:
         await send_push(sender_fcm_token, "KIPAR.", body)
-    if sender_phone:
+    if notify_sms and sender_phone:
         await send_sms(sender_phone, f"KIPAR. — {body}")
-    await send_email(sender_email, t("notifications.booking_accepted_subject", lang), f"<p>{body}</p>")
+    if notify_email:
+        await send_email(sender_email, t("notifications.booking_accepted_subject", lang), f"<p>{body}</p>")
 
 
 async def notify_delivery_code(
@@ -185,6 +189,8 @@ async def notify_flight_status(
     status: str,
     arrival: str | None = None,
     lang: str = "fr",
+    sender_push: bool = True,
+    receiver_push: bool = True,
 ) -> None:
     """Notifie expéditeur et récepteur d'un changement de statut de vol."""
     if status == "landed":
@@ -194,6 +200,7 @@ async def notify_flight_status(
     else:
         body = t("notifications.flight_departed", lang, arrival=arrival or "inconnue")
 
-    for token in [sender_fcm_token, receiver_fcm_token]:
-        if token:
-            await send_push(token, "KIPAR. — Vol", body)
+    if sender_push and sender_fcm_token:
+        await send_push(sender_fcm_token, "KIPAR. — Vol", body)
+    if receiver_push and receiver_fcm_token:
+        await send_push(receiver_fcm_token, "KIPAR. — Vol", body)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 import uuid
 from app.services.airport_service import validate_iata
@@ -24,6 +24,7 @@ class ApplicationResponse(BaseModel):
 
 
 class PackageRequestCreate(BaseModel):
+    package_mode: str = "kg"
     origin_city: str
     origin_airport_code: str
     destination_city: str
@@ -52,12 +53,18 @@ class PackageRequestCreate(BaseModel):
             raise ValueError("La date limite doit etre dans le futur")
         return v
 
-    @field_validator("weight_kg", "budget_per_kg")
+    @field_validator("weight_kg")
     @classmethod
     def positive_values(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("La valeur doit etre positive")
         return v
+
+    @model_validator(mode="after")
+    def check_budget_mode(self):
+        if self.package_mode != "small" and self.budget_per_kg <= 0:
+            raise ValueError("Le budget par kg doit etre positif")
+        return self
 
     @field_validator("photos")
     @classmethod
@@ -68,6 +75,7 @@ class PackageRequestCreate(BaseModel):
 
 
 class PackageRequestResponse(BaseModel):
+    package_mode: str = "kg"
     id: uuid.UUID
     sender_id: uuid.UUID
     origin_city: str

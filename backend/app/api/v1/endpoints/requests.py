@@ -39,6 +39,8 @@ async def create_request(
         if active_req_result.scalar() >= 2:
             raise HTTPException(status_code=403, detail=t("errors.premium_request_limit", lang))
 
+    if payload.package_mode == "small" and payload.weight_kg >= settings.SMALL_PACKAGE_MAX_KG:
+        raise HTTPException(status_code=400, detail="Petit colis : poids maximum 1 kg")
     req = PackageRequest(
         sender_id=current_user.id,
         origin_city=payload.origin_city,
@@ -51,6 +53,7 @@ async def create_request(
         budget_per_kg=payload.budget_per_kg,
         photos=payload.photos,
         receiver_email_or_phone=payload.receiver_email_or_phone,
+        package_mode=payload.package_mode,
         deadline_date=payload.deadline_date,
     )
     db.add(req)
@@ -222,7 +225,10 @@ async def apply_to_request(
     if (trip.origin_airport_code != req.origin_airport_code
             or trip.destination_airport_code != req.destination_airport_code):
         raise HTTPException(status_code=400, detail=t("errors.trip_corridor_mismatch", lang))
-    if trip.price_per_kg > req.budget_per_kg:
+    if req.package_mode == "small":
+        if trip.small_package_price is None:
+            raise HTTPException(status_code=400, detail=t("errors.trip_no_small_package", lang))
+    elif trip.price_per_kg > req.budget_per_kg:
         raise HTTPException(status_code=400, detail=t("errors.price_above_budget", lang))
     if trip.remaining_kg < req.weight_kg:
         raise HTTPException(status_code=400, detail=t("errors.insufficient_kg", lang))
@@ -354,16 +360,13 @@ async def accept_application(
     await db.flush()
 
     # Calculer montant (15% commission expediteur + forfait dossier 1.5EUR ou 5EUR si urgent)
-    from datetime import time as tclass, datetime as dtclass, timezone
-    dep_time = trip.departure_time if hasattr(trip, 'departure_time') and trip.departure_time else tclass(0, 0)
-    if isinstance(dep_time, str):
-        h, m = dep_time.split(':')[:2]
-        dep_time = tclass(int(h), int(m))
-    dep_dt = dtclass.combine(trip.departure_date, dep_time).replace(tzinfo=timezone.utc)
-    hours_until_dep = (dep_dt - dtclass.now(timezone.utc)).total_seconds() / 3600
-    is_urgent = hours_until_dep <= settings.BOOKING_URGENT_THRESHOLD_HOURS
-    from app.services.pricing_service import compute_kg_amount
-    _pricing = compute_kg_amount(req.weight_kg, trip.price_per_kg, is_urgent)
+    from app.services.pricing_service import compute_kg_amount, compute_small_amount
+    if req.package_mode == "small":
+        if trip.small_package_price is None:
+            raise HTTPException(status_code=400, detail=t("errors.trip_no_small_package", lang))
+        _pricing = compute_small_amount(trip.small_package_price)
+    else:
+        _pricing = compute_kg_amount(req.weight_kg, trip.price_per_kg, is_urgent=False)
     flat_fee = _pricing["flat_fee"]
     transport = _pricing["base"]
     amount = _pricing["total"]
@@ -376,10 +379,11 @@ async def accept_application(
         amount=amount,
         status="pending",
         package_request_id=req.id,
-        is_urgent=is_urgent,
+        is_urgent=False,
         booking_flat_fee_amount=flat_fee,
         base_amount=transport,
         kg_held=True,
+        package_mode=req.package_mode,
     )
     db.add(booking)
     await db.flush()
@@ -414,6 +418,7 @@ def _enrich_request(req: PackageRequest, sender: User | None, apps_count: int, h
         "weight_kg": req.weight_kg,
         "declared_value": req.declared_value,
         "budget_per_kg": req.budget_per_kg,
+        "package_mode": req.package_mode,
         "photos": req.photos or [],
         "receiver_email_or_phone": req.receiver_email_or_phone,
         "deadline_date": req.deadline_date,

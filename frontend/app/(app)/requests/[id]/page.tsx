@@ -1,7 +1,7 @@
 'use client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Plane, User, Check, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plane, User, Check, Trash2, Package, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuthStore } from '@/stores/auth.store'
@@ -96,11 +96,27 @@ export default function RequestDetailPage() {
 
         <div style={S}>
           <p style={L}>{t.package_detail.section_package}</p>
+          {(() => {
+            const isSmall = req.package_mode === 'small'
+            const Icon = isSmall ? Mail : Package
+            return (
+              <span data-testid="packageModeBadge" style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
+                marginTop: 6, marginBottom: 16, padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: SAND,
+                color: CHARCOAL,
+                border: '1px solid ' + BORDER }}>
+                <Icon size={14} />
+                {isSmall ? t.booking.mode_small : t.booking.mode_kg}
+              </span>
+            )
+          })()}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { label: t.package_detail.field_content, value: req.content_description },
               { label: t.package_detail.field_weight, value: <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> },
-              { label: t.requests.budget_label, value: <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> },
+              req.package_mode === 'small'
+                ? { label: t.booking.mode_small, value: t.booking.small_package_forfait }
+                : { label: t.requests.budget_label, value: <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> },
               { label: t.requests.deadline_label, value: req.deadline_date },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingBottom: 6, borderBottom: '1px solid ' + SAND }}>

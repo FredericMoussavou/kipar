@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { usePersistedForm } from '@/hooks/usePersistedForm'
@@ -13,8 +13,10 @@ import DatePicker from '@/components/ui/kipar/DatePicker'
 import HeroHeader from '@/components/layout/HeroHeader'
 import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
+import { extractApiError } from '@/lib/apiError'
 import { RED, TAUPE, BORDER, CHARCOAL, SAND, WHITE, GREEN } from '@/lib/theme'
 import { useLimits } from '@/hooks/useLimits'
+import { useConfig } from '@/hooks/useConfig'
 import { useAuthStore } from '@/stores/auth.store'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
@@ -49,6 +51,16 @@ export default function NewRequestPage() {
   const [originSelected, setOriginSelected] = useState(false)
   const [destSelected, setDestSelected] = useState(false)
   const [photos, setPhotos] = useState<string[]>([])
+  const config = useConfig()
+  const SMALL_PACKAGE_MAX_KG = config.small_package.max_kg
+  const [packageMode, setPackageMode] = useState<'kg' | 'small'>('kg')
+  const modeInit = useRef(false)
+  useEffect(() => {
+    if (!modeInit.current) { modeInit.current = true; return }
+    setValue('budget_per_kg', packageMode === 'small' ? '0' : '')
+    setValue('weight_kg', '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packageMode])
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -149,6 +161,10 @@ export default function NewRequestPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
+      if (packageMode === 'small' && toKg(parseFloat(data.weight_kg), weightUnit) >= SMALL_PACKAGE_MAX_KG) {
+        toast.error(t.booking.weight_too_big_for_small)
+        return
+      }
       const res = await api.post('/requests', {
         origin_city: data.origin_city,
         origin_airport_code: data.origin_airport_code,
@@ -157,7 +173,8 @@ export default function NewRequestPage() {
         content_description: data.content_description,
         weight_kg: toKg(parseFloat(data.weight_kg), weightUnit),
         declared_value: data.declared_value ? parseFloat(data.declared_value) : null,
-        budget_per_kg: parseFloat(data.budget_per_kg),
+        budget_per_kg: packageMode === 'small' ? 0 : parseFloat(data.budget_per_kg),
+        package_mode: packageMode,
         receiver_email_or_phone: data.receiver_email_or_phone,
         deadline_date: data.deadline_date,
         photos,
@@ -166,7 +183,7 @@ export default function NewRequestPage() {
       clearPersist()
       router.push(`/requests/${res.data.id}`)
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t.errors.generic)
+      toast.error(extractApiError(err, t.errors.generic))
     }
   }
 
@@ -339,14 +356,26 @@ export default function NewRequestPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Input label={t.requests.field_content} placeholder={t.requests.field_content_placeholder}
               error={errors.content_description?.message} {...register('content_description')} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['kg', 'small'] as const).map(m => (
+                <button key={m} type="button" onClick={() => setPackageMode(m)}
+                  style={{ flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    border: '1px solid ' + (packageMode === m ? RED : BORDER),
+                    background: packageMode === m ? RED : WHITE, color: packageMode === m ? WHITE : CHARCOAL }}>
+                  {m === 'kg' ? t.booking.mode_kg : t.booking.mode_small}
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1" min="0.1"
+              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1" min="0.1" max={packageMode === 'small' ? String(SMALL_PACKAGE_MAX_KG - 0.01) : undefined}
                 error={errors.weight_kg?.message} {...register('weight_kg')} />
               <Input label={t.requests.field_value} type="number" placeholder="100" min="0"
                 {...register('declared_value')} />
             </div>
             <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5" min="0.5"
-              error={errors.budget_per_kg?.message} {...register('budget_per_kg')} />
+              error={errors.budget_per_kg?.message} {...register('budget_per_kg')}
+              readOnly={packageMode === 'small'}
+              style={packageMode === 'small' ? { background: SAND, color: TAUPE, cursor: 'not-allowed' } : undefined} />
           </div>
         </div>
 

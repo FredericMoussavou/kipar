@@ -23,6 +23,7 @@ class PackageRequest(Base):
     # Colis
     content_description: Mapped[str] = mapped_column(Text)
     weight_kg: Mapped[float] = mapped_column(Float)
+    package_mode: Mapped[str] = mapped_column(String(8), default="kg")  # kg | small
     declared_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     budget_per_kg: Mapped[float] = mapped_column(Float)
     photos: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)

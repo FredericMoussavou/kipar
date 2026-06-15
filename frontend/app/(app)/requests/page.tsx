@@ -91,7 +91,7 @@ export default function RequestsPage() {
                     </p>
                     <StatusBadge status={req.status} />
                   </div>
-                  <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> · <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /></p>
+                  <p style={{ fontSize: 12, color: TAUPE }}>{req.content_description} · <WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /> · {req.package_mode === 'small' ? <span>{t.booking.small_package_forfait}</span> : <PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} />}</p>
                   <p style={{ fontSize: 11, color: TAUPE, marginTop: 2 }}>{t.requests.deadline_label}: {req.deadline_date} · {t.requests.applications}: {req.applications_count}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

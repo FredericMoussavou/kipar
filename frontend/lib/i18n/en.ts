@@ -388,7 +388,7 @@ export const en = {
     hide_own_trips: 'Hide my trips', 
     filter_urgent: 'Urgent', 
     filter_urgent_active: 'Urgent only', 
-    filter_small_packages: '📦 Small parcels',
+    filter_small_packages: 'Small parcels',
   },
   carrier: { 
     onboarding_title: 'Become a carrier', 

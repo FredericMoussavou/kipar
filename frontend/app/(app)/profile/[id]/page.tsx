@@ -265,8 +265,8 @@ export default function PublicProfilePage() {
             onClick={() => router.back()}
             style={{
               position: 'absolute',
-              top: 16,
-              left: 16,
+              top: 48,
+              left: 20,
               width: 36,
               height: 36,
               borderRadius: '50%',

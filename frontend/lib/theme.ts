@@ -27,3 +27,18 @@ export const {
   lime: LIME,
   orange: ORANGE,
 } = COLORS
+
+// Design system - rayons de bordure
+export const RADIUS = {
+  card: 16,    // cartes, panneaux, containers
+  inner: 12,   // inputs, sous-blocs, petits boutons
+  pill: 99,    // badges, toggles, boutons ronds
+  hero: 24,    // grands bandeaux (HeroHeader)
+} as const
+
+// Design system - elevations (ombres)
+export const SHADOW = {
+  card: '0 2px 8px rgba(0,0,0,0.05)',     // carte au repos
+  raised: '0 4px 16px rgba(0,0,0,0.10)',  // carte elevee / hover
+  overlay: '0 8px 24px rgba(0,0,0,0.12)', // dropdown, modale, popover
+} as const

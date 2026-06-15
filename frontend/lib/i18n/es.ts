@@ -388,7 +388,7 @@ export const es = {
     hide_own_trips: 'Ocultar mis viajes',
     filter_urgent: 'Urgentes',
     filter_urgent_active: 'Solo urgentes',
-    filter_small_packages: '📦 Paquetes pequeños',
+    filter_small_packages: 'Paquetes pequeños',
   },
   carrier: {
     onboarding_title: 'Conviértete en transportista',

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Search, X } from 'lucide-react'
+import { Search, X, Zap, Plane, Mail } from 'lucide-react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useResponsive } from '@/hooks/useResponsive'
@@ -235,14 +235,14 @@ export default function SearchPage() {
       <div style={{ padding: '20px 20px 80px' }}>
         {searched && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
-            <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-              {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+            <button onClick={() => setShowOwnTrips(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showOwnTrips ? CHARCOAL : TAUPE, background: showOwnTrips ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Plane size={15} /><span className="hidden md:inline">{showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}</span>
             </button>
-            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? '#92400E' : TAUPE, background: showUrgentOnly ? '#FFF3CD' : 'transparent', border: '1px solid ' + (showUrgentOnly ? '#FFE082' : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-              ⚡ {showUrgentOnly ? (t.search.filter_urgent_active ?? 'Urgents uniquement') : (t.search.filter_urgent ?? 'Accepte urgents')}
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showUrgentOnly ? CHARCOAL : TAUPE, background: showUrgentOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Zap size={15} /><span className="hidden md:inline">{showUrgentOnly ? (t.search.filter_urgent_active ?? 'Urgents uniquement') : (t.search.filter_urgent ?? 'Accepte urgents')}</span>
               </button>
-              <button onClick={() => setShowSmallOnly(v => !v)} style={{ fontSize: 11, color: showSmallOnly ? '#92400E' : TAUPE, background: showSmallOnly ? '#FFF3CD' : 'transparent', border: '1px solid ' + (showSmallOnly ? '#FFE082' : BORDER), borderRadius: 99, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-                {t.search.filter_small_packages ?? '📦 Petits colis'}
+              <button onClick={() => setShowSmallOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showSmallOnly ? CHARCOAL : TAUPE, background: showSmallOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+                <Mail size={15} /><span className="hidden md:inline">{t.search.filter_small_packages ?? 'Petits colis'}</span>
             </button>
           </div>
         )}

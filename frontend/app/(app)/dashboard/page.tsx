@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Search, Bell, Package2 } from 'lucide-react'
+import { Search, Bell, Package2, Zap, Plane, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/stores/auth.store'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -151,14 +151,14 @@ export default function DashboardPage() {
             {t.dashboard.available_trips}
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ fontSize: 11, color: showUrgentOnly ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showUrgentOnly ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
-              ⚡ {t.search.filter_urgent ?? 'Urgents'}
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showUrgentOnly ? CHARCOAL : TAUPE, background: showUrgentOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Zap size={15} /><span className="hidden md:inline">{t.search.filter_urgent ?? 'Urgents'}</span>
             </button>
-            <button onClick={() => setShowOwnTrips(v => !v)} style={{ fontSize: 11, color: showOwnTrips ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showOwnTrips ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
-              {showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}
+            <button onClick={() => setShowOwnTrips(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showOwnTrips ? CHARCOAL : TAUPE, background: showOwnTrips ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Plane size={15} /><span className="hidden md:inline">{showOwnTrips ? t.search.hide_own_trips ?? 'Masquer mes trajets' : t.search.show_own_trips ?? 'Inclure mes trajets'}</span>
               </button>
-              <button onClick={() => setShowSmallOnly(v => !v)} style={{ fontSize: 11, color: showSmallOnly ? RED : TAUPE, background: 'transparent', border: '1px solid ' + (showSmallOnly ? RED : BORDER), borderRadius: 99, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
-                {t.search.filter_small_packages ?? '📦 Petits colis'}
+              <button onClick={() => setShowSmallOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showSmallOnly ? CHARCOAL : TAUPE, background: showSmallOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+                <Mail size={15} /><span className="hidden md:inline">{t.search.filter_small_packages ?? 'Petits colis'}</span>
             </button>
           </div>
         </div>

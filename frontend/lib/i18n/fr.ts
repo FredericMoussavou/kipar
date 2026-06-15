@@ -388,7 +388,7 @@ export const fr = {
     hide_own_trips: 'Masquer mes trajets',
     filter_urgent: 'Urgents',
     filter_urgent_active: 'Urgents uniquement',
-    filter_small_packages: '📦 Petits colis',
+    filter_small_packages: 'Petits colis',
   },
   carrier: {
     onboarding_title: 'Devenez transporteur',

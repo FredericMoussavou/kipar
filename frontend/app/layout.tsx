@@ -39,7 +39,8 @@ export default function RootLayout({
           </Providers>
         </ThemeProvider>
         <Toaster richColors position="top-center" />
-        <Script id="tawk-init" strategy="afterInteractive">
+        {process.env.NODE_ENV === 'production' && (
+        <Script id="tawk-init" strategy="lazyOnload">
           {`
             var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
             Tawk_API.onLoad = function() { Tawk_API.hideWidget(); };
@@ -59,6 +60,7 @@ export default function RootLayout({
             })();
           `}
         </Script>
+        )}
       </body>
     </html>
   )

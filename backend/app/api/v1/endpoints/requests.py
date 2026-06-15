@@ -78,6 +78,9 @@ async def list_requests(
         query = query.where(PackageRequest.origin_airport_code == origin.upper())
     if destination:
         query = query.where(PackageRequest.destination_airport_code == destination.upper())
+    # Exclure les annonces du transporteur courant (il ne candidate pas a lui-meme)
+    if current_user:
+        query = query.where(PackageRequest.sender_id != current_user.id)
     query = query.order_by(PackageRequest.deadline_date.asc())
     result = await db.execute(query)
     requests = result.scalars().all()

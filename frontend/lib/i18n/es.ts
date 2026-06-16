@@ -11,6 +11,7 @@ export const es = {
     disputed: 'Disputa abierta',
     refunded: 'Reembolsado',
     open: 'Disponible',
+    matched: 'Asignado',
     full: 'Completo',
     completed: 'Terminado',
     cancelled: 'Cancelado',
@@ -89,6 +90,7 @@ export const es = {
     login: 'Iniciar sesión',
   },
   dashboard: {
+    filter_all : 'Todos',
     greeting: 'Hola',
     search_placeholder: 'Buscar un viaje...',
     popular_corridors: 'Rutas populares',

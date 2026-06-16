@@ -10,7 +10,8 @@ export const en = {
     delivered: 'Delivered', 
     disputed: 'Dispute opened', 
     refunded: 'Refunded', 
-    open: 'Available', 
+    open: 'Available',
+    matched: 'Matched', 
     full: 'Full', 
     completed: 'Completed', 
     cancelled: 'Cancelled', 
@@ -89,6 +90,7 @@ export const en = {
     login: 'Log in',
   },
   dashboard: { 
+    filter_all : 'All',
     greeting: 'Hello', 
     search_placeholder: 'Search for a trip...', 
     popular_corridors: 'Popular corridors', 

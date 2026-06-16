@@ -138,7 +138,7 @@ export default function DashboardPage() {
               color: activeCorr === i ? WHITE : CHARCOAL,
               boxShadow: activeCorr === i ? '0 2px 8px rgba(220,0,41,0.25)' : '0 1px 3px rgba(0,0,0,0.06)',
             }}>
-              {c.label}
+              {c.origin === null && c.dest === null ? t.dashboard.filter_all : c.label}
             </button>
           ))}
         </div>

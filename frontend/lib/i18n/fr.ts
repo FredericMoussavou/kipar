@@ -11,6 +11,7 @@ export const fr = {
     disputed: 'Litige ouvert',
     refunded: 'Remboursé',
     open: 'Disponible',
+    matched: 'Pourvue',
     full: 'Complet',
     completed: 'Terminé',
     cancelled: 'Annulé',
@@ -89,6 +90,7 @@ export const fr = {
     login: 'Connexion',
   },
   dashboard: {
+    filter_all : 'Tous',
     greeting: 'Bonjour',
     search_placeholder: 'Rechercher un trajet...',
     popular_corridors: 'Corridors populaires',

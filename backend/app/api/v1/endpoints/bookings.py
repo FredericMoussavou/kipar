@@ -1,9 +1,9 @@
 from app.core.rate_limit import limiter
-from fastapi import UploadFile, File, APIRouter, Depends, HTTPException, Request
+from fastapi import UploadFile, File, APIRouter, Depends, HTTPException, Request, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from datetime import datetime, timezone, timedelta
+from sqlalchemy import select, func, or_
+from datetime import datetime, timezone, timedelta, date
 import uuid
 
 from app.core.database import get_db
@@ -444,31 +444,53 @@ async def list_carrier_bookings(
     return responses
 
 
-@router.get("/detail", response_model=list[BookingResponse])
+@router.get("/detail")
 async def list_my_bookings_detailed(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    status: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    origin: str | None = None,
+    destination: str | None = None,
 ):
-    """Liste enrichie avec les données du package."""
-    from sqlalchemy import or_
+    """Liste enrichie avec les données du package, paginée et filtrable."""
     from app.models.package import Package
+    base = select(Booking).where(or_(
+        Booking.sender_id == current_user.id,
+        Booking.receiver_id == current_user.id,
+    ))
+    if status:
+        base = base.where(Booking.status == status)
+    if date_from:
+        base = base.where(func.date(Booking.created_at) >= date_from)
+    if date_to:
+        base = base.where(func.date(Booking.created_at) <= date_to)
+    if origin or destination:
+        base = base.join(Trip, Booking.trip_id == Trip.id)
+        if origin:
+            base = base.where(Trip.origin_airport_code.ilike(f"%{origin.upper()}%"))
+        if destination:
+            base = base.where(Trip.destination_airport_code.ilike(f"%{destination.upper()}%"))
+    total = await db.scalar(select(func.count()).select_from(base.subquery()))
     result = await db.execute(
-        select(Booking)
-        .where(or_(
-            Booking.sender_id == current_user.id,
-            Booking.receiver_id == current_user.id,
-        ))
-        .order_by(Booking.created_at.desc())
+        base.order_by(Booking.created_at.desc()).limit(limit).offset(offset)
     )
     bookings = result.scalars().all()
     if not bookings:
-        return []
+        return {"items": [], "total": total or 0}
     pkg_ids = [b.package_id for b in bookings]
     pkgs_result = await db.execute(select(Package).where(Package.id.in_(pkg_ids)))
     pkgs = {p.id: p for p in pkgs_result.scalars().all()}
+    trip_ids = [b.trip_id for b in bookings]
+    trips_result = await db.execute(select(Trip).where(Trip.id.in_(trip_ids)))
+    trips = {tr.id: tr for tr in trips_result.scalars().all()}
     responses = []
     for b in bookings:
         pkg = pkgs.get(b.package_id)
+        tr = trips.get(b.trip_id)
         responses.append(BookingResponse(
             id=b.id,
             trip_id=b.trip_id,
@@ -488,8 +510,10 @@ async def list_my_bookings_detailed(
             currency=b.currency,
             weight_unit=b.weight_unit,
             package_mode=b.package_mode,
+            origin_airport_code=tr.origin_airport_code if tr else None,
+            destination_airport_code=tr.destination_airport_code if tr else None,
         ))
-    return responses
+    return {"items": responses, "total": total or 0}
 
 
 @router.get("/{booking_id}/full", response_model=BookingDetailResponse)

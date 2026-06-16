@@ -1,14 +1,14 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Package, ChevronRight, Plus, X, Inbox, Trash2 } from 'lucide-react'
+import { Package, ChevronRight, Plus, X, Inbox, Trash2, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal from '@/components/ui/kipar/Modal'
 import { Button } from '@/components/ui/kipar'
 import Textarea from '@/components/ui/kipar/Textarea'
 import { useTranslation } from '@/hooks/useTranslation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth.store'
 import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
 import { CurrencyDisplay } from '@/components/ui/kipar/CurrencyDisplay'
@@ -31,7 +31,20 @@ export default function PackagesPage() {
   const queryClient = useQueryClient()
 
   const [tab, setTab] = useState<Tab>('listings')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  type Filters = { status: string; dateFrom: string; dateTo: string; origin: string; destination: string }
+  const EMPTY_FILTERS: Filters = { status: 'all', dateFrom: '', dateTo: '', origin: '', destination: '' }
+  const [listingsFilters, setListingsFilters] = useState<Filters>(EMPTY_FILTERS)
+  const [bookingsFilters, setBookingsFilters] = useState<Filters>(EMPTY_FILTERS)
+  const [showFilters, setShowFilters] = useState(false)
+  const buildParams = (f: Filters, pageParam: number) => {
+    const p: any = { limit: 10, offset: pageParam }
+    if (f.status && f.status !== 'all') p.status = f.status
+    if (f.dateFrom) p.date_from = f.dateFrom
+    if (f.dateTo) p.date_to = f.dateTo
+    if (f.origin) p.origin = f.origin
+    if (f.destination) p.destination = f.destination
+    return p
+  }
 
   // Modal annulation booking
   const [toCancel, setToCancel] = useState<{ id: string; status: string; amount: number } | null>(null)
@@ -44,17 +57,46 @@ export default function PackagesPage() {
   const [deletingBooking, setDeletingBooking] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  const { data: listings = [], isLoading: loadingListings } = useQuery({
-    queryKey: ['my-requests'],
+  const listingsQuery = useInfiniteQuery({
+    queryKey: ['my-requests', listingsFilters],
     enabled: !!user,
-    queryFn: async () => (await api.get('/requests/mine')).data,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => (await api.get('/requests/mine', { params: buildParams(listingsFilters, pageParam as number) })).data,
+    getNextPageParam: (lastPage: any, pages: any[]) => {
+      const loaded = pages.reduce((n, p) => n + p.items.length, 0)
+      return loaded < lastPage.total ? loaded : undefined
+    },
   })
+  const listings = listingsQuery.data?.pages.flatMap((p: any) => p.items) ?? []
+  const loadingListings = listingsQuery.isLoading
 
-  const { data: bookings = [], isLoading: loadingBookings } = useQuery({
-    queryKey: ['my-bookings'],
+  const bookingsQuery = useInfiniteQuery({
+    queryKey: ['my-bookings', bookingsFilters],
     enabled: isAuthenticated(),
-    queryFn: async () => (await api.get('/bookings/detail')).data,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => (await api.get('/bookings/detail', { params: buildParams(bookingsFilters, pageParam as number) })).data,
+    getNextPageParam: (lastPage: any, pages: any[]) => {
+      const loaded = pages.reduce((n, p) => n + p.items.length, 0)
+      return loaded < lastPage.total ? loaded : undefined
+    },
   })
+  const bookings = bookingsQuery.data?.pages.flatMap((p: any) => p.items) ?? []
+  const loadingBookings = bookingsQuery.isLoading
+
+  const listingsSentinel = useRef<HTMLDivElement | null>(null)
+  const bookingsSentinel = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = tab === 'listings' ? listingsSentinel.current : bookingsSentinel.current
+    if (!el) return
+    const q = tab === 'listings' ? listingsQuery : bookingsQuery
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && q.hasNextPage && !q.isFetchingNextPage) {
+        q.fetchNextPage()
+      }
+    }, { rootMargin: '200px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [tab, listingsQuery, bookingsQuery])
 
   const handleCancelBooking = async () => {
     if (!toCancel) return
@@ -128,8 +170,11 @@ export default function PackagesPage() {
     ? ['all', 'open', 'matched', 'cancelled']
     : ['all', 'pending', 'accepted', 'paid', 'in_transit', 'delivered', 'cancelled']
 
-  const filteredListings = (listings as any[]).filter((r: any) => statusFilter === 'all' || r.status === statusFilter)
-  const filteredBookings = (bookings as any[]).filter((b: any) => statusFilter === 'all' || b.status === statusFilter)
+  const filters = tab === 'listings' ? listingsFilters : bookingsFilters
+  const setFilters = tab === 'listings' ? setListingsFilters : setBookingsFilters
+  const patchFilter = (k: keyof Filters, v: string) => setFilters((prev) => ({ ...prev, [k]: v }))
+  const filteredListings = listings as any[]
+  const filteredBookings = bookings as any[]
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
@@ -157,23 +202,67 @@ export default function PackagesPage() {
 
         {/* Onglets */}
         <div style={{ display: 'flex', gap: 4, background: SAND, borderRadius: 12, padding: 4, marginBottom: 16 }}>
-          <button style={tabStyle(tab === 'listings')} onClick={() => { setTab('listings'); setStatusFilter('all') }}>
+          <button style={tabStyle(tab === 'listings')} onClick={() => { setTab('listings'); setShowFilters(false) }}>
             {t.packages.tab_listings}
           </button>
-          <button style={tabStyle(tab === 'bookings')} onClick={() => { setTab('bookings'); setStatusFilter('all') }}>
+          <button style={tabStyle(tab === 'bookings')} onClick={() => { setTab('bookings'); setShowFilters(false) }}>
             {t.packages.tab_bookings}
           </button>
         </div>
 
-        {/* Filtres statuts */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-          {filterStatuses.map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, border: '1px solid ' + (statusFilter === s ? CHARCOAL : BORDER), background: statusFilter === s ? CHARCOAL : WHITE, color: statusFilter === s ? WHITE : TAUPE, cursor: 'pointer' }}>
-              {s === 'all' ? t.packages.filter_all : (t.statuses[s as keyof typeof t.statuses] || s)}
+        {/* Barre Filtrer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <button onClick={() => setShowFilters(v => !v)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: '1px solid ' + BORDER, background: showFilters ? SAND : WHITE, color: CHARCOAL, cursor: 'pointer' }}>
+            <SlidersHorizontal size={14} />
+            {t.packages.filter_btn ?? 'Filtrer'}
+          </button>
+          {(filters.status !== 'all' || filters.dateFrom || filters.dateTo || filters.origin || filters.destination) && (
+            <button onClick={() => setFilters(EMPTY_FILTERS)}
+              style={{ fontSize: 11, color: TAUPE, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              {t.packages.filter_reset ?? 'Reinitialiser'}
             </button>
-          ))}
+          )}
         </div>
+        {showFilters && (
+          <div style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_status ?? 'Statut'}</p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {filterStatuses.map(s => (
+                  <button key={s} onClick={() => patchFilter('status', s)}
+                    style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, border: '1px solid ' + (filters.status === s ? CHARCOAL : BORDER), background: filters.status === s ? CHARCOAL : WHITE, color: filters.status === s ? WHITE : TAUPE, cursor: 'pointer' }}>
+                    {s === 'all' ? t.packages.filter_all : (t.statuses[s as keyof typeof t.statuses] || s)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_origin ?? 'Origine'}</p>
+                <input value={filters.origin} onChange={e => patchFilter('origin', e.target.value.toUpperCase().slice(0, 3))} placeholder="CDG" maxLength={3}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid ' + BORDER, fontSize: 13, textTransform: 'uppercase', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_destination ?? 'Destination'}</p>
+                <input value={filters.destination} onChange={e => patchFilter('destination', e.target.value.toUpperCase().slice(0, 3))} placeholder="DSS" maxLength={3}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid ' + BORDER, fontSize: 13, textTransform: 'uppercase', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_date_from ?? 'Du'}</p>
+                <input type="date" value={filters.dateFrom} onChange={e => patchFilter('dateFrom', e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid ' + BORDER, fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_date_to ?? 'Au'}</p>
+                <input type="date" value={filters.dateTo} onChange={e => patchFilter('dateTo', e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid ' + BORDER, fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Onglet Mes annonces */}
         {tab === 'listings' && (
@@ -219,6 +308,10 @@ export default function PackagesPage() {
                   <ChevronRight size={16} color={TAUPE} />
                 </div>
               ))}
+              <div ref={listingsSentinel} style={{ height: 1 }} />
+              {listingsQuery.isFetchingNextPage && (
+                <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: TAUPE }}>...</div>
+              )}
             </div>
           )
         )}
@@ -287,6 +380,10 @@ export default function PackagesPage() {
                   </div>
                 </div>
               ))}
+              <div ref={bookingsSentinel} style={{ height: 1 }} />
+              {bookingsQuery.isFetchingNextPage && (
+                <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: TAUPE }}>...</div>
+              )}
             </div>
           )
         )}

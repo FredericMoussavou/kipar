@@ -28,7 +28,7 @@ export default function RequestsPage() {
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['my-requests'],
-    queryFn: async () => (await api.get('/requests/mine')).data,
+    queryFn: async () => (await api.get('/requests/mine')).data.items,
     enabled: !!user,
   })
 

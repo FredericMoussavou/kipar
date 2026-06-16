@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
-from datetime import datetime, timezone
+from sqlalchemy import select, update, or_, func
+from datetime import datetime, timezone, date
 
 from app.core.database import get_db
 from app.core.config import settings
@@ -105,19 +105,39 @@ async def list_requests(
     return enriched
 
 
-@router.get("/mine", response_model=list[PackageRequestResponse])
+@router.get("/mine")
 async def list_my_requests(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    status: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    origin: str | None = None,
+    destination: str | None = None,
 ):
+    base = select(PackageRequest).where(
+        PackageRequest.sender_id == current_user.id,
+        PackageRequest.deleted_at.is_(None),
+    )
+    if status:
+        base = base.where(PackageRequest.status == status)
+    if date_from:
+        base = base.where(func.date(PackageRequest.created_at) >= date_from)
+    if date_to:
+        base = base.where(func.date(PackageRequest.created_at) <= date_to)
+    if origin:
+        base = base.where(PackageRequest.origin_airport_code.ilike(f"%{origin.upper()}%"))
+    if destination:
+        base = base.where(PackageRequest.destination_airport_code.ilike(f"%{destination.upper()}%"))
+    total = await db.scalar(select(func.count()).select_from(base.subquery()))
     result = await db.execute(
-        select(PackageRequest)
-        .where(PackageRequest.sender_id == current_user.id, PackageRequest.deleted_at.is_(None))
-        .order_by(PackageRequest.created_at.desc())
+        base.order_by(PackageRequest.created_at.desc()).limit(limit).offset(offset)
     )
     requests = result.scalars().all()
     if not requests:
-        return []
+        return {"items": [], "total": total or 0}
     req_ids = [r.id for r in requests]
     apps_res = await db.execute(select(Application).where(Application.package_request_id.in_(req_ids)))
     apps_count_map = {}
@@ -126,7 +146,7 @@ async def list_my_requests(
     enriched = []
     for req in requests:
         enriched.append(_enrich_request(req, current_user, apps_count_map.get(req.id, 0)))
-    return enriched
+    return {"items": enriched, "total": total or 0}
 
 
 @router.get("/{request_id}", response_model=PackageRequestResponse)

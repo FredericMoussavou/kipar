@@ -346,18 +346,20 @@ async def refuse_booking(
         from app.core.config import settings
         from app.services.stripe_service import cancel_payment_intent
         if not booking.escrow_ref.startswith("pi_simulated") and settings.STRIPE_SECRET_KEY:
-            if booking.status == "paid":
-                # Paiement deja capture - remboursement integral
-                try:
+            try:
+                pi = stripe.PaymentIntent.retrieve(booking.escrow_ref)
+                if pi.status == "succeeded":
+                    # Charge capturee - remboursement integral
                     stripe.Refund.create(
                         payment_intent=booking.escrow_ref,
                         amount=int(booking.amount * 100),
                     )
-                except stripe.StripeError as e:
-                    raise HTTPException(status_code=400, detail=str(e))
-            else:
-                # PaymentIntent pas encore capture - on annule
-                await cancel_payment_intent(booking.escrow_ref)
+                elif pi.status in ("requires_capture", "requires_confirmation", "requires_payment_method"):
+                    # Autorisation non capturee (hold) - on annule pour liberer le hold
+                    await cancel_payment_intent(booking.escrow_ref)
+                # si deja canceled : rien a faire
+            except stripe.StripeError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         booking.booking_fee_collected = False
 
     booking.status = "refused"

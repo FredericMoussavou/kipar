@@ -746,6 +746,7 @@ export const es = {
     already_applied: 'Ya candidatado',
     price_above_budget: 'El presupuesto máximo del remitente está superado',
     carrier_requests: 'Anuncios de remitentes',
+    my_corridors_only: 'Mis corredores',
     no_carrier_requests: 'Sin anuncios disponibles',
     no_carrier_requests_sub: 'Los anuncios de remitentes que coincidan con tus viajes aparecerán aquí',
     status_open: 'Abierto',

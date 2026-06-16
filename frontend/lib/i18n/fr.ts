@@ -746,6 +746,7 @@ export const fr = {
     already_applied: 'Déjà candidaté',
     price_above_budget: 'Le budget maximum de l’expéditeur est dépassé',
     carrier_requests: 'Annonces expéditeurs',
+    my_corridors_only: 'Mes corridors',
     no_carrier_requests: 'Aucune annonce disponible',
     no_carrier_requests_sub: 'Les annonces expéditeurs correspondant à vos trajets apparaîtront ici',
     status_open: 'Ouverte',

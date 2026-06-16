@@ -26,6 +26,7 @@ export default function CarrierRequestsPage() {
   const queryClient = useQueryClient()
   const [applyingId, setApplyingId] = useState<string | null>(null)
   const [selectedTripId, setSelectedTripId] = useState<string>('')
+  const [myCorridorsOnly, setMyCorridorsOnly] = useState(false)
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['carrier-requests'],
@@ -53,6 +54,10 @@ export default function CarrierRequestsPage() {
     },
   })
 
+  const myCorridors = new Set((myTrips as any[]).map((tr: any) => `${tr.origin_airport_code}-${tr.destination_airport_code}`))
+  const filteredRequests = myCorridorsOnly
+    ? (requests as any[]).filter((r: any) => myCorridors.has(`${r.origin_airport_code}-${r.destination_airport_code}`))
+    : (requests as any[])
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
       <HeroBackHeader
@@ -62,11 +67,18 @@ export default function CarrierRequestsPage() {
       />
 
       <div style={{ padding: '20px 16px 80px' }} className="md:max-w-2xl md:mx-auto">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <button onClick={() => setMyCorridorsOnly(v => !v)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: '1px solid ' + BORDER, background: myCorridorsOnly ? SAND : WHITE, color: CHARCOAL, cursor: 'pointer' }}>
+            <Plane size={14} />
+            {t.requests.my_corridors_only ?? 'Mes corridors'}
+          </button>
+        </div>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[1, 2, 3].map(i => <div key={i} style={{ height: 110, background: WHITE, borderRadius: 16, border: '1px solid ' + BORDER }} />)}
           </div>
-        ) : requests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 80, height: 80, borderRadius: 24, background: SAND, marginBottom: 16 }}>
               <Inbox size={36} color={TAUPE} strokeWidth={1.5} />
@@ -76,7 +88,7 @@ export default function CarrierRequestsPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {requests.map((req: any) => {
+            {filteredRequests.map((req: any) => {
               const score = Math.round(req.sender_trust_score || 50)
               const { gradient, color } = getTrustGradient(score)
               const isApplying = applyingId === req.id
@@ -91,7 +103,7 @@ export default function CarrierRequestsPage() {
                       <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 18, fontWeight: 800, color: CHARCOAL }}>{req.destination_airport_code}</p>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL }}><PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> max</p>
+                      {req.package_mode === 'small' ? <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL }}>{t.booking.small_package_forfait}</p> : <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL }}><PricePerWeightDisplay price={req.budget_per_kg} currency='EUR' unit='kg' userCurrency={user?.currency} userUnit={user?.weight_unit as any} rates={rates ?? undefined} /> max</p>}
                       <p style={{ fontSize: 11, color: TAUPE }}><WeightDisplay value={req.weight_kg} unit='kg' userUnit={user?.weight_unit as any} /></p>
                     </div>
                   </div>

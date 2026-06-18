@@ -41,6 +41,7 @@ class BookingResponse(BaseModel):
     currency: str = "EUR"
     weight_unit: str = "kg"
     package_mode: str = "kg"
+    payment_deadline: datetime | None = None
 
     model_config = {"from_attributes": True}
 

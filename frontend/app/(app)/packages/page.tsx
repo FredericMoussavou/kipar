@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Package, ChevronRight, Plus, X, Inbox, Trash2, SlidersHorizontal } from 'lucide-react'
+import { Package, ChevronRight, Plus, X, Inbox, Trash2, SlidersHorizontal, Hourglass } from 'lucide-react'
 import { toast } from 'sonner'
 import Modal from '@/components/ui/kipar/Modal'
 import { Button } from '@/components/ui/kipar'
@@ -22,6 +22,33 @@ import { useDrawerStore } from '@/stores/drawer.store'
 
 type Tab = 'listings' | 'bookings'
 
+function PaymentCountdown({ deadline, t }: { deadline: string; t: any }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const ms = new Date(deadline).getTime() - now
+  const expired = ms <= 0
+  const urgent = !expired && ms < 5 * 60 * 1000
+  const fmt = () => {
+    const total = Math.floor(ms / 1000)
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const s = total % 60
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return h >= 1 ? `${pad(h)}:${pad(m)}` : `${pad(m)}:${pad(s)}`
+  }
+  const fg = expired ? '#DC0029' : urgent ? '#DC0029' : '#2563EB'
+  const bgc = expired ? 'rgba(220,0,41,0.08)' : urgent ? 'rgba(220,0,41,0.08)' : '#EFF6FF'
+  const bd = expired ? '#F5B5C0' : urgent ? '#F5B5C0' : '#BFDBFE'
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: bgc, color: fg, border: '1px solid ' + bd, flexShrink: 0 }}>
+      <Hourglass size={11} color={fg} />
+      {expired ? (t.packages.payment_expired ?? 'Delai depasse') : `${t.packages.payment_countdown ?? 'Paiement sous'} ${fmt()}`}
+    </span>
+  )
+}
 export default function PackagesPage() {
   const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
@@ -364,6 +391,9 @@ export default function PackagesPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {booking.status === 'pending' && booking.payment_deadline && booking.sender_id === user?.id && (
+                      <PaymentCountdown deadline={booking.payment_deadline} t={t} />
+                    )}
                     <StatusBadge status={booking.status} />
                     {booking.is_urgent && (
                       <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: '#FFF3CD', color: '#92400E', fontWeight: 700, border: '1px solid #FFE082', flexShrink: 0 }}>

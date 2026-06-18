@@ -227,6 +227,8 @@ export const es = {
     filter_date_from: 'Desde',
     filter_date_to: 'Hasta',
     show_terminated: 'Mostrar finalizadas',
+    payment_countdown: 'Pagar en',
+    payment_expired: 'Plazo de pago vencido',
     tab_bookings: 'Mis reservas',
     filter_all: 'Todos',
     awaiting_payment_title: 'Pago pendiente',

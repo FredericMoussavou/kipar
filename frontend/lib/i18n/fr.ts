@@ -227,6 +227,8 @@ export const fr = {
     filter_date_from: 'Du',
     filter_date_to: 'Au',
     show_terminated: 'Afficher les terminées',
+    payment_countdown: 'Paiement sous',
+    payment_expired: 'Délai de paiement dépassé',
     tab_bookings: 'Mes réservations',
     filter_all: 'Tous',
     awaiting_payment_title: 'Paiement à finaliser',

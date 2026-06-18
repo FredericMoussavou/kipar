@@ -529,6 +529,11 @@ async def list_my_bookings_detailed(
     for b in bookings:
         pkg = pkgs.get(b.package_id)
         tr = trips.get(b.trip_id)
+        _pd = None
+        if b.status == "pending":
+            _base_dt = b.promoted_at or b.created_at
+            if _base_dt:
+                _pd = _base_dt + timedelta(hours=settings.PENDING_BOOKING_TTL_HOURS)
         responses.append(BookingResponse(
             id=b.id,
             trip_id=b.trip_id,
@@ -548,6 +553,7 @@ async def list_my_bookings_detailed(
             currency=b.currency,
             weight_unit=b.weight_unit,
             package_mode=b.package_mode,
+            payment_deadline=_pd,
             origin_airport_code=tr.origin_airport_code if tr else None,
             destination_airport_code=tr.destination_airport_code if tr else None,
         ))

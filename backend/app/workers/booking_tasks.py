@@ -569,6 +569,7 @@ def expire_awaiting_receiver_bookings():
     from app.models.package import Package
     from app.models.user import User
     from app.services.notif_db_service import create_notification
+    from app.services.stripe_service import settle_cancellation_refund
 
     async def _run():
         async with AsyncSessionLocal() as db:
@@ -585,18 +586,14 @@ def expire_awaiting_receiver_bookings():
                 booking.status = "cancelled"
                 booking.cancellation_reason = "awaiting_receiver_timeout_48h"
 
-                # Remboursement 100% expediteur
-                if booking.escrow_ref and booking.payment_rail == "stripe":
-                    try:
-                        import stripe as stripe_lib
-                        from app.core.config import settings as s
-                        if s.STRIPE_SECRET_KEY and not booking.escrow_ref.startswith("pi_simulated"):
-                            stripe_lib.Refund.create(
-                                payment_intent=booking.escrow_ref,
-                                amount=int(booking.amount * 100),
-                            )
-                    except Exception as e:
-                        logger.error(f"[AWAITING] Erreur remboursement booking {booking.id}: {e}")
+                # Remboursement integral expediteur (selon etat reel du PaymentIntent)
+                if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated"):
+                    from app.core.config import settings as s
+                    if s.STRIPE_SECRET_KEY:
+                        try:
+                            await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                        except Exception as e:
+                            logger.error(f"[AWAITING] Erreur remboursement booking {booking.id}: {e}")
 
                 # Restituer les kg au trip
                 trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))

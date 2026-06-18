@@ -226,6 +226,7 @@ export const es = {
     filter_destination: 'Destino',
     filter_date_from: 'Desde',
     filter_date_to: 'Hasta',
+    show_terminated: 'Mostrar finalizadas',
     tab_bookings: 'Mis reservas',
     filter_all: 'Todos',
     awaiting_payment_title: 'Pago pendiente',

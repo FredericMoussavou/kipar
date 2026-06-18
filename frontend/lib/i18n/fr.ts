@@ -226,6 +226,7 @@ export const fr = {
     filter_destination: 'Destination',
     filter_date_from: 'Du',
     filter_date_to: 'Au',
+    show_terminated: 'Afficher les terminées',
     tab_bookings: 'Mes réservations',
     filter_all: 'Tous',
     awaiting_payment_title: 'Paiement à finaliser',

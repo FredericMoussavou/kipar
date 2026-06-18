@@ -31,8 +31,8 @@ export default function PackagesPage() {
   const queryClient = useQueryClient()
 
   const [tab, setTab] = useState<Tab>('listings')
-  type Filters = { status: string; dateFrom: string; dateTo: string; origin: string; destination: string }
-  const EMPTY_FILTERS: Filters = { status: 'all', dateFrom: '', dateTo: '', origin: '', destination: '' }
+  type Filters = { status: string; dateFrom: string; dateTo: string; origin: string; destination: string; includeTerminal: boolean }
+  const EMPTY_FILTERS: Filters = { status: 'all', dateFrom: '', dateTo: '', origin: '', destination: '', includeTerminal: false }
   const [listingsFilters, setListingsFilters] = useState<Filters>(EMPTY_FILTERS)
   const [bookingsFilters, setBookingsFilters] = useState<Filters>(EMPTY_FILTERS)
   const [showFilters, setShowFilters] = useState(false)
@@ -43,6 +43,7 @@ export default function PackagesPage() {
     if (f.dateTo) p.date_to = f.dateTo
     if (f.origin) p.origin = f.origin
     if (f.destination) p.destination = f.destination
+    if (f.includeTerminal) p.include_terminal = true
     return p
   }
 
@@ -226,6 +227,11 @@ export default function PackagesPage() {
         </div>
         {showFilters && (
           <div style={{ background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button onClick={() => setFilters(prev => ({ ...prev, includeTerminal: !prev.includeTerminal }))}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 12px', borderRadius: 12, border: '1px solid ' + (filters.includeTerminal ? CHARCOAL : BORDER), background: filters.includeTerminal ? SAND : WHITE, color: CHARCOAL, fontSize: 12, fontWeight: 600, cursor: 'pointer', boxSizing: 'border-box' }}>
+              <span>{t.packages.show_terminated ?? 'Afficher les terminées'}</span>
+              <span style={{ color: filters.includeTerminal ? CHARCOAL : TAUPE }}>{filters.includeTerminal ? '✓' : ''}</span>
+            </button>
             <div>
               <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{t.packages.filter_status ?? 'Statut'}</p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

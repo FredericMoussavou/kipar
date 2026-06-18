@@ -39,6 +39,11 @@ class ReasonPayload(BaseModel):
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
+BOOKING_TERMINAL_STATUSES = {
+    "delivered", "cancelled", "cancelled_by_sender",
+    "cancelled_by_carrier", "refused", "expired", "kyc_expired",
+}
+
 
 async def find_or_invite_receiver(
     contact: str, sender_id: uuid.UUID, booking_id: uuid.UUID,
@@ -457,6 +462,7 @@ async def list_my_bookings_detailed(
     date_to: date | None = None,
     origin: str | None = None,
     destination: str | None = None,
+    include_terminal: bool = False,
 ):
     """Liste enrichie avec les données du package, paginée et filtrable."""
     from app.models.package import Package
@@ -466,6 +472,8 @@ async def list_my_bookings_detailed(
     ))
     if status:
         base = base.where(Booking.status == status)
+    if not include_terminal and not status:
+        base = base.where(Booking.status.not_in(BOOKING_TERMINAL_STATUSES))
     if date_from:
         base = base.where(func.date(Booking.created_at) >= date_from)
     if date_to:

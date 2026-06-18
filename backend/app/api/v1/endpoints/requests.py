@@ -18,6 +18,21 @@ from app.services.notif_db_service import notify_new_application
 
 router = APIRouter(prefix="/requests", tags=["requests"])
 
+TERMINAL_STATUSES = {"cancelled", "cancelled_by_sender", "cancelled_by_carrier", "refused", "refunded", "delivered", "expired"}
+
+async def expire_old_requests(db: AsyncSession) -> None:
+    """Passe les annonces open dont la deadline est depassee au statut expired (idempotent, sans cron)."""
+    await db.execute(
+        update(PackageRequest)
+        .where(
+            PackageRequest.status == "open",
+            PackageRequest.deadline_date < date.today(),
+            PackageRequest.deleted_at.is_(None),
+        )
+        .values(status="expired")
+    )
+    await db.commit()
+
 
 @router.post("", response_model=PackageRequestResponse, status_code=201)
 async def create_request(
@@ -116,11 +131,15 @@ async def list_my_requests(
     date_to: date | None = None,
     origin: str | None = None,
     destination: str | None = None,
+    include_terminal: bool = False,
 ):
+    await expire_old_requests(db)
     base = select(PackageRequest).where(
         PackageRequest.sender_id == current_user.id,
         PackageRequest.deleted_at.is_(None),
     )
+    if not include_terminal and not status:
+        base = base.where(PackageRequest.status.not_in(TERMINAL_STATUSES))
     if status:
         base = base.where(PackageRequest.status == status)
     if date_from:

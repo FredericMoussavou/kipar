@@ -694,3 +694,81 @@ def expire_pending_kyc_bookings():
             logger.info(f"[PENDING_KYC] {len(bookings)} pre-reservation(s) expiree(s)")
 
     asyncio.run(_run())
+
+@celery_app.task(name="app.workers.booking_tasks.expire_unaccepted_paid_bookings")
+def expire_unaccepted_paid_bookings():
+    """
+    Annule les bookings 'paid' que le transporteur n'a pas acceptes a temps.
+    Delai : 24h si vol urgent, 48h sinon (depuis paid_at).
+    Liberation integrale du hold (aucun frais expediteur), restitution des kg.
+    Annulation neutre (pas de penalite transporteur). Toutes les 15 min via Beat.
+    """
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.core.config import settings
+    from app.models.booking import Booking
+    from app.models.trip import Trip
+    from app.models.package import Package
+    from app.services.notif_db_service import create_notification
+    from app.services.stripe_service import settle_cancellation_refund
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            normal_cutoff = now - timedelta(hours=settings.CARRIER_ACCEPT_TTL_HOURS)
+            urgent_cutoff = now - timedelta(hours=settings.CARRIER_ACCEPT_TTL_URGENT_HOURS)
+            result = await db.execute(
+                select(Booking).where(
+                    Booking.status == "paid",
+                    Booking.paid_at.isnot(None),
+                )
+            )
+            candidates = result.scalars().all()
+            expired = []
+            for booking in candidates:
+                cutoff = urgent_cutoff if booking.is_urgent else normal_cutoff
+                if booking.paid_at < cutoff:
+                    expired.append(booking)
+            for booking in expired:
+                booking.status = "cancelled"
+                booking.cancellation_reason = "carrier_no_response_timeout"
+
+                if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and settings.STRIPE_SECRET_KEY:
+                    try:
+                        await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                    except Exception as e:
+                        logger.error(f"[CARRIER_TIMEOUT] Erreur liberation hold booking {booking.id}: {e}")
+
+                trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
+                trip = trip_r.scalar_one_or_none()
+                if booking.kg_held and trip:
+                    pkg_r = await db.execute(select(Package).where(Package.id == booking.package_id))
+                    pkg = pkg_r.scalar_one_or_none()
+                    if pkg:
+                        trip.remaining_kg += pkg.weight_kg
+                        if trip.status == "full":
+                            trip.status = "open"
+                    booking.kg_held = False
+
+                await create_notification(
+                    db=db, user_id=booking.sender_id,
+                    type="carrier_no_response",
+                    title="Reservation annulee",
+                    body="Le transporteur n'a pas repondu a temps. Votre reservation est annulee et integralement remboursee.",
+                    link=f"/packages/{booking.id}",
+                )
+                if trip:
+                    await create_notification(
+                        db=db, user_id=trip.carrier_id,
+                        type="carrier_no_response",
+                        title="Creneau de nouveau disponible",
+                        body="Une reservation payee a expire faute de reponse. Les kg sont de nouveau disponibles.",
+                        link="/carrier",
+                    )
+                logger.info(f"[CARRIER_TIMEOUT] Booking {booking.id} annule (transporteur sans reponse)")
+            await db.commit()
+            logger.info(f"[CARRIER_TIMEOUT] {len(expired)} booking(s) paid expire(s)")
+
+    asyncio.run(_run())

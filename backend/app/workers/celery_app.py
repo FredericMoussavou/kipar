@@ -84,5 +84,10 @@ celery_app.conf.update(
             "task": "app.workers.booking_tasks.expire_premium_subscriptions",
             "schedule": crontab(minute=0, hour=1),
         },
+        # Expire les bookings paid non acceptes par le transporteur - toutes les 15 min
+        "expire-unaccepted-paid-bookings": {
+            "task": "app.workers.booking_tasks.expire_unaccepted_paid_bookings",
+            "schedule": crontab(minute="*/15"),
+        },
     },
 )

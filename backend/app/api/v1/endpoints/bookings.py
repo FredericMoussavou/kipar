@@ -43,34 +43,8 @@ BOOKING_TERMINAL_STATUSES = {
     "delivered", "cancelled", "cancelled_by_sender",
     "cancelled_by_carrier", "refused", "expired", "kyc_expired",
 }
+from app.services.stripe_service import settle_cancellation_refund
 
-async def _settle_cancellation_refund(escrow_ref, refund_amount, carrier_amount, carrier_stripe_account, booking_id):
-    """Regle l'annulation cote Stripe selon l'etat reel du PaymentIntent.
-
-    - requires_capture (hold non capture, cas 100%) -> cancel : libere le blocage,
-      l'expediteur n'est jamais debite (corrige le bug 'uncaptured Charge').
-    - succeeded (fonds captures chez KIPAR) -> Refund (partiel ou total si >0)
-      + Transfer compensation transporteur (si >0).
-    - canceled / requires_payment_method -> rien a faire.
-    """
-    import stripe as stripe_lib
-    from app.services.stripe_service import cancel_payment_intent
-    pi = stripe_lib.PaymentIntent.retrieve(escrow_ref)
-    if pi.status == "requires_capture":
-        await cancel_payment_intent(escrow_ref)
-    elif pi.status == "succeeded":
-        if refund_amount and refund_amount > 0:
-            stripe_lib.Refund.create(
-                payment_intent=escrow_ref,
-                amount=int(refund_amount * 100),
-            )
-        if carrier_amount and carrier_amount > 0 and carrier_stripe_account and not carrier_stripe_account.startswith("simulated"):
-            stripe_lib.Transfer.create(
-                amount=int(carrier_amount * 100),
-                currency="eur",
-                destination=carrier_stripe_account,
-                description=f"KIPAR compensation annulation booking {booking_id}",
-            )
 
 
 async def find_or_invite_receiver(
@@ -456,6 +430,10 @@ async def list_carrier_bookings(
     responses = []
     for b in bookings:
         pkg = pkgs.get(b.package_id)
+        _ad = None
+        if b.status == "paid" and b.paid_at:
+            _ttl = settings.CARRIER_ACCEPT_TTL_URGENT_HOURS if b.is_urgent else settings.CARRIER_ACCEPT_TTL_HOURS
+            _ad = b.paid_at + timedelta(hours=_ttl)
         responses.append(BookingResponse(
             id=b.id,
             trip_id=b.trip_id,
@@ -475,6 +453,7 @@ async def list_carrier_bookings(
             currency=b.currency,
             weight_unit=b.weight_unit,
             package_mode=b.package_mode,
+            acceptance_deadline=_ad,
         ))
     return responses
 
@@ -742,7 +721,7 @@ async def cancel_booking(
                 carrier_u = carrier_r.scalar_one_or_none()
                 carrier_acct = carrier_u.stripe_account_id if carrier_u else None
             try:
-                await _settle_cancellation_refund(booking.escrow_ref, refund_amount, carrier_amount, carrier_acct, booking_id)
+                await settle_cancellation_refund(booking.escrow_ref, refund_amount, carrier_amount, carrier_acct, booking_id)
             except stripe_lib.StripeError as e:
                 raise HTTPException(status_code=400, detail=str(e))
 
@@ -763,7 +742,7 @@ async def cancel_booking(
         # Remboursement immediat expediteur (selon etat reel du PaymentIntent)
         if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
             try:
-                await _settle_cancellation_refund(booking.escrow_ref, refund_amount, 0.0, None, booking_id)
+                await settle_cancellation_refund(booking.escrow_ref, refund_amount, 0.0, None, booking_id)
             except stripe_lib.StripeError as e:
                 raise HTTPException(status_code=400, detail=str(e))
 

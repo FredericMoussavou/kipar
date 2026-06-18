@@ -66,6 +66,33 @@ async def cancel_payment_intent(payment_intent_id: str, booking_fee: float = 1.5
     except stripe.StripeError:
         return False
 
+async def settle_cancellation_refund(escrow_ref, refund_amount, carrier_amount, carrier_stripe_account, booking_id):
+    """Regle une annulation cote Stripe selon l'etat reel du PaymentIntent.
+
+    - requires_capture (hold non capture, cas 100%) -> cancel : libere le blocage,
+      l'expediteur n'est jamais debite (evite le bug 'uncaptured Charge').
+    - succeeded (fonds captures chez KIPAR) -> Refund (partiel ou total si >0)
+      + Transfer compensation transporteur (si >0).
+    - canceled / requires_payment_method -> rien a faire.
+    """
+    pi = stripe.PaymentIntent.retrieve(escrow_ref)
+    if pi.status == "requires_capture":
+        await cancel_payment_intent(escrow_ref)
+    elif pi.status == "succeeded":
+        if refund_amount and refund_amount > 0:
+            stripe.Refund.create(
+                payment_intent=escrow_ref,
+                amount=int(refund_amount * 100),
+            )
+        if carrier_amount and carrier_amount > 0 and carrier_stripe_account and not carrier_stripe_account.startswith("simulated"):
+            stripe.Transfer.create(
+                amount=int(carrier_amount * 100),
+                currency="eur",
+                destination=carrier_stripe_account,
+                description=f"KIPAR compensation annulation booking {booking_id}",
+            )
+
+
 async def release_payment_to_carrier(
     payment_intent_id: str,
     carrier_stripe_account: str,

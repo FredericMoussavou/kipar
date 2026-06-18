@@ -90,6 +90,8 @@ class Settings(BaseSettings):
     INCIDENT_RESPONSE_HOURS: int = 48            # Fenetre justification pickup/delivery failed
     LISTING_MIN_DELAY_HOURS: int = 24            # Delai min avant suppression annonce
     PENDING_BOOKING_TTL_HOURS: int = 1           # Reservation non payee retenue 1h max
+    CARRIER_ACCEPT_TTL_HOURS: int = 48           # Delai acceptation transporteur (vol normal)
+    CARRIER_ACCEPT_TTL_URGENT_HOURS: int = 24    # Delai acceptation transporteur (vol urgent)
     PRICE_SUGGESTION_WINDOW_DAYS: int = 90       # Historique fourchette prix corridor
     PRICE_SUGGESTION_MIN_SAMPLES: int = 5        # Seuil donnees corridor suffisantes
     DELIVERY_TIMEOUT_DAYS: int = 7               # Timeout livraison sans confirmation

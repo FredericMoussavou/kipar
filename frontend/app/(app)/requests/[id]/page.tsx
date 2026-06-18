@@ -44,7 +44,7 @@ export default function RequestDetailPage() {
       await api.delete(`/requests/${id}`)
       toast.success(t.requests.deleted)
       setToDelete(false)
-      router.replace('/requests')
+      router.replace('/packages')
     } catch { toast.error(t.errors.generic) }
     finally { setDeleting(false) }
   }

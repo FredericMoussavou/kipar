@@ -414,6 +414,8 @@ export const fr = {
     no_trips: 'Aucune annonce postée',
     no_bookings: 'Aucune réservation en attente',
     accept: 'Accepter',
+    accept_countdown: 'Repondre sous',
+    accept_expired: 'Delai de reponse depasse',
     pickup_btn: "J'ai récupéré le colis",
     refuse: 'Refuser',
     trip_form_title: 'Poster une annonce',

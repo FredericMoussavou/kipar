@@ -414,6 +414,8 @@ export const en = {
     no_trips: 'No listings posted', 
     no_bookings: 'No pending bookings', 
     accept: 'Accept', 
+    accept_countdown: 'Respond within',
+    accept_expired: 'Response deadline passed',
     pickup_btn: 'I picked up the package', 
     refuse: 'Refuse', 
     trip_form_title: 'Post a listing', 

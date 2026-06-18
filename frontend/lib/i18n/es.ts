@@ -414,6 +414,8 @@ export const es = {
     no_trips: 'No has publicado anuncios',
     no_bookings: 'No hay reservas pendientes',
     accept: 'Aceptar',
+    accept_countdown: 'Responder en',
+    accept_expired: 'Plazo de respuesta vencido',
     pickup_btn: 'Recogí el paquete',
     refuse: 'Rechazar',
     trip_form_title: 'Publicar un anuncio',

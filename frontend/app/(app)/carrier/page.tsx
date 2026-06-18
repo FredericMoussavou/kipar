@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { Plus, Plane, Check, X, ChevronRight, Package, Trash2 } from 'lucide-react'
+import { Plus, Plane, Check, X, ChevronRight, Package, Trash2, Hourglass } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -22,6 +22,35 @@ import { useKyc } from '@/hooks/useKyc'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80'
 
+function AcceptanceCountdown({ deadline, t }: { deadline: string; t: any }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const ms = new Date(deadline).getTime() - now
+  const expired = ms <= 0
+  const red = !expired && ms < 5 * 60 * 1000
+  const orange = !expired && !red && ms < 2 * 60 * 60 * 1000
+  const labelFor = () => {
+    const total = Math.max(0, Math.floor(ms / 1000))
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const s = total % 60
+    const pad = (n: number) => String(n).padStart(2, '0')
+    if (h >= 1) return `${pad(h)} h ${pad(m)} min`
+    return `${pad(m)} min ${pad(s)} s`
+  }
+  const fg = expired ? '#DC0029' : red ? '#DC0029' : orange ? '#9A5B00' : '#2563EB'
+  const bgc = expired ? 'rgba(220,0,41,0.08)' : red ? 'rgba(220,0,41,0.08)' : orange ? '#FFF4E5' : '#EFF6FF'
+  const bd = expired ? '#F5B5C0' : red ? '#F5B5C0' : orange ? '#FFD8A8' : '#BFDBFE'
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99, background: bgc, color: fg, border: '1px solid ' + bd, flexShrink: 0, boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', width: expired ? 'auto' : 110 }}>
+      <Hourglass size={11} color={fg} />
+      {expired ? (t.carrier.accept_expired ?? 'Delai depasse') : labelFor()}
+    </span>
+  )
+}
 export default function CarrierPage() {
   const { open: openDrawer } = useDrawerStore()
   const { t } = useTranslation()
@@ -266,7 +295,12 @@ export default function CarrierPage() {
                       <p style={{ fontSize: 14, fontWeight: 600, color: CHARCOAL }}>{booking.content_description || 'Colis'}</p>
                       <p style={{ fontSize: 12, color: TAUPE, marginTop: 2 }}><WeightDisplay value={booking.weight_kg} unit={(booking.weight_unit ?? 'kg') as any} userUnit={user?.weight_unit as any} /> · <CurrencyDisplay amount={booking.amount ?? 0} currency={booking.currency ?? 'EUR'} userCurrency={user?.currency} rates={rates ?? undefined} exact /></p>
                     </div>
-                    <StatusBadge status={booking.status} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {booking.acceptance_deadline && (
+                        <AcceptanceCountdown deadline={booking.acceptance_deadline} t={t} />
+                      )}
+                      <StatusBadge status={booking.status} />
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => acceptMutation.mutate(booking.id)} disabled={acceptMutation.isPending}

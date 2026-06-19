@@ -61,13 +61,13 @@ class Settings(BaseSettings):
     SUPPORT_EMAIL: str = "support@kipar.app"
 
     # Frais de service - modele financier v2
-    SERVICE_FEE_SENDER_PERCENT: float = 0.15     # 15% cote expediteur
+    SERVICE_FEE_SENDER_PERCENT: float = 0.13     # 13% cote expediteur
     SERVICE_FEE_CARRIER_PERCENT: float = 0.02    # 2% cote transporteur
     PENDING_KYC_TTL_HOURS: int = 48              # TTL pre-reservation pending_kyc (heures)
-    BOOKING_FLAT_FEE: float = 1.50               # Forfait dossier a la confirmation
+    BOOKING_FLAT_FEE: float = 3.0                # Forfait dossier a la confirmation
     URGENT_FLAT_FEE: float = 10.0                # Forfait dossier urgence
-    URGENT_FEE_KIPAR: float = 3.0                # Part KIPAR sur forfait urgence
-    URGENT_FEE_CARRIER: float = 7.0              # Part transporteur sur forfait urgence
+    URGENT_FEE_KIPAR: float = 4.0                # Part KIPAR sur forfait urgence
+    URGENT_FEE_CARRIER: float = 6.0              # Part transporteur sur forfait urgence
     SMALL_PACKAGE_MAX_KG: float = 1.0            # Seuil poids petit colis (kg)
     SMALL_PACKAGE_PRICE: float = 15.0            # Prix fixe max expediteur petit colis
     SMALL_PACKAGE_KIPAR_FEE: float = 5.0         # Part KIPAR sur petit colis

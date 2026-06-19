@@ -96,22 +96,18 @@ async def settle_cancellation_refund(escrow_ref, refund_amount, carrier_amount, 
 async def release_payment_to_carrier(
     payment_intent_id: str,
     carrier_stripe_account: str,
-    amount_eur: float,
+    carrier_amount_eur: float,
 ) -> bool:
     """
-    Libère le paiement vers le compte du transporteur après livraison.
-    Commission Kipar : 15% expediteur + 2% transporteur = 83% net transporteur.
-    Commission minimum absolue : max(17%, MIN_COMMISSION).
+    Transfere au transporteur le montant net deja calcule (compute_carrier_payout).
+    Ne prend plus aucune commission ici : l'assiette est determinee en amont
+    (Modele A : base-2% en kg, base entiere en small).
     """
     if payment_intent_id.startswith("pi_simulated"):
         return True
     try:
-        from app.core.config import settings
-        total_fee_rate = settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT
-        kipar_fee = max(amount_eur * total_fee_rate, settings.MIN_COMMISSION)
-        carrier_amount = int((amount_eur - kipar_fee) * 100)
         stripe.Transfer.create(
-            amount=carrier_amount,
+            amount=int(round(carrier_amount_eur, 2) * 100),
             currency="eur",
             destination=carrier_stripe_account,
             transfer_group=payment_intent_id,

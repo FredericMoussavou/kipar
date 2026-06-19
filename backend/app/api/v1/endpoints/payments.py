@@ -306,17 +306,18 @@ async def release_payment(
 
     success = False
     if booking.payment_rail == "stripe":
+        from app.services.pricing_service import compute_carrier_payout
+        _payout = compute_carrier_payout(booking)
         success = await release_payment_to_carrier(
             payment_intent_id=booking.escrow_ref,
             carrier_stripe_account=carrier.stripe_account_id if carrier else None,
-            amount_eur=booking.amount,
+            carrier_amount_eur=_payout,
         )
     elif booking.payment_rail == "pawapay":
         # PawaPay payout vers le wallet mobile du transporteur
         if carrier and carrier.mobile_money_number and carrier.mobile_money_provider:
-            from app.core.config import settings as s
-            total_fee = booking.amount * (s.SERVICE_FEE_SENDER_PERCENT + s.SERVICE_FEE_CARRIER_PERCENT)
-            carrier_amount = max(booking.amount - max(total_fee, s.MIN_COMMISSION), 0)
+            from app.services.pricing_service import compute_carrier_payout
+            carrier_amount = compute_carrier_payout(booking)
             payout_resp = await initiate_payout(
                 amount=carrier_amount,
                 currency=booking_currency if hasattr(booking, "currency") else "XOF",

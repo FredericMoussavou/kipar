@@ -152,10 +152,12 @@ def release_payment_after_delivery(booking_id: str):
             carrier = result.scalar_one_or_none()
 
             if booking.payment_rail == "stripe" and carrier.stripe_account_id:
+                from app.services.pricing_service import compute_carrier_payout
+                _payout = compute_carrier_payout(booking)
                 success = await release_payment_to_carrier(
                     payment_intent_id=booking.escrow_ref,
                     carrier_stripe_account=carrier.stripe_account_id,
-                    amount_eur=booking.amount,
+                    carrier_amount_eur=_payout,
                 )
                 if success:
                     logger.info(f"Payment released for booking {booking_id}")

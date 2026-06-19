@@ -334,6 +334,14 @@ async def respond_delivery_failed(
             booking.status = "cancelled"
             booking.cancellation_reason = "delivery_failed_carrier_fault"
             resolution = "receiver_favored_carrier_fault"
+            # C6 refund integral faute carrier
+            from app.services.stripe_service import settle_cancellation_refund
+            if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and settings.STRIPE_SECRET_KEY:
+                try:
+                    await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                except Exception as e:
+                    import logging
+                    logging.getLogger("kipar").error(f"[DELIVERY_FAILED] Refund booking {booking.id}: {e}")
         await db.commit()
         await create_notification(
             db=db,

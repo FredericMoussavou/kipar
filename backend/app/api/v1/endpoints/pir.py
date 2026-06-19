@@ -222,9 +222,17 @@ async def update_pir(
         pir.found = False
         pir.resolved_at = datetime.now(timezone.utc)
 
+        from app.services.stripe_service import settle_cancellation_refund
+        from app.core.config import settings as _cfg
         for booking in affected_bookings:
             booking.status = "refunded"
-            # TODO : déclencher remboursement via Stripe/Flutterwave selon rail
+            # C5 refund integral perte definitive
+            if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and _cfg.STRIPE_SECRET_KEY:
+                try:
+                    await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                except Exception as e:
+                    import logging
+                    logging.getLogger("kipar").error(f"[PIR_LOST] Refund booking {booking.id}: {e}")
 
             result = await db.execute(select(User).where(User.id == booking.sender_id))
             sender = result.scalar_one_or_none()

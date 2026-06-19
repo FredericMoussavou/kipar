@@ -222,6 +222,16 @@ async def resolve_dispute(
             # Frais litige 10EUR a charge du transporteur
             print(f"[DISPUTE] Frais litige {settings.DISPUTE_FEE}EUR factures au transporteur booking {booking.id}")
             # TODO Sprint 4 : prelevement reel Stripe/Flutterwave
+            # C3d refund dispute resolved_sender (forfait retenu)
+            from app.services.stripe_service import settle_cancellation_refund
+            _flat9 = settings.URGENT_FEE_KIPAR if booking.is_urgent else (booking.booking_flat_fee_amount or settings.BOOKING_FLAT_FEE)
+            _refund9 = round(max(0.0, booking.amount - _flat9), 2)
+            if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and settings.STRIPE_SECRET_KEY:
+                try:
+                    await settle_cancellation_refund(booking.escrow_ref, _refund9, 0.0, None, str(booking.id))
+                except Exception as e:
+                    import logging
+                    logging.getLogger("kipar").error(f"[DISPUTE_SENDER] Refund booking {booking.id}: {e}")
         elif decision == "resolved_carrier":
             # Transporteur gagne -> service rendu, liberer escrow
             booking.status = "delivered"

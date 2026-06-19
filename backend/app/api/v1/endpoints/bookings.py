@@ -1043,6 +1043,14 @@ async def respond_pickup_failed(
         # Acceptation -> declarant favorise, booking annule, remboursement
         booking.status = "cancelled"
         booking.cancellation_reason = f"pickup_failed_accepted_by_respondent"
+        # C3c refund integral pickup accepte
+        from app.core.config import settings as _cfg7
+        if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and _cfg7.STRIPE_SECRET_KEY:
+            try:
+                await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+            except Exception as e:
+                import logging
+                logging.getLogger("kipar").error(f"[PICKUP_ACCEPTED] Refund booking {booking.id}: {e}")
         await db.commit()
         # Notifie le declarant
         notif_user_id = booking.sender_id if declared_by == "sender" else trip.carrier_id
@@ -1559,15 +1567,11 @@ async def request_cancellation(
             trip.status = "open"
         booking.kg_held = False
 
-    # Remboursement immediat 100% expediteur
-    import stripe as stripe_lib
+    # C3c refund integral annulation carrier justifiee (gere hold/capture)
     if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:
         try:
-            stripe_lib.Refund.create(
-                payment_intent=booking.escrow_ref,
-                amount=int(booking.amount * 100),
-            )
-        except stripe_lib.StripeError as e:
+            await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+        except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
     await db.commit()

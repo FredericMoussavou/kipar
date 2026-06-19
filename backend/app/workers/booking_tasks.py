@@ -259,6 +259,8 @@ def incident_response_timeout():
     from app.models.trip import Trip
     from app.models.user import User
     from app.services.notif_db_service import create_notification
+    from app.services.stripe_service import settle_cancellation_refund
+    from app.core.config import settings as _cfg
 
     async def _run():
         async with AsyncSessionLocal() as db:
@@ -275,6 +277,12 @@ def incident_response_timeout():
                     declared_by = booking.pickup_failed_by
                     booking.status = "cancelled"
                     booking.cancellation_reason = f"pickup_failed_timeout_{declared_by}"
+                    # C3a refund integral incident timeout (pickup)
+                    if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and _cfg.STRIPE_SECRET_KEY:
+                        try:
+                            await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                        except Exception as e:
+                            logger.error(f"[INCIDENT_TIMEOUT] Refund pickup booking {booking.id}: {e}")
                     trip_r = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
                     trip = trip_r.scalar_one_or_none()
                     if declared_by == "sender" and trip:
@@ -303,6 +311,12 @@ def incident_response_timeout():
                     else:
                         booking.status = "cancelled"
                         booking.cancellation_reason = "delivery_failed_carrier_fault_timeout"
+                        # C3a refund integral incident timeout (delivery)
+                        if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and _cfg.STRIPE_SECRET_KEY:
+                            try:
+                                await settle_cancellation_refund(booking.escrow_ref, booking.amount, 0.0, None, str(booking.id))
+                            except Exception as e:
+                                logger.error(f"[INCIDENT_TIMEOUT] Refund delivery booking {booking.id}: {e}")
                     await create_notification(
                         db=db, user_id=booking.sender_id,
                         type="delivery_failed_resolved",

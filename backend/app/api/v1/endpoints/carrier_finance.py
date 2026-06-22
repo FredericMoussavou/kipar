@@ -24,6 +24,24 @@ async def get_carrier_finance(
 ):
     """Tableau de bord financier du transporteur."""
     now = datetime.now(timezone.utc)
+    # Penalites (dette + releve) - independant des trips
+    from app.models.penalty_ledger import PenaltyLedger
+    penalty_balance = round(current_user.penalty_balance or 0.0, 2)
+    _led_res = await db.execute(
+        select(PenaltyLedger).where(PenaltyLedger.carrier_id == current_user.id).order_by(PenaltyLedger.created_at.desc())
+    )
+    penalty_ledger = [
+        {
+            "id": str(e.id),
+            "date": e.created_at.isoformat(),
+            "amount": round(e.amount, 2),
+            "entry_type": e.entry_type,
+            "balance_after": round(e.balance_after, 2),
+            "description": e.description,
+            "booking_id": str(e.booking_id) if e.booking_id else None,
+        }
+        for e in _led_res.scalars().all()
+    ]
     min_date = now - timedelta(days=365 * MAX_HISTORY_YEARS)
 
     # Periode filtre
@@ -46,7 +64,7 @@ async def get_carrier_finance(
     trip_ids = [t.id for t in all_trips]
 
     if not trip_ids:
-        return _empty_response(period, now)
+        return _empty_response(period, now, penalty_balance, penalty_ledger)
 
     # Bookings sur ces trips dans la periode
     bookings_result = await db.execute(
@@ -68,10 +86,12 @@ async def get_carrier_finance(
 
     # Revenus encaisses = montant - commission Kipar (sender 15% + carrier 2%)
     kipar_rate = settings.SERVICE_FEE_SENDER_PERCENT + settings.SERVICE_FEE_CARRIER_PERCENT
-    carrier_rate = 1 - kipar_rate  # ce que le transporteur recoit
+    carrier_rate = 1 - kipar_rate  # ce que le transporteur recoit (legacy, affichage taux)
 
+    from app.services.pricing_service import compute_carrier_payout
     def carrier_net(b: Booking) -> float:
-        return round(b.amount * carrier_rate, 2)
+        # Versement reel (Modele A) : base-2% (kg) ou base entiere (small)
+        return compute_carrier_payout(b)
 
     revenue_collected = sum(carrier_net(b) for b in delivered)
     revenue_pending = sum(b.amount for b in in_escrow)
@@ -105,7 +125,7 @@ async def get_carrier_finance(
             "date": b.created_at.isoformat(),
             "status": b.status,
             "amount_gross": round(b.amount, 2),
-            "kipar_commission": round(b.amount * kipar_rate, 2),
+            "kipar_commission": round(b.amount - carrier_net(b), 2),
             "amount_net": carrier_net(b) if b.status == "delivered" else None,
             "currency": b.currency,
             "payment_rail": b.payment_rail,
@@ -181,10 +201,12 @@ async def get_carrier_finance(
         "fiscal_years": fiscal_years,
         "transactions": transactions,
         "chart": chart,
+        "penalty_balance": penalty_balance,
+        "penalty_ledger": penalty_ledger,
     }
 
 
-def _empty_response(period: str, now: datetime) -> dict:
+def _empty_response(period: str, now: datetime, penalty_balance: float = 0.0, penalty_ledger: list = None) -> dict:
     current_year = now.year
     return {
         "period": period,
@@ -208,4 +230,6 @@ def _empty_response(period: str, now: datetime) -> dict:
         ],
         "transactions": [],
         "chart": [],
+        "penalty_balance": round(penalty_balance or 0.0, 2),
+        "penalty_ledger": penalty_ledger or [],
     }

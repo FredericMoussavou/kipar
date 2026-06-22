@@ -112,15 +112,15 @@ export default function CarrierFinancePage() {
   }
 
   const PERIOD_LABELS: Record<Period, string> = {
-    day: 'Aujourd\'hui', week: 'Cette semaine', month: 'Ce mois', year: 'Cette année', all: 'Tout (5 ans)'
+    day: t.carrierFinance.period_day, week: t.carrierFinance.period_week, month: t.carrierFinance.period_month, year: t.carrierFinance.period_year, all: t.carrierFinance.period_all
   }
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
       <HeroBackHeader
         imageUrl={HERO_IMG}
-        title="Mes finances"
-        subtitle={`${user?.first_name ?? ''} ${user?.last_name ?? ''} · Commission Kipar ${data?.kipar_rate_percent ?? 17}%`}
+        title={t.carrierFinance.title}
+        subtitle={`${user?.first_name ?? ''} ${user?.last_name ?? ''} · ${t.carrierFinance.fiscal_commission} ${data?.kipar_rate_percent ?? 17}%`}
         minHeight={180}
         onBack={() => router.push('/carrier')}
       />
@@ -138,23 +138,23 @@ export default function CarrierFinancePage() {
           {data && (
             <button type="button" onClick={exportExcel}
               style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 10, border: '1px solid #16A34A', background: '#ECFDF5', color: '#16A34A', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-              <Download size={13} /> Exporter Excel
+              <Download size={13} /> {t.carrierFinance.export_excel}
             </button>
           )}
         </div>
 
         {loading ? (
-          <p style={{ color: TAUPE, textAlign: 'center', padding: 40 }}>Chargement...</p>
+          <p style={{ color: TAUPE, textAlign: 'center', padding: 40 }}>{t.carrierFinance.loading}</p>
         ) : !data ? (
-          <p style={{ color: TAUPE, textAlign: 'center', padding: 40 }}>Impossible de charger les données.</p>
+          <p style={{ color: TAUPE, textAlign: 'center', padding: 40 }}>{t.carrierFinance.load_error}</p>
         ) : (
           <>
             {/* ── Section 1 : Résumé revenus ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
               {[
-                { label: 'Revenus encaissés', value: summary.revenue_collected, sub: `${summary.delivered_count} livraison(s)`, color: '#16A34A', icon: <TrendingUp size={18} color="#16A34A" /> },
-                { label: 'En attente (escrow)', value: summary.revenue_pending, sub: `${summary.in_escrow_count} en cours`, color: '#2563EB', icon: <Clock size={18} color="#2563EB" /> },
-                { label: 'Bloqués (litige)', value: summary.revenue_disputed, sub: `${summary.disputed_count} litige(s)`, color: summary.revenue_disputed > 0 ? RED : TAUPE, icon: <AlertTriangle size={18} color={summary.revenue_disputed > 0 ? RED : TAUPE} /> },
+                { label: t.carrierFinance.rev_collected, value: summary.revenue_collected, sub: `${summary.delivered_count} ${t.carrierFinance.unit_deliveries}`, color: '#16A34A', icon: <TrendingUp size={18} color="#16A34A" /> },
+                { label: t.carrierFinance.rev_pending, value: summary.revenue_pending, sub: `${summary.in_escrow_count} ${t.carrierFinance.unit_in_progress}`, color: '#2563EB', icon: <Clock size={18} color="#2563EB" /> },
+                { label: t.carrierFinance.rev_disputed, value: summary.revenue_disputed, sub: `${summary.disputed_count} ${t.carrierFinance.unit_disputes}`, color: summary.revenue_disputed > 0 ? RED : TAUPE, icon: <AlertTriangle size={18} color={summary.revenue_disputed > 0 ? RED : TAUPE} /> },
               ].map((card, i) => (
                 <div key={i} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -170,7 +170,7 @@ export default function CarrierFinancePage() {
             {/* ── Section 2 : Graphique évolution ── */}
             {chart.length > 0 && (
               <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: '0 0 16px' }}>Évolution des revenus</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: CHARCOAL, margin: '0 0 16px' }}>{t.carrierFinance.chart_title}</p>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={chart}>
                     <CartesianGrid strokeDasharray="3 3" stroke={BORDER} />
@@ -189,11 +189,11 @@ export default function CarrierFinancePage() {
               <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Penalites</p>
-                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Deduites automatiquement de vos prochains versements.</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.carrierFinance.penalties}</p>
+                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.penalties_sub}</p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Solde du</p>
+                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.balance_due}</p>
                     <p style={{ fontSize: 20, fontWeight: 800, color: penaltyBalance > 0 ? '#9A5B00' : '#16A34A', margin: 0 }}>{fmt(penaltyBalance)} {'\u20ac'}</p>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ export default function CarrierFinancePage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                       <thead>
                         <tr style={{ background: SAND }}>
-                          {['Date', 'Mouvement', 'Montant', 'Solde apres'].map(h => (
+                          {[t.carrierFinance.col_date, t.carrierFinance.col_movement, t.carrierFinance.col_amount, t.carrierFinance.col_balance_after].map(h => (
                             <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
                           ))}
                         </tr>
@@ -211,7 +211,7 @@ export default function CarrierFinancePage() {
                         {penaltyLedger.map((e: any) => (
                           <tr key={e.id} style={{ borderBottom: `1px solid ${BORDER}` }}>
                             <td style={{ padding: '10px 14px', color: TAUPE, whiteSpace: 'nowrap' }}>{fmtDate(e.date)}</td>
-                            <td style={{ padding: '10px 14px', color: CHARCOAL }}>{e.entry_type === 'penalty' ? 'Penalite' : 'Deduction'}</td>
+                            <td style={{ padding: '10px 14px', color: CHARCOAL }}>{e.entry_type === 'penalty' ? t.carrierFinance.mvt_penalty : t.carrierFinance.mvt_deduction}</td>
                             <td style={{ padding: '10px 14px', fontWeight: 700, color: e.amount >= 0 ? '#9A5B00' : '#16A34A', whiteSpace: 'nowrap' }}>{e.amount >= 0 ? '+' : ''}{fmt(e.amount)} {'\u20ac'}</td>
                             <td style={{ padding: '10px 14px', color: CHARCOAL, whiteSpace: 'nowrap' }}>{fmt(e.balance_after)} {'\u20ac'}</td>
                           </tr>
@@ -225,14 +225,14 @@ export default function CarrierFinancePage() {
             {/* ── Section 3 : Fiscal 5 ans ── */}
             <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Déclaration fiscale — 5 ans</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Ces chiffres sont fournis à titre indicatif. Consultez un expert-comptable pour votre déclaration.</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.carrierFinance.fiscal_title}</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.fiscal_sub}</p>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: SAND }}>
-                      {['Année', 'CA brut', 'Commission Kipar', 'Net encaissé', 'Livraisons'].map(h => (
+                      {[t.carrierFinance.fiscal_year, t.carrierFinance.fiscal_gross, t.carrierFinance.fiscal_commission, t.carrierFinance.fiscal_net, t.carrierFinance.fiscal_deliveries].map(h => (
                         <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -241,7 +241,7 @@ export default function CarrierFinancePage() {
                     {fiscal.map((f: any) => (
                       <tr key={f.year} style={{ borderBottom: `1px solid ${BORDER}`, background: f.is_current ? 'rgba(220,0,41,0.03)' : WHITE }}>
                         <td style={{ padding: '10px 14px', fontWeight: f.is_current ? 700 : 400, color: f.is_current ? RED : CHARCOAL }}>
-                          {f.year} {f.is_current && <span style={{ fontSize: 10, background: RED, color: WHITE, borderRadius: 99, padding: '1px 6px', marginLeft: 6 }}>En cours</span>}
+                          {f.year} {f.is_current && <span style={{ fontSize: 10, background: RED, color: WHITE, borderRadius: 99, padding: '1px 6px', marginLeft: 6 }}>{t.carrierFinance.current}</span>}
                         </td>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: CHARCOAL }}>{fmt(f.gross)} €</td>
                         <td style={{ padding: '10px 14px', color: TAUPE }}>{fmt(f.commission_paid)} €</td>
@@ -257,17 +257,17 @@ export default function CarrierFinancePage() {
             {/* ── Section 4 : Historique transactions ── */}
             <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px' }}>
               <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Historique ({transactions.length} transactions)
+                {t.carrierFinance.history} ({transactions.length} {t.carrierFinance.unit_transactions})
               </p>
               {transactions.length === 0 ? (
-                <p style={{ color: TAUPE, fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Aucune transaction sur cette période</p>
+                <p style={{ color: TAUPE, fontSize: 13, textAlign: 'center', padding: '20px 0' }}>{t.carrierFinance.no_transactions}</p>
               ) : (
                 <>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ background: SAND }}>
-                          {['Date', 'Statut', 'Trajet', 'Contenu', 'Poids', 'Brut', 'Commission', 'Net', 'Rail'].map(h => (
+                          {[t.carrierFinance.tx_col_date, t.carrierFinance.tx_col_status, t.carrierFinance.tx_col_trip, t.carrierFinance.tx_col_content, t.carrierFinance.tx_col_weight, t.carrierFinance.tx_col_gross, t.carrierFinance.tx_col_commission, t.carrierFinance.tx_col_net, t.carrierFinance.tx_col_rail].map(h => (
                             <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, whiteSpace: 'nowrap', borderBottom: `1px solid ${BORDER}` }}>{h}</th>
                           ))}
                         </tr>
@@ -277,7 +277,7 @@ export default function CarrierFinancePage() {
                           <tr key={tx.id} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? WHITE : SAND }}>
                             <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: TAUPE }}>{fmtDate(tx.date)}</td>
                             <td style={{ padding: '8px 12px' }}>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[tx.status] ?? TAUPE, background: (STATUS_COLOR[tx.status] ?? TAUPE) + '18', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap' }}>{tx.status}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[tx.status] ?? TAUPE, background: (STATUS_COLOR[tx.status] ?? TAUPE) + '18', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap' }}>{(t.statuses as any)[tx.status] ?? tx.status}</span>
                             </td>
                             <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 600 }}>{tx.origin ?? '?'} → {tx.destination ?? '?'}</td>
                             <td style={{ padding: '8px 12px', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.content_description ?? '—'}</td>
@@ -295,12 +295,12 @@ export default function CarrierFinancePage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: `1px solid ${BORDER}` }}>
                       <button type="button" onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0}
                         style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, color: txPage === 0 ? TAUPE : CHARCOAL, fontSize: 12, cursor: txPage === 0 ? 'not-allowed' : 'pointer' }}>
-                        ← Précédent
+                        {t.carrierFinance.prev}
                       </button>
-                      <span style={{ fontSize: 12, color: TAUPE }}>Page {txPage + 1} / {Math.ceil(transactions.length / TX_PER_PAGE)}</span>
+                      <span style={{ fontSize: 12, color: TAUPE }}>{t.carrierFinance.page_label} {txPage + 1} / {Math.ceil(transactions.length / TX_PER_PAGE)}</span>
                       <button type="button" onClick={() => setTxPage(p => Math.min(Math.ceil(transactions.length / TX_PER_PAGE) - 1, p + 1))} disabled={(txPage + 1) * TX_PER_PAGE >= transactions.length}
                         style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${BORDER}`, background: WHITE, color: (txPage + 1) * TX_PER_PAGE >= transactions.length ? TAUPE : CHARCOAL, fontSize: 12, cursor: (txPage + 1) * TX_PER_PAGE >= transactions.length ? 'not-allowed' : 'pointer' }}>
-                        Suivant →
+                        {t.carrierFinance.next}
                       </button>
                     </div>
                   )}

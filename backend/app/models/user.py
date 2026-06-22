@@ -49,6 +49,7 @@ class User(Base):
 
     # KiparTrust
     trust_score: Mapped[float] = mapped_column(Float, default=50.0)
+    penalty_balance: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")  # dette penalites, deduite au prochain release
     pending_trip_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)  # trajet d'interet memorise avant inscription
 
     # Paiements

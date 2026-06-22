@@ -402,7 +402,11 @@ export const en = {
     filter_urgent_active: 'Urgent only', 
     filter_small_packages: 'Small parcels',
   },
-  carrier: { 
+  carrier: {
+    toast_activated: 'Carrier mode activated!',
+    toast_booking_accepted: 'Booking accepted!',
+    toast_booking_refused: 'Booking declined.',
+    toast_trip_has_bookings: 'This trip has active bookings and cannot be deleted.', 
     onboarding_title: 'Become a carrier', 
     onboarding_sub: 'Monetize your luggage allowance by carrying packages for the Kipar community', 
     onboarding_btn: 'Activate carrier mode', 

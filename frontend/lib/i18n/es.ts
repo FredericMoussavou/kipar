@@ -403,6 +403,10 @@ export const es = {
     filter_small_packages: 'Paquetes pequeños',
   },
   carrier: {
+    toast_activated: '¡Modo transportista activado!',
+    toast_booking_accepted: '¡Reserva aceptada!',
+    toast_booking_refused: 'Reserva rechazada.',
+    toast_trip_has_bookings: 'Este viaje tiene reservas activas y no se puede eliminar.',
     onboarding_title: 'Conviértete en transportista',
     onboarding_sub: 'Rentabiliza tu equipaje transportando paquetes para la comunidad Kipar',
     onboarding_btn: 'Activar modo transportista',

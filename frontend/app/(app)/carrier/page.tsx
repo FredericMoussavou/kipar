@@ -94,7 +94,7 @@ export default function CarrierPage() {
     mutationFn: () => api.patch('/users/me', { is_carrier: true }),
     onSuccess: (res) => {
       setUser(res.data.user)
-      toast.success('Mode transporteur activé !')
+      toast.success(t.carrier.toast_activated)
       queryClient.invalidateQueries({ queryKey: ['my-trips'] })
       queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
@@ -104,7 +104,7 @@ export default function CarrierPage() {
   const acceptMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/bookings/${id}/accept`),
     onSuccess: () => {
-      toast.success('Réservation acceptée !')
+      toast.success(t.carrier.toast_booking_accepted)
       queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
@@ -113,7 +113,7 @@ export default function CarrierPage() {
   const refuseMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/bookings/${id}/refuse`),
     onSuccess: () => {
-      toast.success('Réservation refusée.')
+      toast.success(t.carrier.toast_booking_refused)
       queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || t.errors.generic),
@@ -454,7 +454,7 @@ export default function CarrierPage() {
               } catch (err: any) {
                 const detail = err?.response?.data?.detail
                 if (detail && detail.includes('active_bookings')) {
-                  toast.error('Ce trajet a des réservations actives et ne peut pas être supprimé.')
+                  toast.error(t.carrier.toast_trip_has_bookings)
                 } else {
                   toast.error(t.errors.generic)
                 }

@@ -403,6 +403,10 @@ export const fr = {
     filter_small_packages: 'Petits colis',
   },
   carrier: {
+    toast_activated: 'Mode transporteur activé !',
+    toast_booking_accepted: 'Réservation acceptée !',
+    toast_booking_refused: 'Réservation refusée.',
+    toast_trip_has_bookings: 'Ce trajet a des réservations actives et ne peut pas être supprimé.',
     onboarding_title: 'Devenez transporteur',
     onboarding_sub: 'Rentabilisez vos bagages en transportant des colis pour la communauté Kipar',
     onboarding_btn: 'Activer le mode transporteur',

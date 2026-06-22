@@ -682,11 +682,11 @@ export default function ProfilePage() {
           <Crown size={16} color="#F59E0B" />
           <div style={{ flex: 1 }}>
             {user?.is_premium
-              ? <p style={{ fontSize: 13, fontWeight: 600, color: '#B45309', margin: 0 }}>Abonnement Premium actif</p>
-              : <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Passer en Premium</p>
+              ? <p style={{ fontSize: 13, fontWeight: 600, color: '#B45309', margin: 0 }}>{t.profile_edit.premium_active}</p>
+              : <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.profile_edit.premium_subscribe}</p>
             }
             <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>
-              {user?.is_premium ? 'Gérer mon abonnement' : 'Débloquer toutes les fonctionnalités'}
+              {user?.is_premium ? t.profile_edit.premium_manage : t.profile_edit.premium_unlock}
             </p>
           </div>
           <ChevronRight size={16} color={TAUPE} />
@@ -696,21 +696,21 @@ export default function ProfilePage() {
       {/* Espace transporteur */}
       {user?.is_carrier && (
         <>
-          <SectionTitle title="Espace transporteur" />
+          <SectionTitle title={t.profile_edit.carrier_space} />
           <Card>
             <Link href="/carrier/finance" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none', borderBottom: `1px solid ${SAND}` }}>
               <TrendingUp size={16} color={TAUPE} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Mes finances</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>Revenus, historique, export fiscal</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.profile_edit.carrier_finances}</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.profile_edit.carrier_finances_sub}</p>
               </div>
               <ChevronRight size={16} color={TAUPE} />
             </Link>
             <Link href="/carrier" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textDecoration: 'none' }}>
               <Plane size={16} color={TAUPE} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>Tableau de bord transporteur</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>Mes trajets et réservations</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: CHARCOAL, margin: 0 }}>{t.profile_edit.carrier_dashboard}</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: '2px 0 0' }}>{t.profile_edit.carrier_dashboard_sub}</p>
               </div>
               <ChevronRight size={16} color={TAUPE} />
             </Link>

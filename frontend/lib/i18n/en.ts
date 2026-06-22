@@ -584,7 +584,16 @@ export const en = {
     back: 'Back', 
     no_comment: 'No comment', 
   },
-  profile_edit: { 
+  profile_edit: {
+    premium_active: 'Premium subscription active',
+    premium_subscribe: 'Go Premium',
+    premium_manage: 'Manage my subscription',
+    premium_unlock: 'Unlock all features',
+    carrier_space: 'Carrier area',
+    carrier_finances: 'My finances',
+    carrier_finances_sub: 'Income, history, tax export',
+    carrier_dashboard: 'Carrier dashboard',
+    carrier_dashboard_sub: 'My trips and bookings', 
     title: 'My account', 
     subtitle: 'Manage your information and preferences', 
     section_info: 'Personal information', 

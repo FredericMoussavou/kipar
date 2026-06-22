@@ -55,31 +55,31 @@ export default function CarrierFinancePage() {
 
     // R\u00e9sum\u00e9
     const resume = [
-      ['KIPAR \u2014 Relevé financier transporteur'],
-      ['Période', period, 'Taux commission Kipar', `${data.kipar_rate_percent}%`],
+      [t.carrierFinance.xls_report_title],
+      [t.carrierFinance.xls_period, period, t.carrierFinance.xls_commission_rate, `${data.kipar_rate_percent}%`],
       [],
-      ['Catégorie', 'Montant (€)'],
-      ['Revenus encaissés (net)', data.summary.revenue_collected],
-      ['Revenus en attente (escrow)', data.summary.revenue_pending],
-      ['Revenus bloqués (litige)', data.summary.revenue_disputed],
+      [t.carrierFinance.xls_category, t.carrierFinance.xls_amount_eur],
+      [t.carrierFinance.xls_rev_collected, data.summary.revenue_collected],
+      [t.carrierFinance.xls_rev_pending, data.summary.revenue_pending],
+      [t.carrierFinance.xls_rev_disputed, data.summary.revenue_disputed],
       [],
-      ['Nb livraisons terminées', data.summary.delivered_count],
-      ['Nb en cours', data.summary.in_escrow_count],
-      ['Nb litiges', data.summary.disputed_count],
-      ['Nb annulations', data.summary.cancelled_count],
+      [t.carrierFinance.xls_n_delivered, data.summary.delivered_count],
+      [t.carrierFinance.xls_n_progress, data.summary.in_escrow_count],
+      [t.carrierFinance.xls_n_disputes, data.summary.disputed_count],
+      [t.carrierFinance.xls_n_cancelled, data.summary.cancelled_count],
     ]
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), 'Résumé')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resume), t.carrierFinance.xls_sheet_summary)
 
     // Fiscal
     const fiscal = [
-      ['Année', 'CA brut (€)', 'Commission Kipar (€)', 'Net transporteur (€)', 'Nb livraisons'],
+      [t.carrierFinance.xls_year, t.carrierFinance.xls_gross_eur, t.carrierFinance.xls_commission_eur, t.carrierFinance.xls_net_eur, t.carrierFinance.xls_n_deliveries],
       ...data.fiscal_years.map((f: any) => [f.year, f.gross, f.commission_paid, f.net, f.deliveries_count])
     ]
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fiscal), 'Fiscal 5 ans')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fiscal), t.carrierFinance.xls_sheet_fiscal)
 
     // Transactions
     const txRows = [
-      ['ID', 'Date', 'Statut', 'Montant brut (€)', 'Commission Kipar (€)', 'Net transporteur (€)', 'Devise', 'Rail', 'Origine', 'Destination', 'Départ', 'Vol', 'Contenu', 'Poids (kg)', 'Valeur déclarée (€)', 'Livraison confirmée'],
+      ['ID', t.carrierFinance.col_date, t.carrierFinance.xls_status, t.carrierFinance.xls_gross_amount_eur, t.carrierFinance.xls_commission_eur, t.carrierFinance.xls_net_eur, t.carrierFinance.xls_currency, t.carrierFinance.xls_rail, t.carrierFinance.xls_origin, t.carrierFinance.xls_destination, t.carrierFinance.xls_departure, t.carrierFinance.xls_flight, t.carrierFinance.xls_content, t.carrierFinance.xls_weight_kg, t.carrierFinance.xls_declared_eur, t.carrierFinance.xls_delivery_confirmed],
       ...(data.transactions || []).map((tx: any) => [
         tx.id, fmtDate(tx.date), tx.status,
         tx.amount_gross, tx.kipar_commission, tx.amount_net ?? '',
@@ -91,7 +91,7 @@ export default function CarrierFinancePage() {
         tx.delivery_confirmed_at ? fmtDate(tx.delivery_confirmed_at) : '',
       ])
     ]
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), 'Transactions')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), t.carrierFinance.xls_sheet_transactions)
 
     XLSX.writeFile(wb, `kipar_carrier_finance_${period}_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }

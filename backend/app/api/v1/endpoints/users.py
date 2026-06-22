@@ -575,6 +575,7 @@ def _serialize_me(user: User) -> dict:
         "avatar_url": user.avatar_url,
         "kyc_status": user.kyc_status,
         "trust_score": user.trust_score,
+        "penalty_balance": round(getattr(user, "penalty_balance", 0.0) or 0.0, 2),
         "language": user.language,
         "is_sender": user.is_sender,
         "is_carrier": user.is_carrier,

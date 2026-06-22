@@ -11,6 +11,7 @@ interface User {
   phone: string | null
   avatar_url: string | null
   trust_score: number
+  penalty_balance?: number
   kyc_status: string
   is_carrier: boolean
   is_sender: boolean

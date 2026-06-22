@@ -415,6 +415,8 @@ export const fr = {
     no_bookings: 'Aucune réservation en attente',
     accept: 'Accepter',
     accept_countdown: 'Repondre sous',
+    penalty_balance_label: 'Solde de penalites',
+    penalty_balance_cta: 'Deduit de votre prochain versement - voir le detail',
     accept_expired: 'Delai de reponse depasse',
     pickup_btn: "J'ai récupéré le colis",
     refuse: 'Refuser',

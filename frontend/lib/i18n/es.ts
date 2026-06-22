@@ -415,6 +415,8 @@ export const es = {
     no_bookings: 'No hay reservas pendientes',
     accept: 'Aceptar',
     accept_countdown: 'Responder en',
+    penalty_balance_label: 'Saldo de penalizaciones',
+    penalty_balance_cta: 'Se deduce de tu proximo pago - ver detalle',
     accept_expired: 'Plazo de respuesta vencido',
     pickup_btn: 'Recogí el paquete',
     refuse: 'Rechazar',

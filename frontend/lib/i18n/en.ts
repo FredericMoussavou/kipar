@@ -415,6 +415,8 @@ export const en = {
     no_bookings: 'No pending bookings', 
     accept: 'Accept', 
     accept_countdown: 'Respond within',
+    penalty_balance_label: 'Penalty balance',
+    penalty_balance_cta: 'Deducted from your next payout - see details',
     accept_expired: 'Response deadline passed',
     pickup_btn: 'I picked up the package', 
     refuse: 'Refuse', 

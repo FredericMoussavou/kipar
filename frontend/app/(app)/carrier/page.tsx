@@ -231,6 +231,16 @@ export default function CarrierPage() {
         </div>
       </HeroHeader>
 
+      {(user?.penalty_balance ?? 0) > 0 && (
+        <div onClick={() => router.push('/carrier/finance')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#FFF4E5', border: '1px solid #FFD8A8', borderRadius: 12, padding: '12px 16px', margin: '12px 20px 0', cursor: 'pointer' }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#9A5B00' }}>{t.carrier.penalty_balance_label} : {(user?.penalty_balance ?? 0).toFixed(2)} {'\u20ac'}</p>
+            <p style={{ fontSize: 11, color: '#B45309', marginTop: 2 }}>{t.carrier.penalty_balance_cta}</p>
+          </div>
+          <ChevronRight size={18} color="#9A5B00" />
+        </div>
+      )}
       {/* Onglets */}
       <div style={{ display: 'flex', gap: 0, background: WHITE, borderBottom: '1px solid ' + BORDER, padding: '0 20px' }} className="md:px-0">
         {tabs.map(tab => (

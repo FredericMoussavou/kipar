@@ -671,7 +671,11 @@ async def cancel_booking(
     import stripe as stripe_lib
     from datetime import date as dclass
     from app.core.config import settings as s
-    FLAT_FEE = s.BOOKING_FLAT_FEE  # 1.50EUR
+    # C4 bareme annulation : forfait mode-aware (small = 5EUR, kg = forfait du booking)
+    if booking.package_mode == "small":
+        FLAT_FEE = s.SMALL_PACKAGE_KIPAR_FEE
+    else:
+        FLAT_FEE = booking.booking_flat_fee_amount or s.BOOKING_FLAT_FEE
 
     refund_amount = 0.0
     carrier_amount = 0.0
@@ -691,7 +695,7 @@ async def cancel_booking(
                 refund_amount = booking.amount
             elif booking.is_urgent:
                 # Urgence : regles specifiques independantes du delai
-                # Expediteur annule -> rembourse montant - 10EUR (7 carrier + 3 kipar)
+                # Expediteur annule -> rembourse montant - 10EUR (6 carrier + 4 kipar)
                 refund_amount = round(booking.amount - settings.URGENT_FLAT_FEE, 2)
                 carrier_amount = settings.URGENT_FEE_CARRIER
             else:
@@ -707,9 +711,10 @@ async def cancel_booking(
                     refund_amount = round(base * s.SENDER_CANCEL_MID_REFUND_PERCENT, 2)
                     carrier_amount = round(base * s.SENDER_CANCEL_MID_CARRIER_PERCENT, 2)
                 else:
-                    # accepted <=24h -> exp 0%, tra 83%, kipar 17%
+                    # accepted <=24h -> exp 0%, tra 83% de la base, kipar 17% + forfait
                     refund_amount = 0.0
-                    carrier_amount = round(booking.amount * s.SENDER_CANCEL_LATE_CARRIER_PERCENT, 2)
+                    _base_late = round(booking.amount - FLAT_FEE, 2)
+                    carrier_amount = round(_base_late * s.SENDER_CANCEL_LATE_CARRIER_PERCENT, 2)
         else:
             refund_amount = booking.amount
 
@@ -732,12 +737,8 @@ async def cancel_booking(
         booking.status = "cancelled_by_carrier"
         booking.cancellation_review_status = "pending_review"
         booking.carrier_penalty_due = s.CARRIER_CANCEL_FEE_MIN  # 5.0EUR par defaut
-        # Urgence : KIPAR garde 3EUR, expediteur rembourse montant - 3EUR
-        # Classique : remboursement 100% expediteur
-        if booking.is_urgent:
-            refund_amount = round(booking.amount - s.URGENT_FEE_KIPAR, 2)
-        else:
-            refund_amount = booking.amount
+        # Annulation par le transporteur -> remboursement 100% expediteur (urgent comme classique)
+        refund_amount = booking.amount
 
         # Remboursement immediat expediteur (selon etat reel du PaymentIntent)
         if booking.escrow_ref and booking.payment_rail == "stripe" and not booking.escrow_ref.startswith("pi_simulated") and s.STRIPE_SECRET_KEY:

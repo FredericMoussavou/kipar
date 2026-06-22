@@ -100,6 +100,8 @@ export default function CarrierFinancePage() {
   const fiscal: any[] = data?.fiscal_years || []
   const transactions: any[] = data?.transactions || []
   const chart: any[] = data?.chart || []
+  const penaltyBalance: number = data?.penalty_balance || 0
+  const penaltyLedger: any[] = data?.penalty_ledger || []
   const txSlice = transactions.slice(txPage * TX_PER_PAGE, (txPage + 1) * TX_PER_PAGE)
 
   const STATUS_COLOR: Record<string, string> = {
@@ -183,6 +185,43 @@ export default function CarrierFinancePage() {
               </div>
             )}
 
+            {(penaltyBalance > 0 || penaltyLedger.length > 0) && (
+              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Penalites</p>
+                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Deduites automatiquement de vos prochains versements.</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>Solde du</p>
+                    <p style={{ fontSize: 20, fontWeight: 800, color: penaltyBalance > 0 ? '#9A5B00' : '#16A34A', margin: 0 }}>{fmt(penaltyBalance)} {'\u20ac'}</p>
+                  </div>
+                </div>
+                {penaltyLedger.length > 0 && (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: SAND }}>
+                          {['Date', 'Mouvement', 'Montant', 'Solde apres'].map(h => (
+                            <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {penaltyLedger.map((e: any) => (
+                          <tr key={e.id} style={{ borderBottom: `1px solid ${BORDER}` }}>
+                            <td style={{ padding: '10px 14px', color: TAUPE, whiteSpace: 'nowrap' }}>{fmtDate(e.date)}</td>
+                            <td style={{ padding: '10px 14px', color: CHARCOAL }}>{e.entry_type === 'penalty' ? 'Penalite' : 'Deduction'}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: e.amount >= 0 ? '#9A5B00' : '#16A34A', whiteSpace: 'nowrap' }}>{e.amount >= 0 ? '+' : ''}{fmt(e.amount)} {'\u20ac'}</td>
+                            <td style={{ padding: '10px 14px', color: CHARCOAL, whiteSpace: 'nowrap' }}>{fmt(e.balance_after)} {'\u20ac'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
             {/* ── Section 3 : Fiscal 5 ans ── */}
             <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
               <div style={{ marginBottom: 16 }}>

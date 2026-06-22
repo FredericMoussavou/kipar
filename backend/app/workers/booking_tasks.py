@@ -153,12 +153,26 @@ def release_payment_after_delivery(booking_id: str):
 
             if booking.payment_rail == "stripe" and carrier.stripe_account_id:
                 from app.services.pricing_service import compute_carrier_payout
+                from app.services.penalty_service import apply_penalty_deduction
                 _payout = compute_carrier_payout(booking)
-                success = await release_payment_to_carrier(
-                    payment_intent_id=booking.escrow_ref,
-                    carrier_stripe_account=carrier.stripe_account_id,
-                    carrier_amount_eur=_payout,
-                )
+                _net, _deduct, _bal = await apply_penalty_deduction(db, carrier, _payout, booking.id)
+                if _net > 0:
+                    success = await release_payment_to_carrier(
+                        payment_intent_id=booking.escrow_ref,
+                        carrier_stripe_account=carrier.stripe_account_id,
+                        carrier_amount_eur=_net,
+                    )
+                else:
+                    success = True
+                if success and _deduct > 0:
+                    from app.services.notif_db_service import create_notification
+                    await create_notification(
+                        db=db, user_id=carrier.id,
+                        type="penalty_deducted",
+                        title="Penalite deduite",
+                        body=f"{_deduct:.2f} EUR ont ete deduits de votre versement au titre d'une penalite. Solde restant : {_bal:.2f} EUR.",
+                        link="/carrier/finance",
+                    )
                 if success:
                     logger.info(f"Payment released for booking {booking_id}")
                     if carrier.fcm_token:

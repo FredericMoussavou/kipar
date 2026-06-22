@@ -307,12 +307,26 @@ async def release_payment(
     success = False
     if booking.payment_rail == "stripe":
         from app.services.pricing_service import compute_carrier_payout
+        from app.services.penalty_service import apply_penalty_deduction
         _payout = compute_carrier_payout(booking)
-        success = await release_payment_to_carrier(
-            payment_intent_id=booking.escrow_ref,
-            carrier_stripe_account=carrier.stripe_account_id if carrier else None,
-            carrier_amount_eur=_payout,
-        )
+        _net, _deduct, _bal = await apply_penalty_deduction(db, carrier, _payout, booking.id) if carrier else (_payout, 0.0, 0.0)
+        if _net > 0:
+            success = await release_payment_to_carrier(
+                payment_intent_id=booking.escrow_ref,
+                carrier_stripe_account=carrier.stripe_account_id if carrier else None,
+                carrier_amount_eur=_net,
+            )
+        else:
+            success = True
+        if success and _deduct > 0 and carrier:
+            from app.services.notif_db_service import create_notification
+            await create_notification(
+                db=db, user_id=carrier.id,
+                type="penalty_deducted",
+                title="Penalite deduite",
+                body=f"{_deduct:.2f} EUR ont ete deduits de votre versement au titre d'une penalite. Solde restant : {_bal:.2f} EUR.",
+                link="/carrier/finance",
+            )
     elif booking.payment_rail == "pawapay":
         # PawaPay payout vers le wallet mobile du transporteur
         if carrier and carrier.mobile_money_number and carrier.mobile_money_provider:

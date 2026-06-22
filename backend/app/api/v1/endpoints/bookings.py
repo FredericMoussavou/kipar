@@ -1635,22 +1635,11 @@ async def review_cancellation(
         if trip_penalty:
             carrier_r = await db.execute(select(User).where(User.id == trip_penalty.carrier_id))
             carrier_u = carrier_r.scalar_one_or_none()
-            if carrier_u and carrier_u.stripe_account_id and not carrier_u.stripe_account_id.startswith("simulated"):
-                import stripe as stripe_lib
-                from app.core.config import settings as s
-                if s.STRIPE_SECRET_KEY:
-                    try:
-                        # Debit negatif sur le compte Connect du transporteur
-                        stripe_lib.Transfer.create(
-                            amount=-int(5.0 * 100),
-                            currency="eur",
-                            destination=carrier_u.stripe_account_id,
-                            description=f"KIPAR penalite annulation non justifiee booking {booking_id}",
-                        )
-                        booking.carrier_penalty_due = 0.0  # preleve
-                    except stripe_lib.StripeError:
-                        # Echec prelevement - reste en DB pour traitement manuel
-                        pass
+            if carrier_u:
+                # C5b penalty ledger : dette reportee (Stripe refuse les Transfer negatifs)
+                from app.services.penalty_service import add_penalty
+                await add_penalty(db, carrier_u, booking.id, settings.CARRIER_CANCEL_FEE_MIN,
+                                  description=f"Penalite annulation non justifiee booking {booking_id}")
 
     await db.commit()
 

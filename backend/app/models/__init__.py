@@ -16,6 +16,7 @@ from app.models.dispute import Dispute
 from app.models.scan_credit import ScanCredit
 from app.models.subscription import Subscription
 from app.models.totp_backup_code import TOTPBackupCode
+from app.models.penalty_ledger import PenaltyLedger
 
 __all__ = [
     "User", "Trip", "Package", "Booking",

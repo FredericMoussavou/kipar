@@ -160,6 +160,8 @@
     "delivery_confirmed_carrier": "Remise confirmée — paiement en cours de virement",
     "booking_expired": "Votre demande a expiré — le transporteur n'a pas répondu dans les délais",
     "payment_released": "Paiement de {amount}{currency} viré sur votre compte",
+    "penalty_deducted_title": "Pénalité déduite",
+    "penalty_deducted_body": "{amount} € ont été déduits de votre versement au titre d'une pénalité. Solde restant : {balance} €.",
     "escrow_auto_released": "Paiement libéré automatiquement après 7 jours",
     "pir_opened": "Bagage signalé perdu — procédure Convention de Montréal déclenchée",
     "pir_resolved_found": "Bonne nouvelle — votre bagage a été retrouvé",

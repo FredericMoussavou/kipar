@@ -160,6 +160,8 @@
     "delivery_confirmed_carrier": "Handover confirmed — payment transfer in progress",
     "booking_expired": "Your request has expired — the carrier did not respond in time",
     "payment_released": "Payment of {amount}{currency} transferred to your account",
+    "penalty_deducted_title": "Penalty deducted",
+    "penalty_deducted_body": "{amount} € were deducted from your payout for a penalty. Remaining balance: {balance} €.",
     "escrow_auto_released": "Payment automatically released after 7 days",
     "pir_opened": "Luggage reported lost — Montreal Convention procedure initiated",
     "pir_resolved_found": "Good news — your luggage has been found",

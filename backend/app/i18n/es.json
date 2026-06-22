@@ -160,6 +160,8 @@
     "delivery_confirmed_carrier": "Entrega confirmada — transferencia de pago en curso",
     "booking_expired": "Tu solicitud ha expirado — el transportista no respondió a tiempo",
     "payment_released": "Pago de {amount}{currency} transferido a tu cuenta",
+    "penalty_deducted_title": "Penalización deducida",
+    "penalty_deducted_body": "Se dedujeron {amount} € de tu pago por una penalización. Saldo restante: {balance} €.",
     "escrow_auto_released": "Pago liberado automáticamente después de 7 días",
     "pir_opened": "Equipaje reportado como perdido — procedimiento del Convenio de Montreal activado",
     "pir_resolved_found": "Buenas noticias — tu equipaje ha sido encontrado",

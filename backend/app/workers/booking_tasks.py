@@ -166,11 +166,12 @@ def release_payment_after_delivery(booking_id: str):
                     success = True
                 if success and _deduct > 0:
                     from app.services.notif_db_service import create_notification
+                    from app.i18n.loader import t
                     await create_notification(
                         db=db, user_id=carrier.id,
                         type="penalty_deducted",
-                        title="Penalite deduite",
-                        body=f"{_deduct:.2f} EUR ont ete deduits de votre versement au titre d'une penalite. Solde restant : {_bal:.2f} EUR.",
+                        title=t("notifications.penalty_deducted_title", carrier.language),
+                        body=t("notifications.penalty_deducted_body", carrier.language, amount=f"{_deduct:.2f}", balance=f"{_bal:.2f}"),
                         link="/carrier/finance",
                     )
                 if success:

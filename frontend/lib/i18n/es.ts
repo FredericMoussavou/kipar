@@ -557,6 +557,10 @@ export const es = {
     trip_deleted: 'Anuncio eliminado',
     price_suggestion_corridor: 'Precios observados en este corredor:',
     net_per_unit: 'Neto recibido',
+    limit_reached_title: 'Límite alcanzado',
+    capacity_label: 'Capacidad disponible',
+    max_per_package_label: 'Máx por paquete',
+    price_per_label: 'Precio por',
     price_suggestion_global: 'Precios indicativos de la plataforma:',
   },
   profile_public: {

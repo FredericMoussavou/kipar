@@ -557,6 +557,10 @@ export const fr = {
     trip_deleted: 'Annonce supprimée',
     price_suggestion_corridor: 'Prix constatés sur ce corridor :',
     net_per_unit: 'Net perçu',
+    limit_reached_title: 'Limite atteinte',
+    capacity_label: 'Capacité disponible',
+    max_per_package_label: 'Max par colis',
+    price_per_label: 'Prix par',
     price_suggestion_global: 'Prix indicatifs plateforme :',
   },
   profile_public: {

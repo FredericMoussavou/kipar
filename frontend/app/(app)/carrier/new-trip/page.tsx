@@ -237,7 +237,7 @@ export default function NewTripPage() {
       <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
           <p style={{ fontSize: 36, marginBottom: 12 }}>🔒</p>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>Limite atteinte</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>{t.carrier.limit_reached_title}</h2>
           <p style={{ fontSize: 14, color: '#92400E', marginBottom: 4 }}>
             {limits?.trips.current}/{limits?.trips.max} utilisés en gratuit
           </p>
@@ -428,10 +428,10 @@ export default function NewTripPage() {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : gridCols === 2 ? '1fr 1fr' : '1fr 1fr 1fr', gap: 10 }}>
-            <Input label={`Capacite disponible (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
-            <Input label={`Max par colis (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
+            <Input label={`${t.carrier.capacity_label} (${unitLabel(weightUnit)})`} type="number" placeholder="20" step="0.5" error={errors.total_kg?.message} {...register('total_kg')} />
+            <Input label={`${t.carrier.max_per_package_label} (${unitLabel(weightUnit)})`} type="number" placeholder="5" step="0.5" error={errors.max_kg_per_package?.message} {...register('max_kg_per_package')} />
             <div>
-              <Input label={`Prix par ${unitLabel(weightUnit)} (${tripCurrency})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
+              <Input label={`${t.carrier.price_per_label} ${unitLabel(weightUnit)} (${tripCurrency})`} type="number" placeholder="3" step="0.5" error={errors.price_per_kg?.message} {...register('price_per_kg')} />
               {(() => {
                 const raw = parseFloat(watch('price_per_kg') || '0')
                 const net = raw * 0.98

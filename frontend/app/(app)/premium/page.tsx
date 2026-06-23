@@ -57,7 +57,7 @@ export default function PremiumPage() {
       })
       window.location.href = res.data.url
     } catch (err: any) {
-      alert(err?.response?.data?.detail || 'Erreur lors de la souscription')
+      alert(err?.response?.data?.detail || t.premium.error_subscribe)
     } finally {
       setSubscribing(false)
     }
@@ -70,7 +70,7 @@ export default function PremiumPage() {
       setStatus(s => s ? { ...s, is_premium: false } : s)
       router.refresh()
     } catch {
-      alert('Erreur')
+      alert(t.premium.error_generic)
     }
   }
 
@@ -82,7 +82,7 @@ export default function PremiumPage() {
       <HeroBackHeader
         imageUrl="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80"
         title="KIPAR Premium"
-        subtitle="Transportez sans limites"
+        subtitle={t.premium.hero_subtitle}
         minHeight={160}
         gradient="vertical"
       />
@@ -95,7 +95,7 @@ export default function PremiumPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Crown size={20} color={GOLD_DARK} />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: GOLD_DARK, margin: 0 }}>Abonnement Premium actif</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: GOLD_DARK, margin: 0 }}>{t.premium.active}</p>
                 <p style={{ fontSize: 11, color: GOLD_DARK, margin: '2px 0 0', opacity: 0.8 }}>
                   Plan {status.plan === 'annual' ? 'annuel' : 'mensuel'} · Expire le {status.expires_at ? fmtDate(status.expires_at) : '—'}
                 </p>
@@ -110,22 +110,22 @@ export default function PremiumPage() {
         {/* Sélecteur de plan */}
         {(!status?.is_premium) && (
           <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '20px', marginBottom: 20 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Choisir un plan</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.premium.choose_plan}</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               {/* Mensuel */}
               <button type="button" onClick={() => setSelectedPlan('monthly')}
                 style={{ padding: '16px', borderRadius: 12, border: `2px solid ${selectedPlan === 'monthly' ? GOLD : BORDER}`, background: selectedPlan === 'monthly' ? GOLD_LIGHT : WHITE, cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: selectedPlan === 'monthly' ? GOLD_DARK : TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Mensuel</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: selectedPlan === 'monthly' ? GOLD_DARK : TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>{t.premium.monthly}</p>
                 <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 24, fontWeight: 900, color: selectedPlan === 'monthly' ? GOLD_DARK : CHARCOAL, margin: '0 0 2px' }}>9,99€</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>par mois</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.premium.per_month}</p>
               </button>
               {/* Annuel */}
               <button type="button" onClick={() => setSelectedPlan('annual')}
                 style={{ padding: '16px', borderRadius: 12, border: `2px solid ${selectedPlan === 'annual' ? GOLD : BORDER}`, background: selectedPlan === 'annual' ? GOLD_LIGHT : WHITE, cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', overflow: 'visible', minWidth: 0 }}>
                 <div style={{ position: 'absolute', top: -10, right: 10, background: RED, color: WHITE, fontSize: 9, fontWeight: 800, borderRadius: 99, padding: '3px 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>-33%</div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: selectedPlan === 'annual' ? GOLD_DARK : TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Annuel</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: selectedPlan === 'annual' ? GOLD_DARK : TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>{t.premium.yearly}</p>
                 <p style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: 20, fontWeight: 900, color: selectedPlan === 'annual' ? GOLD_DARK : CHARCOAL, margin: '0 0 2px' }}>79,99€</p>
-                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>par an · soit 6,67€/mois</p>
+                <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.premium.per_year_detail}</p>
               </button>
             </div>
 
@@ -134,16 +134,16 @@ export default function PremiumPage() {
               <button type="button" onClick={() => handleSubscribe('stripe')} disabled={subscribing}
                 style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: CHARCOAL, color: WHITE, fontSize: 14, fontWeight: 700, cursor: subscribing ? 'not-allowed' : 'pointer', opacity: subscribing ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <svg width="20" height="20" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#635BFF"/><path d="M13.5 12.5c0-1.1.9-1.5 2.3-1.5 2 0 4.6.6 6.2 1.7V8.4C20.4 7.5 18.4 7 16 7c-4.4 0-7.3 2.3-7.3 6 0 5.8 8 4.9 8 7.4 0 1.3-1.1 1.7-2.6 1.7-2.3 0-5.1-.9-7-2.3v4.5C8.8 25.5 11 26 13.4 26c4.5 0 7.6-2.2 7.6-6.1-.1-6.3-8-5.2-8-7.4z" fill="white"/></svg>
-                Payer avec Stripe
+                {t.premium.pay_stripe}
               </button>
               <button type="button" onClick={() => handleSubscribe('pawapay')} disabled={true}
                 style={{ width: '100%', padding: '14px', borderRadius: 12, border: `1px solid ${BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'not-allowed', opacity: 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="#009A44"/><text x="6" y="27" fontSize="13" fontWeight="bold" fill="white">CP</text></svg>
-                PawaPay (bientôt disponible)
+                {t.premium.pay_pawapay}
               </button>
             </div>
             <p style={{ fontSize: 11, color: TAUPE, textAlign: 'center', margin: '12px 0 0' }}>
-              Annulation à tout moment · Sans engagement
+              {t.premium.no_commitment}
             </p>
           </div>
         )}
@@ -151,7 +151,7 @@ export default function PremiumPage() {
         {/* Liste des fonctionnalités */}
         <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '20px' }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Ce qui est inclus
+            {t.premium.whats_included}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {FEATURES.map((f, i) => (

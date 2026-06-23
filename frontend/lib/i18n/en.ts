@@ -776,7 +776,7 @@ export const en = {
   },
   package_detail: { 
     not_found: 'Booking not found', 
-    section_package: 'Package', // 
+    section_package: 'Package', 
     section_carrier: 'Carrier', 
     section_sender: 'Sender', 
     section_receiver: 'Receiver', 
@@ -968,7 +968,7 @@ export const en = {
     identity_subtitle: "Verify your identity in a few minutes", 
     kyc_how_title: "How does it work?", 
     kyc_step1: "1. Click on Verify my identity", 
-    kyc_step2: "2. Take a photo of your ID document", // 
+    kyc_step2: "2. Take a photo of your ID document", 
     kyc_step3: "3. Take a selfie for verification", 
     kyc_mobile_tip: "For a better experience, use your phone", 
     kyc_verified: "Identity verified!", 
@@ -1078,7 +1078,15 @@ export const en = {
   premium: { 
     title: 'KIPAR Premium', 
     headline: 'Ship without limits', 
+    hero_subtitle: 'Carry without limits',
     subtitle: 'Unlock all KIPAR features.', 
+    active: 'Premium subscription active',
+    active_status: 'Premium subscription active', 
+    choose_plan: 'Choose a plan',
+    monthly: 'Monthly',
+    per_month: 'per month',
+    yearly: 'Yearly',
+    per_year_detail: 'per year · 6.67€/month',
     plan_monthly: 'Monthly', 
     plan_annual: 'Annual', 
     plan_annual_badge: '-33%', 
@@ -1087,12 +1095,16 @@ export const en = {
     plan_annual_price: '€79.99', 
     plan_annual_per: 'per year · €6.67/month', 
     pay_stripe: 'Pay with Stripe', 
+    pay_pawapay: 'PawaPay (coming soon)',
     no_commitment: 'Cancel anytime · No commitment', 
     included: 'What’s included', 
-    active_status: 'Premium subscription active', 
+    whats_included: "What's included",
+    privacy_policy: 'privacy policy',
     cancel_renewal: 'Cancel renewal', 
     cancel_confirm: 'Cancel automatic renewal? You keep access until expiration.', 
     legal: 'By subscribing, you agree to our Terms and Privacy Policy.', 
+    error_subscribe: 'Subscription error',
+    error_generic: 'Error',
     feature_bookings: 'Unlimited bookings', 
     feature_bookings_sub: '3 max on free plan', 
     feature_trips: 'Unlimited trips', 
@@ -1212,4 +1224,4 @@ export const en = {
     q_contact: 'My question is not in the FAQ — how can I contact you?', 
     a_contact: 'Our team is available by email at contact@kipar.app and via the live chat on the website. We generally respond within 24 hours.', 
   },
-}; 
+};

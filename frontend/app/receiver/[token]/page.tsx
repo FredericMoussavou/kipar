@@ -129,7 +129,7 @@ export default function ReceiverPage() {
   if (state === 'expired') return <StatusCard emoji="⏰" title={t.receiver.expired_title} desc={t.receiver.expired_desc} />
   if (state === 'already') return <StatusCard emoji="✅" title={t.receiver.already_title} desc={t.receiver.already_desc} />
   if (state === 'not_found') return <StatusCard emoji="🔍" title={t.receiver.not_found_title} desc={t.receiver.not_found_desc} />
-  if (state === 'error') return <StatusCard emoji="⚠️" title="Erreur" desc={t.receiver.error_generic} />
+  if (state === 'error') return <StatusCard emoji="⚠️" title={t.receiver.error_title} desc={t.receiver.error_generic} />
 
   if (state === 'refused') {
     return (

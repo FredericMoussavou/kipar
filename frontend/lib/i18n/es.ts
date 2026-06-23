@@ -925,6 +925,7 @@ export const es = {
     error_generic: 'Se produjo un error. Inténtalo de nuevo.',
     insurance_label: 'Seguro',
     insurance_yes: 'Incluido',
+    error_title: 'Error',
   },
   verify: {
     email_label: 'Correo electrónico',

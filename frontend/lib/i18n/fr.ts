@@ -1004,6 +1004,7 @@ export const fr = {
     error_generic: 'Une erreur est survenue. Réessayez.',
     insurance_label: 'Assurance',
     insurance_yes: 'Incluse',
+    error_title: 'Erreur',
   },
   verify: {
     email_label: 'Email',

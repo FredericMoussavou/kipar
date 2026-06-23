@@ -925,6 +925,7 @@ export const en = {
     error_generic: 'An error occurred. Please try again.', 
     insurance_label: 'Insurance', 
     insurance_yes: 'Included', 
+    error_title: 'Error',
   },
   verify: { 
     email_label: 'Email', 

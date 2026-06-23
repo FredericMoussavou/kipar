@@ -218,6 +218,7 @@ export const en = {
     booking_count_one: '{n} booking', 
     booking_count_many: '{n} bookings', 
     default_content: 'Package', 
+    delete_modal_title: 'Delete this parcel',
     tab_listings: 'My listings',
     filter_btn: 'Filter',
     filter_reset: 'Reset',

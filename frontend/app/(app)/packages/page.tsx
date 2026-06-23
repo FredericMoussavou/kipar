@@ -408,7 +408,7 @@ export default function PackagesPage() {
                       </button>
                     )}
                     {TERMINAL_STATUSES.includes(booking.status) && isOlderThanOneYear(booking.created_at) && (
-                      <button onClick={e => { e.stopPropagation(); setToDeleteBooking({ id: booking.id, label: booking.content_description || 'Colis' }) }}
+                      <button onClick={e => { e.stopPropagation(); setToDeleteBooking({ id: booking.id, label: booking.content_description || t.packages.default_content }) }}
                         style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(220,0,41,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                         <Trash2 size={13} color={RED} />
                       </button>
@@ -461,7 +461,7 @@ export default function PackagesPage() {
       </Modal>
 
       {/* Modal suppression booking */}
-      <Modal isOpen={!!toDeleteBooking} onClose={() => setToDeleteBooking(null)} title="Supprimer ce colis">
+      <Modal isOpen={!!toDeleteBooking} onClose={() => setToDeleteBooking(null)} title={t.packages.delete_modal_title}>
         <p style={{ fontSize: 13, color: TAUPE, marginBottom: 8 }}>{toDeleteBooking?.label}</p>
         <p style={{ fontSize: 12, color: TAUPE, marginBottom: 20 }}>Cette action est irréversible. L’historique de ce colis sera masqué.</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

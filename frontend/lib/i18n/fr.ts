@@ -218,6 +218,7 @@ export const fr = {
     booking_count_one: '{n} réservation',
     booking_count_many: '{n} réservations',
     default_content: 'Colis',
+    delete_modal_title: 'Supprimer ce colis',
     tab_listings: 'Mes annonces',
     filter_btn: 'Filtrer',
     filter_reset: 'Réinitialiser',

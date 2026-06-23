@@ -218,6 +218,7 @@ export const es = {
     booking_count_one: '{n} reserva',
     booking_count_many: '{n} reservas',
     default_content: 'Paquete',
+    delete_modal_title: 'Eliminar este paquete',
     tab_listings: 'Mis anuncios',
     filter_btn: 'Filtrar',
     filter_reset: 'Restablecer',

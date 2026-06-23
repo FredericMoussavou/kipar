@@ -20,22 +20,23 @@ interface PremiumStatus {
   expires_at: string | null
 }
 
-const FEATURES = [
-  { icon: <Zap size={18} color={GOLD} />, label: 'Réservations illimitées', sub: '3 max en gratuit', premium: true },
-  { icon: <Shield size={18} color={GOLD} />, label: 'Trajets illimités', sub: '2 max en gratuit', premium: true },
-  { icon: <Star size={18} color={GOLD} />, label: 'Annonces illimitées', sub: '2 max en gratuit', premium: true },
-  { icon: <Camera size={18} color={GOLD} />, label: '5 photos par colis', sub: '2 photos en gratuit', premium: true },
-  { icon: <Zap size={18} color={GOLD} />, label: 'KiparScan illimité', sub: '3 scans/mois en gratuit', premium: true },
-  { icon: <TrendingUp size={18} color={GOLD} />, label: 'Suivi vol en direct', sub: 'Non disponible en gratuit', premium: true },
-  { icon: <Bell size={18} color={GOLD} />, label: 'Rappel avant atterrissage', sub: 'Non disponible en gratuit', premium: true },
-  { icon: <TrendingUp size={18} color={GOLD} />, label: 'Export finance & fiscal', sub: 'Non disponible en gratuit', premium: true },
-  { icon: <Crown size={18} color={GOLD} />, label: 'Badge Premium & mise en avant', sub: 'Non disponible en gratuit', premium: true },
-  { icon: <Star size={18} color={GOLD} />, label: 'Historique avis complet', sub: '5 derniers en gratuit', premium: true },
-  { icon: <Shield size={18} color={GOLD} />, label: 'Support prioritaire (SLA 4h)', sub: 'Support standard en gratuit', premium: true },
-]
+
 
 export default function PremiumPage() {
   const { t } = useTranslation()
+  const FEATURES = [
+    { icon: <Zap size={18} color={GOLD} />, label: t.premium.feat_bookings, sub: t.premium.feat_bookings_sub, premium: true },
+    { icon: <Shield size={18} color={GOLD} />, label: t.premium.feat_trips, sub: t.premium.feat_max2_sub, premium: true },
+    { icon: <Star size={18} color={GOLD} />, label: t.premium.feat_requests, sub: t.premium.feat_max2_sub, premium: true },
+    { icon: <Camera size={18} color={GOLD} />, label: t.premium.feat_photos, sub: t.premium.feat_photos_sub, premium: true },
+    { icon: <Zap size={18} color={GOLD} />, label: t.premium.feat_scan, sub: t.premium.feat_scan_sub, premium: true },
+    { icon: <TrendingUp size={18} color={GOLD} />, label: t.premium.feat_flight, sub: t.premium.feat_unavailable, premium: true },
+    { icon: <Bell size={18} color={GOLD} />, label: t.premium.feat_reminder, sub: t.premium.feat_unavailable, premium: true },
+    { icon: <TrendingUp size={18} color={GOLD} />, label: t.premium.feat_export, sub: t.premium.feat_unavailable, premium: true },
+    { icon: <Crown size={18} color={GOLD} />, label: t.premium.feat_badge, sub: t.premium.feat_unavailable, premium: true },
+    { icon: <Star size={18} color={GOLD} />, label: t.premium.feat_reviews, sub: t.premium.feat_reviews_sub, premium: true },
+    { icon: <Shield size={18} color={GOLD} />, label: t.premium.feat_support, sub: t.premium.feat_support_sub, premium: true },
+  ]
   const { user } = useAuthStore()
   const router = useRouter()
   const [status, setStatus] = useState<PremiumStatus | null>(null)

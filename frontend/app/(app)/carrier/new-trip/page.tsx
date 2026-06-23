@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { usePersistedForm } from '@/hooks/usePersistedForm'
@@ -24,12 +24,12 @@ import { useResponsive } from '@/hooks/useResponsive'
 import { useConfig } from '@/hooks/useConfig'
 import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 
-const schema = z.object({
-  origin_city: z.string().min(2, 'Requis'),
-  origin_airport_code: z.string().length(3, '3 lettres'),
-  destination_city: z.string().min(2, 'Requis'),
-  destination_airport_code: z.string().length(3, '3 lettres'),
-  departure_date: z.string().min(1, 'Requis'),
+const makeSchema = (t: any) => z.object({
+  origin_city: z.string().min(2, t.validation.required),
+  origin_airport_code: z.string().length(3, t.validation.iata_code),
+  destination_city: z.string().min(2, t.validation.required),
+  destination_airport_code: z.string().length(3, t.validation.iata_code),
+  departure_date: z.string().min(1, t.validation.required),
   departure_time: z.string().optional(),
   arrival_date: z.string().optional(),
   arrival_time: z.string().optional(),
@@ -39,10 +39,11 @@ const schema = z.object({
   price_per_kg: z.string().optional(),
 })
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<ReturnType<typeof makeSchema>>
 
 export default function NewTripPage() {
   const { t } = useTranslation()
+  const schema = useMemo(() => makeSchema(t), [t])
   const router = useRouter()
   const { tripsBlocked, limits } = useLimits()
   const { user } = useAuthStore()

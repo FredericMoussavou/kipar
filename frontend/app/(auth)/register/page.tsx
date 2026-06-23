@@ -205,10 +205,10 @@ export default function RegisterPage() {
                 style={{ marginTop: 2, accentColor: RED, width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }}
               />
               <label htmlFor="cgu" style={{ fontSize: 12, color: TAUPE, lineHeight: 1.6, cursor: 'pointer' }}>
-                J'accepte les{' '}
-                <a href="/cgu" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>CGU</a>
-                {' '}et la{' '}
-                <a href="/privacy" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>Politique de confidentialité</a>
+                {t.auth.accept_prefix}{' '}
+                <a href="/cgu" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>{t.auth.terms_link}</a>
+                {' '}{t.auth.accept_middle}{' '}
+                <a href="/privacy" target="_blank" style={{ color: RED, fontWeight: 600, textDecoration: 'none' }}>{t.auth.privacy_link}</a>
               </label>
             </div>
 

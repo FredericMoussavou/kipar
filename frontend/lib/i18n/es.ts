@@ -49,6 +49,7 @@ export const es = {
     twofa_subtitle: 'Introduce el código de 6 dígitos generado por tu aplicación de autenticación.',
     account_inaccessible: 'Cuenta inaccesible',
     email_required: 'Email obligatorio',
+    password_too_short: 'Contraseña demasiado corta',
     email_sent: 'Email enviado',
     reset_email_hint: 'Si existe una cuenta con este email, recibirás un enlace de restablecimiento válido durante 15 minutos.',
     back_to_login: 'Volver al inicio de sesión',

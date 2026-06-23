@@ -28,10 +28,10 @@ function ResetPasswordForm() {
   }, [token])
 
   const validate = () => {
-    if (password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères'
-    if (!/[A-Z]/.test(password)) return 'Au moins une majuscule requise'
-    if (!/[0-9]/.test(password)) return 'Au moins un chiffre requis'
-    if (password !== confirm) return 'Les mots de passe ne correspondent pas'
+    if (password.length < 8) return t.auth.pwd_err_min
+    if (!/[A-Z]/.test(password)) return t.auth.pwd_err_upper
+    if (!/[0-9]/.test(password)) return t.auth.pwd_err_digit
+    if (password !== confirm) return t.profile_edit.error_password_mismatch
     return ''
   }
 
@@ -63,8 +63,8 @@ function ResetPasswordForm() {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <CheckCircle size={32} color="#16A34A" />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>Mot de passe modifié</h2>
-            <p style={{ fontSize: 14, color: TAUPE, marginBottom: 8 }}>Redirection automatique dans 3 secondes...</p>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>{t.profile_edit.success_password_changed}</h2>
+            <p style={{ fontSize: 14, color: TAUPE, marginBottom: 8 }}>{t.auth.redirect_3s}</p>
             <Link href="/login" style={{ fontSize: 13, color: RED, textDecoration: 'none', fontWeight: 600 }}>
               Se connecter maintenant
             </Link>

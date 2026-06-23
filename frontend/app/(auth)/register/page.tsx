@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,18 +15,18 @@ import { setLangCookie, getLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
 import { useResponsive } from '@/hooks/useResponsive'
 
-const schema = z.object({
-  first_name: z.string().min(2, 'Prénom requis'),
-  last_name: z.string().min(2, 'Nom requis'),
-  email: z.string().email('Email invalide'),
-  password: z.string().min(8, '8 caractères minimum'),
+const makeSchema = (t: any) => z.object({
+  first_name: z.string().min(2, t.auth.first_name_required),
+  last_name: z.string().min(2, t.auth.last_name_required),
+  email: z.string().email(t.auth.email_invalid),
+  password: z.string().min(8, t.auth.pwd_err_min),
   confirm_password: z.string(),
 }).refine(d => d.password === d.confirm_password, {
-  message: 'Les mots de passe ne correspondent pas',
+  message: t.profile_edit.error_password_mismatch,
   path: ['confirm_password'],
 })
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<ReturnType<typeof makeSchema>>
 
 function useCountUp(target: number, duration: number = 2000) {
   const [value, setValue] = useState(0)
@@ -82,6 +82,7 @@ function AnimatedDot() {
 
 export default function RegisterPage() {
   const { t } = useTranslation()
+  const schema = useMemo(() => makeSchema(t), [t])
   const router = useRouter()
   const { paddingV } = useResponsive()
   const [showPassword, setShowPassword] = useState(false)

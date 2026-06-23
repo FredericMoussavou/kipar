@@ -228,10 +228,10 @@ export default function OnboardingPage() {
             {/* Prénom + Nom */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <div style={{ flex: 1 }}>
-                <Input label={t.onboarding.field_first_name} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Marie" />
+                <Input label={t.onboarding.field_first_name} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t.onboarding.ph_first_name} />
               </div>
               <div style={{ flex: 1 }}>
-                <Input label={t.onboarding.field_last_name} value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Dupont" />
+                <Input label={t.onboarding.field_last_name} value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t.onboarding.ph_last_name} />
               </div>
             </div>
 
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
                 label={t.onboarding.field_username}
                 value={username}
                 onChange={e => handleUsernameChange(e.target.value)}
-                placeholder="marie_dupont"
+                placeholder={t.onboarding.ph_username}
                 maxLength={15}
                 rightIcon={<UsernameIcon />}
               />

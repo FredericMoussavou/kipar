@@ -20,14 +20,14 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) { setError('Email requis'); return }
+    if (!email.trim()) { setError(t.auth.email_required); return }
     setLoading(true)
     setError('')
     try {
       await api.post('/auth/forgot-password', { email: email.trim() })
       setSent(true)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Une erreur est survenue')
+      setError(err?.response?.data?.detail || t.errors.generic)
     } finally { setLoading(false) }
   }
 
@@ -45,11 +45,11 @@ export default function ForgotPasswordPage() {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <CheckCircle size={32} color="#16A34A" />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>Email envoyé</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>{t.auth.email_sent}</h2>
             <p style={{ fontSize: 14, color: TAUPE, marginBottom: 32, lineHeight: 1.6 }}>
-              Si un compte existe avec cet email, vous recevrez un lien de réinitialisation valable 15 minutes.
+              {t.auth.reset_email_hint}
             </p>
-            <Button fullWidth onClick={() => router.push('/login')}>Retour à la connexion</Button>
+            <Button fullWidth onClick={() => router.push('/login')}>{t.auth.back_to_login}</Button>
           </div>
         ) : (
           <>

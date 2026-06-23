@@ -326,7 +326,7 @@ export default function BookPage() {
       <div style={{ minHeight: '100vh', background: 'rgba(240,237,232,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
         <div style={{ background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 24, padding: '32px 24px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
           <p style={{ fontSize: 36, marginBottom: 12 }}>🔒</p>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>Limite atteinte</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#92400E', marginBottom: 8 }}>{t.carrier.limit_reached_title}</h2>
           <p style={{ fontSize: 14, color: '#92400E', marginBottom: 4 }}>
             {limits?.bookings.current}/{limits?.bookings.max} utilisés en gratuit
           </p>

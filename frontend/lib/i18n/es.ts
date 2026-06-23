@@ -47,6 +47,7 @@ export const es = {
     apple: 'Continuar con Apple',
     twofa_title: 'Verificación en dos pasos',
     twofa_subtitle: 'Introduce el código de 6 dígitos generado por tu aplicación de autenticación.',
+    account_inaccessible: 'Cuenta inaccesible',
     email_required: 'Email obligatorio',
     email_sent: 'Email enviado',
     reset_email_hint: 'Si existe una cuenta con este email, recibirás un enlace de restablecimiento válido durante 15 minutos.',

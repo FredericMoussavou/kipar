@@ -24,7 +24,7 @@ export default function ReactivatePage() {
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) { setError('Email requis'); return }
+    if (!email.trim()) { setError(t.auth.email_required); return }
     setLoading(true)
     setError('')
     try {
@@ -85,9 +85,9 @@ export default function ReactivatePage() {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <span style={{ fontSize: 28 }}>⚠️</span>
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>Compte inaccessible</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: CHARCOAL, marginBottom: 8 }}>{t.auth.account_inaccessible}</h2>
             <p style={{ fontSize: 14, color: TAUPE, marginBottom: 32, lineHeight: 1.6 }}>{blockedMsg || t.profile_edit.reactivate_permanently_deleted}</p>
-            <Button fullWidth variant='outline' onClick={() => router.push('/login')}>{'Retour à la connexion'}</Button>
+            <Button fullWidth variant='outline' onClick={() => router.push('/login')}>{t.auth.back_to_login}</Button>
           </div>
         )}
 
@@ -109,7 +109,7 @@ export default function ReactivatePage() {
               <Button type='submit' fullWidth loading={loading} size='lg'>{t.profile_edit.reactivate_send_code}</Button>
             </form>
             <Link href='/login' style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, fontSize: 13, color: TAUPE, textDecoration: 'none', justifyContent: 'center' }}>
-              <ArrowLeft size={14} /> {'Retour à la connexion'}
+              <ArrowLeft size={14} /> {t.auth.back_to_login}
             </Link>
           </>
         )}

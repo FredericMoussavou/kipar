@@ -2,6 +2,7 @@ export const en = {
   validation: {
     required: 'Required',
     iata_code: '3 letters',
+    describe_content: 'Describe the content',
   },
   statuses: { 
     awaiting_receiver: 'Awaiting receiver', 

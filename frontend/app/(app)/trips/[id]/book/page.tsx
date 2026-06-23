@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { usePersistedForm } from '@/hooks/usePersistedForm'
@@ -24,14 +24,14 @@ import { useKyc } from '@/hooks/useKyc'
 import KycPlaneLoader from '@/components/booking/KycPlaneLoader'
 import { unitLabel } from '@/components/ui/kipar/WeightDisplay'
 
-const schema = z.object({
-  receiver_email_or_phone: z.string().min(3, 'Requis'),
-  content_description: z.string().min(3, 'Décrivez le contenu'),
-  weight_kg: z.string().min(1, 'Requis'),
+const makeSchema = (t: any) => z.object({
+  receiver_email_or_phone: z.string().min(3, t.validation.required),
+  content_description: z.string().min(3, t.validation.describe_content),
+  weight_kg: z.string().min(1, t.validation.required),
   declared_value: z.string().optional(),
 })
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<ReturnType<typeof makeSchema>>
 
 export default function BookPage() {
   const { id } = useParams()
@@ -44,6 +44,7 @@ export default function BookPage() {
   const kyc = useKyc()
   const [pendingKycBookingId, setPendingKycBookingId] = useState<string | null>(null)
   const { t } = useTranslation()
+  const schema = useMemo(() => makeSchema(t), [t])
   const { selectedTrip, setCurrentBookingId } = useBookingStore()
   const insuranceConfig = useInsuranceConfig()
   const config = useConfig()

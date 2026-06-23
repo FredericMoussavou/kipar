@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { usePersistedForm } from '@/hooks/usePersistedForm'
@@ -23,23 +23,24 @@ import { toKg, unitLabel, WeightUnit } from '@/lib/weight'
 const CLOUDINARY_CLOUD = 'dzlhxae2z'
 const CLOUDINARY_PRESET = 'kipar_package_photos'
 
-const schema = z.object({
-  origin_city: z.string().min(2, 'Requis'),
-  origin_airport_code: z.string().length(3, '3 lettres'),
-  destination_city: z.string().min(2, 'Requis'),
-  destination_airport_code: z.string().length(3, '3 lettres'),
-  content_description: z.string().min(3, 'Requis'),
-  weight_kg: z.string().min(1, 'Requis'),
-  declared_value: z.string().optional().refine(v => !v || parseFloat(v) >= 0, { message: 'Requis' }),
-  budget_per_kg: z.string().min(1, 'Requis'),
-  receiver_email_or_phone: z.string().min(3, 'Requis'),
-  deadline_date: z.string().min(1, 'Requis'),
+const makeSchema = (t: any) => z.object({
+  origin_city: z.string().min(2, t.validation.required),
+  origin_airport_code: z.string().length(3, t.validation.iata_code),
+  destination_city: z.string().min(2, t.validation.required),
+  destination_airport_code: z.string().length(3, t.validation.iata_code),
+  content_description: z.string().min(3, t.validation.required),
+  weight_kg: z.string().min(1, t.validation.required),
+  declared_value: z.string().optional().refine(v => !v || parseFloat(v) >= 0, { message: t.validation.required }),
+  budget_per_kg: z.string().min(1, t.validation.required),
+  receiver_email_or_phone: z.string().min(3, t.validation.required),
+  deadline_date: z.string().min(1, t.validation.required),
 })
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<ReturnType<typeof makeSchema>>
 
 export default function NewRequestPage() {
   const { t } = useTranslation()
+  const schema = useMemo(() => makeSchema(t), [t])
   const router = useRouter()
   const { requestsBlocked, limits } = useLimits()
   const { user } = useAuthStore()

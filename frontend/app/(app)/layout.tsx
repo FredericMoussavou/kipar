@@ -11,8 +11,10 @@ import TawkButton from '@/components/ui/kipar/TawkButton'
 import Drawer from '@/components/layout/Drawer'
 import { useDrawerStore } from '@/stores/drawer.store'
 import { useInactivityLogout } from '@/hooks/useInactivityLogout'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
   const hideNav = pathname?.includes('/book/payment') ?? false
@@ -95,11 +97,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
       {!hideNav && <TawkButton />}
       <footer style={{ textAlign: 'center', padding: '16px 20px 80px', display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <a href="/cgu" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>CGU</a>
-        <a href="/privacy" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>Confidentialité</a>
-        <a href="/mentions-legales" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>Mentions légales</a>
-        <a href="/cookies" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>Cookies</a>
-        <a href="/faq" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>FAQ</a>
+        <a href="/cgu" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>{t.footer.terms}</a>
+        <a href="/privacy" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>{t.footer.privacy}</a>
+        <a href="/mentions-legales" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>{t.footer.legal}</a>
+        <a href="/cookies" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>{t.footer.cookies}</a>
+        <a href="/faq" style={{ fontSize: 11, color: '#B5AFAB', textDecoration: 'none' }}>{t.footer.faq}</a>
       </footer>
     </NotificationsProvider>
   )

@@ -1101,6 +1101,13 @@ export const fr = {
     username_invalid: "Format invalide (4-15 caractères, minuscules, chiffres, _)",
     username_checking: "Vérification...",
   },
+  footer: {
+    terms: 'CGU',
+    privacy: 'Confidentialité',
+    legal: 'Mentions légales',
+    cookies: 'Cookies',
+    faq: 'FAQ',
+  },
   landing: {
     hero_badge: 'Transporteurs vérifiés KiparTrust',
     hero_title_1: 'Chaque colis',

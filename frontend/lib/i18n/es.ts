@@ -1022,6 +1022,13 @@ export const es = {
     username_invalid: "Formato inválido (4-15 car., minúsculas, dígitos, _)",
     username_checking: "Verificando...",
   },
+  footer: {
+    terms: 'Términos',
+    privacy: 'Privacidad',
+    legal: 'Aviso legal',
+    cookies: 'Cookies',
+    faq: 'FAQ',
+  },
   landing: {
     hero_badge: "Transportistas verificados KiparTrust",
     hero_title_1: "Cada paquete",

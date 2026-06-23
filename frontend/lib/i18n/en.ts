@@ -1022,6 +1022,13 @@ export const en = {
     username_invalid: "Invalid format (4-15 chars, lowercase, digits, _)", 
     username_checking: "Checking...", 
   },
+  footer: {
+    terms: 'Terms',
+    privacy: 'Privacy',
+    legal: 'Legal notice',
+    cookies: 'Cookies',
+    faq: 'FAQ',
+  },
   landing: { 
     hero_badge: "KiparTrust verified carriers", 
     hero_title_1: "Every parcel", 

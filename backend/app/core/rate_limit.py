@@ -9,19 +9,17 @@ from app.core.config import settings
 
 def get_real_client_ip(request: Request) -> str:
     """
-    Récupère l'IP réelle de l'utilisateur, même derrière le reverse proxy 
-    de Railway, Vercel, Cloudflare ou un Nginx.
+    IP réelle du client, sécurisée pour l'infra Kipar (Nginx sur Hetzner).
+    On fait UNIQUEMENT confiance au header posé par notre propre Nginx :
+    l'IP TCP réelle, non forgeable car Nginx l'écrase a chaque requete.
+    Les en-têtes proxy envoyés par le client sont forgeables et ont été
+    retirés : ils permettaient de contourner le rate-limit (codes PIN).
     """
-    # 1. Si tu utilises Cloudflare (fortement recommandé pour Kipar)
-    if cf_ip := request.headers.get("cf-connecting-ip"):
-        return cf_ip
-        
-    # 2. Proxy standard (Railway, AWS ALB, etc.)
-    if x_forwarded_for := request.headers.get("x-forwarded-for"):
-        # Le header peut contenir une chaîne "client, proxy1, proxy2". On isole le client (le premier).
-        return x_forwarded_for.split(",")[0].strip()
-        
-    # 3. Fallback en dev local (direct IP)
+    # IP TCP réelle posée par notre Nginx (non spoofable).
+    if real_ip := request.headers.get("x-real-ip"):
+        return real_ip.strip()
+
+    # Fallback : connexion directe (dev local sans proxy).
     return get_remote_address(request)
 
 

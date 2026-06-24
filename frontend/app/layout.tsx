@@ -23,9 +23,24 @@ const dmSans = DM_Sans({
 })
 
 const seo = getT('fr').seo
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.kipar.app'
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: seo.title,
   description: seo.description,
+  openGraph: {
+    type: 'website',
+    siteName: 'KIPAR',
+    title: seo.title,
+    description: seo.description,
+    url: '/',
+    locale: 'fr_FR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: seo.title,
+    description: seo.description,
+  },
 }
 
 export default function RootLayout({

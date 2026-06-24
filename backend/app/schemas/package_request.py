@@ -1,8 +1,8 @@
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator, Field
 from datetime import date, datetime
+from typing import Literal
 import uuid
 from app.services.airport_service import validate_iata
-
 
 class ApplicationResponse(BaseModel):
     id: uuid.UUID
@@ -22,19 +22,18 @@ class ApplicationResponse(BaseModel):
     trip_flight_number: str | None = None
     model_config = {"from_attributes": False}
 
-
 class PackageRequestCreate(BaseModel):
-    package_mode: str = "kg"
-    origin_city: str
-    origin_airport_code: str
-    destination_city: str
-    destination_airport_code: str
-    content_description: str
+    package_mode: Literal["kg", "small"] = "kg"
+    origin_city: str = Field(..., max_length=100)
+    origin_airport_code: str = Field(..., max_length=10)
+    destination_city: str = Field(..., max_length=100)
+    destination_airport_code: str = Field(..., max_length=10)
+    content_description: str = Field(..., max_length=500)
     weight_kg: float
     declared_value: float | None = None
     budget_per_kg: float
     photos: list[str] = []
-    receiver_email_or_phone: str
+    receiver_email_or_phone: str = Field(..., max_length=100)
     deadline_date: date
 
     @field_validator("origin_airport_code", "destination_airport_code")
@@ -72,7 +71,6 @@ class PackageRequestCreate(BaseModel):
         if len(v) > 3:
             raise ValueError("Maximum 3 photos")
         return v
-
 
 class PackageRequestResponse(BaseModel):
     package_mode: str = "kg"

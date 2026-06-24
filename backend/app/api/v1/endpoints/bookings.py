@@ -51,11 +51,11 @@ async def find_or_invite_receiver(
     contact: str, sender_id: uuid.UUID, booking_id: uuid.UUID,
     db: AsyncSession, sender: User, trip: "Trip", pkg: "Package",
 ) -> uuid.UUID | None:
-    result = await db.execute(select(User).where(User.email == contact))
+    # Optimisé : Recherche combinée par email OU téléphone en une seule passe
+    result = await db.execute(
+        select(User).where(or_(User.email == contact, User.phone == contact))
+    )
     user = result.scalar_one_or_none()
-    if not user:
-        result = await db.execute(select(User).where(User.phone == contact))
-        user = result.scalar_one_or_none()
     if user:
         return user.id
     token = ReceiverInvitation.generate_token()
@@ -227,13 +227,16 @@ async def accept_booking(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    result = await db.execute(select(Booking).where(Booking.id == booking_id))
-    booking = result.scalar_one_or_none()
-    if not booking:
+    # OPTIMISÉ : Jointure Booking + Trip immédiate pour diviser les requêtes par deux
+    row_result = await db.execute(
+        select(Booking, Trip)
+        .join(Trip, Booking.trip_id == Trip.id)
+        .where(Booking.id == booking_id)
+    )
+    row = row_result.one_or_none()
+    if not row:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-
-    result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-    trip = result.scalar_one_or_none()
+    booking, trip = row
     if trip.carrier_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if booking.status != "paid":
@@ -335,13 +338,16 @@ async def refuse_booking(
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
-    result = await db.execute(select(Booking).where(Booking.id == booking_id))
-    booking = result.scalar_one_or_none()
-    if not booking:
+    # OPTIMISÉ : Jointure Booking + Trip immédiate pour diviser les requêtes par deux
+    row_result = await db.execute(
+        select(Booking, Trip)
+        .join(Trip, Booking.trip_id == Trip.id)
+        .where(Booking.id == booking_id)
+    )
+    row = row_result.one_or_none()
+    if not row:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-
-    result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-    trip = result.scalar_one_or_none()
+    booking, trip = row
     if trip.carrier_id != current_user.id:
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if booking.status not in ("pending", "awaiting_receiver", "paid"):
@@ -551,28 +557,35 @@ async def get_booking_full(
     from app.models.trip import Trip
     from app.schemas.booking import BookingDetailResponse
 
-    result = await db.execute(select(Booking).where(Booking.id == booking_id))
-    b = result.scalar_one_or_none()
-    if not b:
+    # REQUÊTE 1 : Fusion immédiate du Booking et du Trip (Évite 2 requêtes séparées)
+    row_result = await db.execute(
+        select(Booking, Trip)
+        .join(Trip, Booking.trip_id == Trip.id)
+        .where(Booking.id == booking_id)
+    )
+    row = row_result.one_or_none()
+    if not row:
         raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
-    trip_check = await db.execute(select(Trip).where(Trip.id == b.trip_id))
-    trip_check_obj = trip_check.scalar_one_or_none()
-    carrier_id = trip_check_obj.carrier_id if trip_check_obj else None
-    if current_user.id not in (b.sender_id, b.receiver_id, carrier_id):
+    b, trip = row
+
+    if current_user.id not in (b.sender_id, b.receiver_id, trip.carrier_id):
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+
+    # REQUÊTE 2 : Récupération du Package
     pkg_result = await db.execute(select(Package).where(Package.id == b.package_id))
     pkg = pkg_result.scalar_one_or_none()
-    trip_result = await db.execute(select(Trip).where(Trip.id == b.trip_id))
-    trip = trip_result.scalar_one_or_none()
-    carrier = None
-    if trip:
-        carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
-        carrier = carrier_result.scalar_one_or_none()
-    
-    receiver = None
-    if b.receiver_id:
-        receiver_result = await db.execute(select(User).where(User.id == b.receiver_id))
-        receiver = receiver_result.scalar_one_or_none()
+
+    # REQUÊTE 3 : Chargement BATCH de tous les profils utilisateurs en un seul coup
+    user_ids = [uid for uid in [b.sender_id, b.receiver_id, trip.carrier_id] if uid]
+    users_map = {}
+    if user_ids:
+        users_res = await db.execute(select(User).where(User.id.in_(user_ids)))
+        users_map = {u.id: u for u in users_res.scalars().all()}
+
+    sender = users_map.get(b.sender_id)
+    receiver = users_map.get(b.receiver_id)
+    carrier = users_map.get(trip.carrier_id)
+
     receiver_contact = (receiver.email or receiver.phone) if receiver else None
     if not receiver_contact:
         _inv = (await db.execute(
@@ -580,10 +593,6 @@ async def get_booking_full(
         )).scalars().first()
         if _inv:
             receiver_contact = _inv.contact
-    sender = None
-    if b.sender_id:
-        sender_result = await db.execute(select(User).where(User.id == b.sender_id))
-        sender = sender_result.scalar_one_or_none()
 
     return BookingDetailResponse(
         id=b.id, trip_id=b.trip_id, package_id=b.package_id,

@@ -1,6 +1,9 @@
-import httpx
-import base64
+import hmac
+import hashlib
+import json
 import logging
+import base64
+import httpx
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -20,12 +23,10 @@ async def create_verification_session(
     email: str,
 ) -> dict | None:
     """
-    Cr\xe9e une session de v\xe9rification iDenfy.
-    Retourne {"authToken": ..., "scanRef": ..., "url": ...}
-    En simulation (pas de cl\xe9s), retourne des valeurs fictives.
+    Crée une session de vérification iDenfy.
     """
     if not settings.IDENFY_API_KEY or not settings.IDENFY_API_SECRET:
-        logger.info(f"[KYC SIMULATED] Session cr\xe9\xe9e pour {email}")
+        logger.info(f"[KYC SIMULATED] Session créée pour {email}")
         return {
             "authToken": f"simulated_token_{client_id[:8]}",
             "scanRef": f"simulated_scan_{client_id[:8]}",
@@ -59,14 +60,40 @@ async def create_verification_session(
         return None
 
 
-async def process_webhook(payload: dict) -> dict | None:
+async def process_webhook(raw_body: bytes, signature: str) -> dict | None:
     """
-    Traite le webhook iDenfy.
-    Retourne {"applicant_id": ..., "status": "approved"|"rejected"|"in_review"}
+    Vérifie la signature HMAC SHA-256 et traite le webhook iDenfy.
     """
-    # iDenfy envoie clientId + status
+    # Si les clés ne sont pas configurées (Dev/Simu), on ignore la vérification de signature
+    if not settings.IDENFY_API_KEY or not settings.IDENFY_API_SECRET:
+        try:
+            payload = json.loads(raw_body.decode("utf-8"))
+        except Exception:
+            return None
+    else:
+        if not signature:
+            logger.warning("Missing Idenfy-Signature header while keys are configured.")
+            return None
+
+        # Calcul de la signature attendue
+        computed_sig = hmac.new(
+            settings.IDENFY_API_SECRET.encode("utf-8"),
+            raw_body,
+            hashlib.sha256
+        ).hexdigest()
+
+        # Comparaison sécurisée contre les attaques temporelles (Timing Attacks)
+        if not hmac.compare_digest(computed_sig, signature):
+            logger.error("iDenfy webhook signature verification failed.")
+            return None
+
+        try:
+            payload = json.loads(raw_body.decode("utf-8"))
+        except Exception:
+            return None
+
     client_id = payload.get("clientId")
-    status = payload.get("status")  # APPROVED | DENIED | SUSPECTED | EXPIRED
+    status = payload.get("status")
 
     if not client_id or not status:
         return None

@@ -59,10 +59,14 @@ async def init_kyc(
 
 @router.post("/webhook")
 async def kyc_webhook(request: Request, db: AsyncSession = Depends(get_db)):
-    payload = await request.json()
-    result = await process_webhook(payload)
+    # Extraction du contenu brut indispensable pour le calcul HMAC
+    raw_body = await request.body()
+    signature = request.headers.get("Idenfy-Signature", "")
+
+    result = await process_webhook(raw_body, signature)
     if not result:
-        return {"status": "ignored"}
+        # On lève une erreur 400 si la signature est invalide ou le payload corrompu
+        raise HTTPException(status_code=400, detail="Invalid signature or payload")
 
     res = await db.execute(
         select(User).where(User.onfido_applicant_id == result["applicant_id"])
@@ -76,8 +80,6 @@ async def kyc_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         await promote_pending_kyc_bookings(user, db)
     await update_trust_score(user, db)
     return {"status": "processed", "kyc_status": result["status"]}
-
-
 
 
 class KYCDocsSubmit(BaseModel):
@@ -108,7 +110,6 @@ async def submit_kyc_docs(
     if not docs:
         raise HTTPException(status_code=400, detail=t("errors.kiparscan_no_image", lang))
 
-    # Sauvegarde les URLs des documents sur l'utilisateur
     if payload.id_front:
         current_user.kyc_id_front = payload.id_front
     if payload.id_back:
@@ -121,6 +122,7 @@ async def submit_kyc_docs(
 
     await db.commit()
     return {"status": "in_review", "message": t("success.kyc_docs_submitted", lang)}
+
 
 @router.post("/simulate-verify")
 async def simulate_kyc_verification(

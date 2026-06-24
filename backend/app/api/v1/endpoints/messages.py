@@ -2,7 +2,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from datetime import datetime, timezone
 
 from app.core.database import get_db
@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
 from app.models.message import Conversation, Message
-from app.schemas.message import ConversationResponse
+from app.schemas.message import ConversationResponse, MessageCreate
 from app.websockets.chat import manager
 from app.services.translation_service import translate_message
 from app.services.notif_db_service import notify_new_message_db
@@ -23,21 +23,23 @@ router = APIRouter(prefix="/conversations", tags=["messages"])
 
 
 async def enrich_conversation(conv, db: AsyncSession) -> dict:
-    """Retourne un dict ConversationResponse enrichi avec les prénoms."""
-    booking_result = await db.execute(select(Booking).where(Booking.id == conv.booking_id))
+    booking_result = await db.execute(
+        select(Booking)
+        .options(joinedload(Booking.receiver))
+        .where(Booking.id == conv.booking_id)
+    )
     booking = booking_result.scalar_one_or_none()
     receiver_id = booking.receiver_id if booking else None
 
-    sender, carrier, receiver = None, None, None
-    if conv.sender_id:
-        r = await db.execute(select(User).where(User.id == conv.sender_id))
-        sender = r.scalar_one_or_none()
-    if conv.carrier_id:
-        r = await db.execute(select(User).where(User.id == conv.carrier_id))
-        carrier = r.scalar_one_or_none()
-    if receiver_id:
-        r = await db.execute(select(User).where(User.id == receiver_id))
-        receiver = r.scalar_one_or_none()
+    user_ids = [uid for uid in [conv.sender_id, conv.carrier_id, receiver_id] if uid]
+    users_dict = {}
+    if user_ids:
+        r = await db.execute(select(User).where(User.id.in_(user_ids)))
+        users_dict = {u.id: u for u in r.scalars().all()}
+
+    sender = users_dict.get(conv.sender_id)
+    carrier = users_dict.get(conv.carrier_id)
+    receiver = users_dict.get(receiver_id) if receiver_id else None
 
     return {
         "id": conv.id,
@@ -144,10 +146,6 @@ async def websocket_chat(
     token: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    WebSocket chat avec traduction DeepL temps réel.
-    Chaque message est traduit dans la langue du destinataire.
-    """
     try:
         payload = decode_token(token)
         user_id = payload.get("sub")
@@ -174,11 +172,13 @@ async def websocket_chat(
     READONLY_WS = ("delivered", "refused", "cancelled")
     is_readonly = booking_ws and booking_ws.status in READONLY_WS
 
-    # Récupère les langues des deux participants pour la traduction
-    result = await db.execute(select(User).where(User.id == conv.sender_id))
-    sender = result.scalar_one_or_none()
-    result = await db.execute(select(User).where(User.id == conv.carrier_id))
-    carrier = result.scalar_one_or_none()
+    # OPTIMISATION PERFORMANCE : Chargement BATCH unique des langues
+    participant_ids = [uid for uid in [conv.sender_id, conv.carrier_id, receiver_id_ws] if uid]
+    p_res = await db.execute(select(User).where(User.id.in_(participant_ids)))
+    participants_map = {u.id: u for u in p_res.scalars().all()}
+
+    sender = participants_map.get(conv.sender_id)
+    carrier = participants_map.get(conv.carrier_id)
 
     await manager.connect(conversation_id, websocket)
     try:
@@ -189,7 +189,6 @@ async def websocket_chat(
                 continue
             clean_content = mask_sensitive(data)
 
-            # Détermine la langue du destinataire pour la traduction
             is_sender = str(user_id) == str(conv.sender_id)
             is_carrier = str(user_id) == str(conv.carrier_id)
             if is_sender:
@@ -197,10 +196,9 @@ async def websocket_chat(
             elif is_carrier:
                 recipient = sender
             else:
-                # récepteur : destinataire principal = sender
                 recipient = sender
+                
             recipient_lang = recipient.language if recipient else "fr"
-
             sender_user = sender if is_sender else carrier
             sender_lang = sender_user.language if sender_user else "fr"
 
@@ -225,22 +223,21 @@ async def websocket_chat(
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
 
-            # Notif message pour chaque participant sauf l expéditeur
-            sender_user_obj = sender if str(user_id) == str(conv.sender_id) else carrier
-            sender_display = sender_user_obj.first_name if sender_user_obj else "Quelqu un"
+            sender_display = sender_user.first_name if sender_user else "Quelqu'un"
             recipients = [conv.sender_id, conv.carrier_id, receiver_id_ws]
+            
             for rid in recipients:
                 if rid and str(rid) != str(user_id):
-                    r = await db.execute(select(User).where(User.id == rid))
-                    recipient_user = r.scalar_one_or_none()
-                    recipient_lang = recipient_user.language if recipient_user else "fr"
+                    recipient_user = participants_map.get(rid)
+                    r_lang = recipient_user.language if recipient_user else "fr"
+                    
                     await notify_new_message_db(
                         db=db,
                         recipient_id=rid,
                         sender_name=sender_display,
                         excerpt=clean_content,
                         booking_id=booking_ws.id,
-                        lang=recipient_lang,
+                        lang=r_lang,
                     )
             await db.commit()
 

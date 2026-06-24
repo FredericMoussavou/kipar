@@ -1,12 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uuid
-
 
 class PackageCreate(BaseModel):
     weight_kg: float
-    content_description: str
+    content_description: str = Field(..., max_length=500)
     declared_value: float = 0.0
-
 
 class PackageResponse(BaseModel):
     id: uuid.UUID

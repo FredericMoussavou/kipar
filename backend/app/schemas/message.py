@@ -1,7 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
 
+class MessageCreate(BaseModel):
+    """Schéma de validation pour l'envoi d'un message."""
+    conversation_id: uuid.UUID
+    content: str = Field(..., min_length=1, max_length=2000)
 
 class MessageResponse(BaseModel):
     id: uuid.UUID
@@ -12,7 +16,6 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
-
 
 class ConversationResponse(BaseModel):
     id: uuid.UUID

@@ -1,26 +1,30 @@
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator, Field
 from datetime import date
+from typing import Literal
 import uuid
 from app.services.airport_service import validate_iata
 
-
 class TripCreate(BaseModel):
-    origin_city: str
-    origin_airport_code: str
-    destination_city: str
-    destination_airport_code: str
+    # Limitation stricte des longueurs de chaînes pour éviter les Payload DoS
+    origin_city: str = Field(..., max_length=100)
+    origin_airport_code: str = Field(..., max_length=10)
+    destination_city: str = Field(..., max_length=100)
+    destination_airport_code: str = Field(..., max_length=10)
     departure_date: date
-    departure_time: str | None = None
+    departure_time: str | None = Field(None, max_length=20)
     arrival_date: date | None = None
-    arrival_time: str | None = None
-    flight_number: str | None = None
-    airline: str | None = None
+    arrival_time: str | None = Field(None, max_length=20)
+    flight_number: str | None = Field(None, max_length=30)
+    airline: str | None = Field(None, max_length=100)
+    
     total_kg: float | None = None
     max_kg_per_package: float = 5.0
     price_per_kg: float | None = None
     small_package_price: float | None = None
-    weight_unit: str = "kg"
-    currency: str = "EUR"
+    
+    # Sécurisation des valeurs structurelles par des choix stricts (Literal)
+    weight_unit: Literal["kg", "lbs"] = "kg"
+    currency: Literal["EUR", "USD", "XOF", "XAF"] = "EUR"
     accepts_urgent: bool = False
 
     @field_validator("origin_airport_code", "destination_airport_code")
@@ -54,7 +58,7 @@ class TripCreate(BaseModel):
             raise ValueError("TRIP_NO_MODE")
         return self
 
-
+# Les schémas de réponse restent inchangés car ils ne servent qu'à la sortie (Output)
 class TripResponse(BaseModel):
     id: uuid.UUID
     carrier_id: uuid.UUID
@@ -88,9 +92,7 @@ class TripResponse(BaseModel):
     accepts_urgent: bool = False
     model_config = {"from_attributes": False}
 
-
 class PublicTripResponse(BaseModel):
-    # Version expurgee pour la vitrine publique : AUCUNE donnee personnelle du transporteur.
     id: uuid.UUID
     origin_city: str
     origin_airport_code: str

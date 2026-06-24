@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import JWTError
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, Field
+from typing import Literal
+from typing import Literal
 from app.core.database import get_db
 from app.core.security import (
     hash_password, verify_password,
@@ -42,11 +44,11 @@ def blacklist_token(token: str, expire_seconds: int = 1800):
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str
-    first_name: str
-    last_name: str
-    phone: str | None = None
-    language: str = "fr"
+    password: str = Field(..., min_length=8, max_length=128)
+    first_name: str = Field(..., max_length=50)
+    last_name: str = Field(..., max_length=50)
+    phone: str | None = Field(None, max_length=30)
+    language: Literal["fr", "en"] = "fr"
     cgu_accepted: bool = False
     pending_trip_id: uuid.UUID | None = None
 
@@ -71,7 +73,7 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., max_length=128)
     pending_trip_id: uuid.UUID | None = None
 
 

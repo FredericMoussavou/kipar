@@ -1,45 +1,22 @@
-import type { MetadataRoute } from 'next'
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.kipar.app'
+import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date()
-  return [
-    {
-      url: `${SITE_URL}/`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${SITE_URL}/faq`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/cgu`,
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${SITE_URL}/privacy`,
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${SITE_URL}/mentions-legales`,
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${SITE_URL}/cookies`,
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
+  const baseUrl = 'https://www.kipar.app'
+  const currentDate = new Date()
+
+  const staticRoutes = [
+    { url: '', changeFrequency: 'daily' as const, priority: 1.0 },
+    { url: '/faq', changeFrequency: 'weekly' as const, priority: 0.6 },
+    { url: '/cgu', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: '/privacy', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: '/mentions-legales', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: '/cookies', changeFrequency: 'yearly' as const, priority: 0.3 },
   ]
+
+  return staticRoutes.map((route) => ({
+    url: `${baseUrl}${route.url}`,
+    lastModified: currentDate,
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }))
 }

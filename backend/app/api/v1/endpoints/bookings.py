@@ -1254,50 +1254,6 @@ async def validate_pickup(request: Request, booking_id: str, payload: ValidatePi
 # ROUTES : NÉGOCIATION DE COLLECTE (PING-PONG)
 # ==========================================
 
-@router.post("/{booking_id}/pickup/propose")
-async def propose_pickup_meeting(
-    booking_id: str,
-    payload: dict,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    from datetime import datetime, timezone, timedelta
-    
-    # 1. Récupération de la réservation et du trajet
-    res_booking = await db.execute(select(Booking).where(Booking.id == booking_id))
-    booking = res_booking.scalar_one_or_none()
-    if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
-        
-    res_trip = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-    trip = res_trip.scalar_one_or_none()
-    if not trip:
-        raise HTTPException(status_code=404, detail="Trajet introuvable")
-
-    # 2. Vérification des tentatives
-    if booking.pickup_reschedule_count >= 3:
-        raise HTTPException(status_code=400, detail="Limite de modifications atteinte (3/3)")
-
-    # 3. Vérification de la contrainte de temps (3h avant décollage)
-    try:
-        # On force tout en UTC pour pouvoir comparer
-        dep_dt = datetime.combine(trip.departure_date, trip.departure_time).replace(tzinfo=timezone.utc)
-        proposed_dt = datetime.fromisoformat(payload.get("meeting_date").replace('Z', '+00:00')).replace(tzinfo=timezone.utc)
-    except Exception as e:
-        print(f"ERREUR DATE: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Erreur Date: {str(e)}")
-
-    if proposed_dt > dep_dt - timedelta(hours=3):
-        raise HTTPException(status_code=400, detail="Le RDV doit être au moins 3h avant le vol")
-
-    # 4. Enregistrement de la proposition
-    booking.proposed_pickup_date = proposed_dt
-    booking.proposed_pickup_by = current_user.id
-    booking.pickup_reschedule_count += 1
-    
-    await db.commit()
-    return {"status": "success", "message": "Proposition envoyée avec succès"}
-
 @router.post("/{booking_id}/pickup/respond")
 async def respond_pickup_meeting(
     booking_id: str,
@@ -1336,63 +1292,6 @@ async def respond_pickup_meeting(
 # ROUTES : NÉGOCIATION DE LIVRAISON (PING-PONG)
 # ==========================================
 
-@router.post("/{booking_id}/delivery/propose")
-async def propose_delivery_meeting(
-    booking_id: str,
-    payload: dict,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    from datetime import datetime, timezone
-    
-    res_booking = await db.execute(select(Booking).where(Booking.id == booking_id))
-    booking = res_booking.scalar_one_or_none()
-    if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
-        
-    res_trip = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
-    trip = res_trip.scalar_one_or_none()
-    if not trip:
-        raise HTTPException(status_code=404, detail="Trajet introuvable")
-
-    if booking.delivery_reschedule_count >= 3:
-        raise HTTPException(status_code=400, detail="Limite de modifications atteinte (3/3)")
-
-    try:
-        from datetime import time
-        
-        # Sécurisation du format de l'heure
-        arr_time_obj = trip.arrival_time
-        if isinstance(arr_time_obj, str):
-            # Si c'est une string (ex: "14:30" ou "14:30:00"), on la convertit
-            time_parts = arr_time_obj.split(':')
-            h = int(time_parts[0])
-            m = int(time_parts[1])
-            s = int(time_parts[2]) if len(time_parts) > 2 else 0
-            arr_time_obj = time(h, m, s)
-
-        from datetime import time
-        arr_time_obj = trip.arrival_time
-        if isinstance(arr_time_obj, str):
-            time_parts = arr_time_obj.split(':')
-            arr_time_obj = time(int(time_parts[0]), int(time_parts[1]), int(time_parts[2]) if len(time_parts) > 2 else 0)
-        arr_dt = datetime.combine(trip.arrival_date, arr_time_obj).replace(tzinfo=timezone.utc)
-        proposed_dt = datetime.fromisoformat(payload.get("meeting_date").replace('Z', '+00:00')).replace(tzinfo=timezone.utc)
-    except Exception as e:
-        print(f"ERREUR DATE: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Erreur Date: {str(e)}")
-
-    # Contrainte : Le RDV doit être APRÈS l'arrivée du vol
-    if proposed_dt < arr_dt:
-        raise HTTPException(status_code=400, detail="Le RDV doit avoir lieu après l'arrivée du vol")
-
-    booking.proposed_delivery_date = proposed_dt
-    booking.proposed_delivery_by = current_user.id
-    booking.delivery_reschedule_count += 1
-    
-    await db.commit()
-    return {"status": "success", "message": "Proposition de livraison envoyée"}
-
 @router.post("/{booking_id}/delivery/respond")
 async def respond_delivery_meeting(
     booking_id: str,
@@ -1426,43 +1325,6 @@ async def respond_delivery_meeting(
 
     await db.commit()
     return {"status": "success", "action": action}
-
-
-@router.post("/{booking_id}/delivery/alternative-proof")
-async def delivery_alternative_proof(
-    booking_id: str,
-    file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    import cloudinary.uploader
-    
-    res_booking = await db.execute(select(Booking).where(Booking.id == booking_id))
-    booking = res_booking.scalar_one_or_none()
-    
-    if not booking:
-        raise HTTPException(status_code=404, detail="Réservation introuvable")
-
-    if booking.status != "in_transit":
-        raise HTTPException(status_code=400, detail="Le colis n'est pas en transit")
-
-    # 1. Upload vers Cloudinary
-    try:
-        upload_result = cloudinary.uploader.upload(file.file)
-        secure_url = upload_result.get("secure_url")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur d'upload Cloudinary : {str(e)}")
-
-    # 2. Mise à jour de la réservation
-    booking.delivery_alternative_proof_url = secure_url
-    booking.status = "pending_admin_validation"
-    
-    await db.commit()
-    return {
-        "status": "success", 
-        "message": "Preuve envoyée. En attente de l'administrateur.",
-        "url": secure_url
-    }
 
 
 @router.delete("/{booking_id}", status_code=204)

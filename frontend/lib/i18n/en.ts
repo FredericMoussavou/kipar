@@ -1,4 +1,8 @@
 export const en = { 
+  seo: {
+    title: 'KIPAR. — Peer-to-peer parcel delivery',
+    description: 'Send your parcels anywhere in the world through our network of verified travelers',
+  },
   validation: {
     required: 'Required',
     iata_code: '3 letters',

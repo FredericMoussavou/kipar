@@ -5,6 +5,8 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import Providers from './providers'
+import { getT } from '@/lib/i18n'
+import LangSync from '@/components/LangSync'
 
 const syne = Syne({
   subsets: ['latin'],
@@ -20,9 +22,10 @@ const dmSans = DM_Sans({
   display: 'swap',
 })
 
+const seo = getT('fr').seo
 export const metadata: Metadata = {
-  title: 'KIPAR. — Transport de colis entre particuliers',
-  description: 'Envoyez vos colis partout dans le monde grâce à notre réseau de transporteurs vérifiés',
+  title: seo.title,
+  description: seo.description,
 }
 
 export default function RootLayout({
@@ -39,6 +42,7 @@ export default function RootLayout({
           </Providers>
         </ThemeProvider>
         <Toaster richColors position="top-center" />
+        <LangSync />
         {process.env.NODE_ENV === 'production' && (
         <Script id="tawk-init" strategy="lazyOnload">
           {`

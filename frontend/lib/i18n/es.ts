@@ -1,4 +1,8 @@
 export const es = {
+  seo: {
+    title: 'KIPAR. — Envío de paquetes entre particulares',
+    description: 'Envía tus paquetes a cualquier parte del mundo gracias a nuestra red de transportistas verificados',
+  },
   validation: {
     required: 'Obligatorio',
     iata_code: '3 letras',

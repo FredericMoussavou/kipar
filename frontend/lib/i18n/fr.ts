@@ -1,4 +1,8 @@
 export const fr = {
+  seo: {
+    title: 'KIPAR. — Transport de colis entre particuliers',
+    description: 'Envoyez vos colis partout dans le monde grâce à notre réseau de transporteurs vérifiés',
+  },
   validation: {
     required: 'Requis',
     iata_code: '3 lettres',

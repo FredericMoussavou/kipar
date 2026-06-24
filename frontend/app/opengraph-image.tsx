@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og'
-import { RED, CHARCOAL, WHITE, SAND } from '@/lib/theme'
 
 export const alt = 'KIPAR. Transport de colis entre particuliers'
 export const size = { width: 1200, height: 630 }
@@ -15,18 +14,18 @@ export default function Image() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          background: CHARCOAL,
+          backgroundColor: '#3D3D3D',
           padding: '90px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
-          <span style={{ fontSize: 150, fontWeight: 800, color: WHITE, letterSpacing: '-5px' }}>KIPAR</span>
-          <span style={{ fontSize: 150, fontWeight: 800, color: RED, letterSpacing: '-5px' }}>.</span>
+          <span style={{ fontSize: 150, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-5px' }}>KIPAR</span>
+          <span style={{ fontSize: 150, fontWeight: 800, color: '#DC0029', letterSpacing: '-5px' }}>.</span>
         </div>
-        <div style={{ display: 'flex', fontSize: 48, color: SAND, marginTop: 28, maxWidth: 980 }}>
+        <div style={{ display: 'flex', fontSize: 48, color: '#F0EDE8', marginTop: 28, maxWidth: 980 }}>
           Transport de colis entre particuliers
         </div>
-        <div style={{ display: 'flex', fontSize: 34, color: RED, marginTop: 46, fontWeight: 600 }}>
+        <div style={{ display: 'flex', fontSize: 34, color: '#DC0029', marginTop: 46, fontWeight: 600 }}>
           Europe · Afrique · réseau de voyageurs vérifiés
         </div>
       </div>

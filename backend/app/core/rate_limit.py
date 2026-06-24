@@ -26,6 +26,7 @@ def get_real_client_ip(request: Request) -> str:
 # Initialisation du Limiter avec la fonction d'IP intelligente
 limiter = Limiter(
     key_func=get_real_client_ip,
+    storage_uri=settings.REDIS_URL,
     enabled=settings.ENVIRONMENT != "test",
 )
 

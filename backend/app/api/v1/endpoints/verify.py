@@ -2,7 +2,7 @@ import random
 import string
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +15,7 @@ from app.models.verification_code import VerificationCode
 from app.services.notification_service import send_email, send_sms
 from app.services.totp_service import send_sms_verification, check_sms_verification
 from app.i18n.loader import t
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/verify", tags=["verify"])
 
@@ -32,7 +33,9 @@ class ConfirmPayload(BaseModel):
 # ── EMAIL ──
 
 @router.post("/email/send")
+@limiter.limit("5/minute")
 async def send_email_code(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_lang),
@@ -69,7 +72,9 @@ async def send_email_code(
 
 
 @router.post("/email/confirm")
+@limiter.limit("5/minute")
 async def confirm_email_code(
+    request: Request,
     payload: ConfirmPayload,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -103,7 +108,9 @@ async def confirm_email_code(
 # ── PHONE ──
 
 @router.post("/phone/send")
+@limiter.limit("5/minute")
 async def send_phone_code(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     lang: str = Depends(get_lang),
@@ -120,7 +127,9 @@ async def send_phone_code(
 
 
 @router.post("/phone/confirm")
+@limiter.limit("5/minute")
 async def confirm_phone_code(
+    request: Request,
     payload: ConfirmPayload,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

@@ -34,7 +34,9 @@ class TOTPSetupResponse(BaseModel):
 
 
 @router.post("/setup", response_model=TOTPSetupResponse)
+@limiter.limit("10/minute")
 async def setup_totp(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
@@ -59,7 +61,9 @@ class TOTPVerifyRequest(BaseModel):
 
 
 @router.post("/verify-setup")
+@limiter.limit("5/minute")
 async def verify_totp_setup(
+    request: Request,
     payload: TOTPVerifyRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -81,7 +85,9 @@ async def verify_totp_setup(
 
 
 @router.post("/disable")
+@limiter.limit("10/minute")
 async def disable_totp(
+    request: Request,
     payload: TOTPVerifyRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -148,7 +154,9 @@ async def confirm_2fa(
 
 
 @router.post("/sms/enable")
+@limiter.limit("10/minute")
 async def enable_sms_2fa(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
@@ -174,7 +182,9 @@ class SMSVerifyRequest(BaseModel):
 
 
 @router.post("/sms/verify-enable")
+@limiter.limit("5/minute")
 async def verify_sms_enable(
+    request: Request,
     payload: SMSVerifyRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -194,7 +204,9 @@ async def verify_sms_enable(
 # backup codes
 
 @router.post("/backup-codes/generate")
+@limiter.limit("10/minute")
 async def generate_backup_codes(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),

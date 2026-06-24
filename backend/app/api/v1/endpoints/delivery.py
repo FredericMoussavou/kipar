@@ -25,7 +25,9 @@ router = APIRouter(prefix="/delivery", tags=["delivery"])
 
 
 @router.post("/{booking_id}/generate-code", response_model=DeliveryCodeResponse)
+@limiter.limit("5/minute")
 async def generate_delivery_code(
+    request: Request,
     booking_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -642,7 +644,9 @@ async def confirm_pickup_meeting(
 
 
 @router.post("/{booking_id}/generate-pickup-code")
+@limiter.limit("5/minute")
 async def generate_pickup_code(
+    request: Request,
     booking_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),

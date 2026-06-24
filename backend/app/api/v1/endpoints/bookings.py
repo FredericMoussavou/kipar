@@ -1226,7 +1226,8 @@ async def set_pickup_meeting(booking_id: str, payload: MeetingDateRequest, db: A
     return {"status": "success", "pickup_meeting_date": b.pickup_meeting_date}
 
 @router.post("/{booking_id}/pickup/generate-code", response_model=PickupCodeResponse)
-async def generate_pickup_code(booking_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+@limiter.limit("5/minute")
+async def generate_pickup_code(request: Request, booking_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     res = await db.execute(select(Booking).where(Booking.id == booking_id))
     b = res.scalar_one_or_none()
     trip_res = await db.execute(select(Trip).where(Trip.id == b.trip_id))
@@ -1238,7 +1239,8 @@ async def generate_pickup_code(booking_id: str, db: AsyncSession = Depends(get_d
     return {"booking_id": b.id, "code": code}
 
 @router.post("/{booking_id}/pickup/validate")
-async def validate_pickup(booking_id: str, payload: ValidatePickupRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+@limiter.limit("5/minute")
+async def validate_pickup(request: Request, booking_id: str, payload: ValidatePickupRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     res = await db.execute(select(Booking).where(Booking.id == booking_id))
     b = res.scalar_one_or_none()
     if current_user.id != b.sender_id: raise HTTPException(403)

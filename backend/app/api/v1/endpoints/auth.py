@@ -305,7 +305,9 @@ async def forgot_password(
 
 
 @router.post("/reset-password", response_model=dict)
+@limiter.limit("5/minute")
 async def reset_password(
+    request: Request,
     payload: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),
 ):
@@ -342,6 +344,7 @@ async def reset_password(
 
 
 @router.post("/change-password", response_model=dict)
+@limiter.limit("5/minute")
 async def change_password(
     payload: ChangePasswordRequest,
     request: Request,
@@ -452,6 +455,7 @@ async def logout(
 
 
 @router.post("/reactivate")
+@limiter.limit("10/minute")
 async def request_reactivation(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -493,6 +497,7 @@ async def request_reactivation(
     
 
 @router.post("/reactivate/confirm")
+@limiter.limit("5/minute")
 async def confirm_reactivation(
     request: Request,
     db: AsyncSession = Depends(get_db),

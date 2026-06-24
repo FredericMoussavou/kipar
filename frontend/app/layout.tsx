@@ -24,6 +24,29 @@ const dmSans = DM_Sans({
 
 const seo = getT('fr').seo
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.kipar.app'
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'KIPAR',
+      url: SITE_URL,
+      description: seo.description,
+      image: `${SITE_URL}/opengraph-image`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: 'KIPAR',
+      url: SITE_URL,
+      description: seo.description,
+      inLanguage: ['fr', 'en', 'es'],
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+  ],
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: seo.title,
@@ -51,6 +74,10 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning className={`${syne.variable} ${dmSans.variable}`}>
       <body className="antialiased font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <ThemeProvider>
           <Providers>
             {children}

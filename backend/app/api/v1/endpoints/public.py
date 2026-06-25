@@ -54,13 +54,28 @@ def _to_public(trip: Trip, trust: float | None) -> dict:
 
 
 @router.get('/trips', response_model=list[PublicTripResponse])
-async def public_list_trips(db: AsyncSession = Depends(get_db)):
-    query = (
-        select(Trip)
-        .where(_available_filter())
-        .order_by(Trip.departure_date.asc())
-        .limit(PUBLIC_LIMIT)
-    )
+async def public_list_trips(
+    origin: str | None = None,
+    destination: str | None = None,
+    date_min: str | None = None,
+    limit: int = PUBLIC_LIMIT,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    # Bornage anti-abus : limit dans [1, 50], offset >= 0
+    limit = max(1, min(limit, 50))
+    offset = max(0, offset)
+    query = select(Trip).where(_available_filter())
+    if origin:
+        query = query.where(Trip.origin_airport_code == origin.upper())
+    if destination:
+        query = query.where(Trip.destination_airport_code == destination.upper())
+    if date_min:
+        try:
+            query = query.where(Trip.departure_date >= dclass.fromisoformat(date_min))
+        except ValueError:
+            raise HTTPException(status_code=400, detail='invalid_date_min')
+    query = query.order_by(Trip.departure_date.asc()).limit(limit).offset(offset)
     result = await db.execute(query)
     trips = result.scalars().all()
     if not trips:

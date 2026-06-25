@@ -11,15 +11,15 @@ class TripCreate(BaseModel):
     destination_city: str = Field(..., max_length=100)
     destination_airport_code: str = Field(..., max_length=10)
     departure_date: date
-    departure_time: str | None = Field(None, max_length=20)
-    arrival_date: date | None = None
-    arrival_time: str | None = Field(None, max_length=20)
-    flight_number: str | None = Field(None, max_length=30)
+    departure_time: str = Field(..., max_length=20)
+    arrival_date: date
+    arrival_time: str = Field(..., max_length=20)
+    flight_number: str = Field(..., max_length=30)
     airline: str | None = Field(None, max_length=100)
     
-    total_kg: float | None = None
+    total_kg: float
     max_kg_per_package: float = 5.0
-    price_per_kg: float | None = None
+    price_per_kg: float
     small_package_price: float | None = None
     
     # Sécurisation des valeurs structurelles par des choix stricts (Literal)
@@ -35,7 +35,7 @@ class TripCreate(BaseModel):
             raise ValueError(f"IATA_INVALID:{code}")
         return code
 
-    @field_validator("total_kg", "max_kg_per_package")
+    @field_validator("total_kg", "max_kg_per_package", "price_per_kg")
     @classmethod
     def positive_values(cls, v: float | None) -> float | None:
         if v is not None and v <= 0:
@@ -56,6 +56,12 @@ class TripCreate(BaseModel):
         has_small = self.small_package_price is not None
         if not has_kg and not has_small:
             raise ValueError("TRIP_NO_MODE")
+        return self
+
+    @model_validator(mode="after")
+    def max_kg_within_total(self):
+        if self.total_kg is not None and self.max_kg_per_package > self.total_kg:
+            raise ValueError("MAX_KG_EXCEEDS_TOTAL")
         return self
 
 # Les schémas de réponse restent inchangés car ils ne servent qu'à la sortie (Output)

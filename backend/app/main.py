@@ -51,6 +51,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         if "IATA_INVALID:" in msg:
             code = msg.split("IATA_INVALID:")[1].strip()
             msg = t("errors.airport_iata_invalid", lang, code=code)
+        elif "PHOTOS_REQUIRED" in msg:
+            msg = t("errors.photos_required", lang)
+        elif "MAX_KG_EXCEEDS_TOTAL" in msg:
+            msg = t("errors.max_kg_exceeds_total", lang)
+        elif "TRIP_NO_MODE" in msg:
+            msg = t("errors.trip_no_mode", lang)
 
         errors.append({
             "field": " → ".join(str(x) for x in error.get("loc", [])),

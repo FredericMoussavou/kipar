@@ -59,6 +59,13 @@ class PackageRequestCreate(BaseModel):
             raise ValueError("La valeur doit etre positive")
         return v
 
+    @field_validator("photos")
+    @classmethod
+    def photos_required(cls, v: list[str]) -> list[str]:
+        if not v or len([p for p in v if p and p.strip()]) < 1:
+            raise ValueError("PHOTOS_REQUIRED")
+        return v
+
     @model_validator(mode="after")
     def check_budget_mode(self):
         if self.package_mode != "small" and self.budget_per_kg <= 0:

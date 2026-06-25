@@ -23,3 +23,11 @@ node_modules/
 Thumbs.db
 .debug/
 backend/seed_requests.py
+
+# Jetables dev
+p1.py
+diag.py
+count_*.py
+fk_*.py
+purge.py
+nul

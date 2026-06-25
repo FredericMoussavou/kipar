@@ -428,6 +428,8 @@ export const en = {
     filter_urgent: 'Urgent', 
     filter_urgent_active: 'Urgent only', 
     filter_small_packages: 'Small parcels',
+    load_more: 'Show more',
+    loading_more: 'Loading...',
   },
   carrierFinance: {
     title: 'My finances',
@@ -1063,6 +1065,7 @@ export const en = {
     trips_kg_left: 'available',
     trips_small_only: 'Small parcel',
     trips_trust: 'Trust',
+    trips_see_all: 'Search for a trip',
     how_title: "How does it work?", 
     how_step1_title: "Post your listing", 
     how_step1_desc: "Describe your parcel, its weight and destination. Our KiparScan AI analyzes your photos to validate the contents.", 

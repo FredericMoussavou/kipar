@@ -428,6 +428,8 @@ export const fr = {
     filter_urgent: 'Urgents',
     filter_urgent_active: 'Urgents uniquement',
     filter_small_packages: 'Petits colis',
+    load_more: 'Voir plus',
+    loading_more: 'Chargement...',
   },
   carrierFinance: {
     title: 'Mes finances',
@@ -1142,6 +1144,7 @@ export const fr = {
     trips_kg_left: 'disponibles',
     trips_small_only: 'Petit colis',
     trips_trust: 'Trust',
+    trips_see_all: 'Rechercher un trajet',
     how_title: 'Comment ça marche ?',
     how_step1_title: 'Déposez votre annonce',
     how_step1_desc: 'Décrivez votre colis, son poids et sa destination. Notre IA KiparScan analyse vos photos pour valider le contenu.',

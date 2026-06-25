@@ -319,6 +319,12 @@ export default function LandingPage() {
             smallLabel={t.landing.trips_small_only} kgLabel={t.landing.trips_kg_left} trustLabel={t.landing.trips_trust} />
         ))}
       </div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+        <Link href="/recherche" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '14px 24px' : '16px 36px', borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>
+          {t.landing.trips_see_all}
+          <ArrowRight size={18} />
+        </Link>
+      </div>
     </div>
   </section>
 )}

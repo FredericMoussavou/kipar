@@ -17,9 +17,9 @@ class TripCreate(BaseModel):
     flight_number: str = Field(..., max_length=30)
     airline: str | None = Field(None, max_length=100)
     
-    total_kg: float
+    total_kg: float | None = None
     max_kg_per_package: float = 5.0
-    price_per_kg: float
+    price_per_kg: float | None = None
     small_package_price: float | None = None
     
     # Sécurisation des valeurs structurelles par des choix stricts (Literal)

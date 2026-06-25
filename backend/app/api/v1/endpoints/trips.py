@@ -170,9 +170,14 @@ async def search_trips(
     date: str | None = None,
     sort_by: str | None = None,
     mine: bool = False,
+    limit: int = 20,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
+    # Bornage anti-abus : limit dans [1, 50], offset >= 0
+    limit = max(1, min(limit, 50))
+    offset = max(0, offset)
     if mine and current_user:
         query = select(Trip).where(Trip.carrier_id == current_user.id, Trip.deleted_at.is_(None)).order_by(Trip.created_at.desc())
     else:
@@ -190,6 +195,7 @@ async def search_trips(
             query = query.order_by(Trip.price_per_kg.desc())
         else:
             query = query.order_by(Trip.departure_date.asc())
+    query = query.limit(limit).offset(offset)
     result = await db.execute(query)
     trips = result.scalars().all()
     if not trips:

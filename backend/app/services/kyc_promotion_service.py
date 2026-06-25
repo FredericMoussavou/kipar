@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.trip import Trip
+from app.models.package_request import PackageRequest
 from app.services.notif_db_service import create_notification
 
 
@@ -19,6 +20,17 @@ _CARRIER_BODY = {
     "fr": "Une reservation en attente de validation KYC est maintenant disponible a l'acceptation.",
     "en": "A booking pending KYC validation is now available to accept.",
     "es": "Una reserva pendiente de validacion KYC ya esta disponible para aceptar.",
+}
+_PUBLISHED_TITLE = {"fr": "Publication en ligne", "en": "Now published", "es": "Publicacion en linea"}
+_TRIP_PUBLISHED_BODY = {
+    "fr": "Votre trajet est valide et desormais visible publiquement.",
+    "en": "Your trip is verified and now publicly visible.",
+    "es": "Tu viaje esta verificado y ahora es visible publicamente.",
+}
+_REQUEST_PUBLISHED_BODY = {
+    "fr": "Votre annonce est validee et desormais visible publiquement.",
+    "en": "Your request is verified and now publicly visible.",
+    "es": "Tu anuncio esta verificado y ahora es visible publicamente.",
 }
 
 
@@ -55,4 +67,42 @@ async def promote_pending_kyc_bookings(user: User, db: AsyncSession) -> int:
         )
 
 
-    return len(bookings)
+    # Promotion des trajets pending_kyc (publication differee transporteur)
+    trips_result = await db.execute(
+        select(Trip).where(
+            Trip.carrier_id == user.id,
+            Trip.status == "pending_kyc",
+            Trip.deleted_at.is_(None),
+        )
+    )
+    trips = trips_result.scalars().all()
+    for trip in trips:
+        trip.status = "open"
+        await create_notification(
+            db=db, user_id=trip.carrier_id,
+            type="trip_published",
+            title=_PUBLISHED_TITLE.get(slang, _PUBLISHED_TITLE["fr"]),
+            body=_TRIP_PUBLISHED_BODY.get(slang, _TRIP_PUBLISHED_BODY["fr"]),
+            link=f"/trips/{trip.id}",
+        )
+
+    # Promotion des annonces pending_kyc (publication differee expediteur)
+    reqs_result = await db.execute(
+        select(PackageRequest).where(
+            PackageRequest.sender_id == user.id,
+            PackageRequest.status == "pending_kyc",
+            PackageRequest.deleted_at.is_(None),
+        )
+    )
+    reqs = reqs_result.scalars().all()
+    for req in reqs:
+        req.status = "open"
+        await create_notification(
+            db=db, user_id=req.sender_id,
+            type="request_published",
+            title=_PUBLISHED_TITLE.get(slang, _PUBLISHED_TITLE["fr"]),
+            body=_REQUEST_PUBLISHED_BODY.get(slang, _REQUEST_PUBLISHED_BODY["fr"]),
+            link=f"/requests/{req.id}",
+        )
+
+    return len(bookings) + len(trips) + len(reqs)

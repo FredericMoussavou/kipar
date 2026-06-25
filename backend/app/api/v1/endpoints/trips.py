@@ -53,15 +53,16 @@ async def create_trip(
     lang: str = Depends(get_lang),
 ):
     import os
-    if os.environ.get("ENVIRONMENT") != "test" and current_user.kyc_status != "approved":
-        raise HTTPException(status_code=403, detail=t("errors.kyc_required", lang))
+    # Publication differee : un user non-approuve KYC peut creer, mais en brouillon (pending_kyc),
+    # invisible du public et promu automatiquement apres validation KYC.
+    is_kyc_ok = os.environ.get("ENVIRONMENT") == "test" or current_user.kyc_status == "approved"
     from app.api.v1.endpoints.premium import is_premium_active
     from sqlalchemy import func
     if not is_premium_active(current_user):
         active_trips_result = await db.execute(
             select(func.count()).where(
                 Trip.carrier_id == current_user.id,
-                Trip.status.in_(["open", "full"]),
+                Trip.status.in_(["open", "full", "pending_kyc"]),
                 Trip.deleted_at.is_(None),
             )
         )
@@ -116,6 +117,7 @@ async def create_trip(
 
     trip = Trip(
         carrier_id=current_user.id,
+        status="open" if is_kyc_ok else "pending_kyc",
         origin_city=payload.origin_city,
         origin_airport_code=payload.origin_airport_code,
         destination_city=payload.destination_city,

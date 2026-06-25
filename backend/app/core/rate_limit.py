@@ -27,7 +27,7 @@ def get_real_client_ip(request: Request) -> str:
 limiter = Limiter(
     key_func=get_real_client_ip,
     storage_uri=settings.REDIS_URL,
-    enabled=settings.ENVIRONMENT != "test",
+    enabled=settings.is_production,
 )
 
 

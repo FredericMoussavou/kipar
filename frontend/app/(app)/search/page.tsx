@@ -10,6 +10,7 @@ import { useResponsive } from '@/hooks/useResponsive'
 import { useBookingStore } from '@/stores/booking.store'
 import { useAuthStore } from '@/stores/auth.store'
 import TripCard from '@/components/trips/TripCard'
+import AirportInput from '@/components/trips/AirportInput'
 import HeroHeader from '@/components/layout/HeroHeader'
 import DatePicker from '@/components/ui/kipar/DatePicker'
 import Select from '@/components/ui/kipar/Select'
@@ -17,72 +18,6 @@ import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 
 const LIGHT_OVERRIDE: React.CSSProperties = { '--k-bg': '#ffffff', '--k-white': '#ffffff', '--k-charcoal': '#1A1A1A', '--k-border': 'rgba(255,255,255,0.4)' } as React.CSSProperties
-
-function AirportInput({ value, onChange, onSelect, suggestions, onClear, placeholder, label }: {
-  value: string
-  onChange: (v: string) => void
-  onSelect: (a: any) => void
-  suggestions: any[]
-  onClear: () => void
-  placeholder: string
-  label: string
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [dropdownStyle, setDropdownStyle] = useState<any>(null)
-
-  useEffect(() => {
-    if (suggestions.length > 0 && ref.current) {
-      const rect = ref.current.getBoundingClientRect()
-      setDropdownStyle({
-        position: 'fixed' as const,
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        background: WHITE,
-        borderRadius: 10,
-        overflow: 'hidden',
-        zIndex: 9999,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-      })
-    } else {
-      setDropdownStyle(null)
-    }
-  }, [suggestions])
-
-  return (
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</p>
-      <div ref={ref} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: '10px 12px' }}>
-        <Search size={13} color={TAUPE} />
-        <input
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder={placeholder}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: CHARCOAL, fontSize: 13, minWidth: 0 }}
-        />
-        {value && (
-          <button onClick={onClear} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <X size={12} color={TAUPE} />
-          </button>
-        )}
-      </div>
-      {dropdownStyle && suggestions.length > 0 && (
-        <div style={dropdownStyle}>
-          {suggestions.map((a: any) => (
-            <div key={a.code} onClick={() => onSelect(a)}
-              style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid ' + SAND, display: 'flex', alignItems: 'center', gap: 8 }}
-              onMouseEnter={e => (e.currentTarget.style.background = SAND)}
-              onMouseLeave={e => (e.currentTarget.style.background = WHITE)}>
-              <span style={{ fontFamily: 'var(--font-syne,Syne)', fontWeight: 700, color: CHARCOAL, fontSize: 13 }}>{a.code}</span>
-              <span style={{ fontSize: 11, color: TAUPE }}>{a.city}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 
 export default function SearchPage() {
   const { t } = useTranslation()

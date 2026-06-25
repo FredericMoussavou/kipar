@@ -371,7 +371,7 @@ export const fr = {
     pickup_validated: 'Collecte validée — le colis est en transit !',
     pickup_code_invalid: 'Code incorrect',
     pickup_date_constraint: 'Le RDV doit avoir lieu au moins 3h avant le départ du vol',
-    pickup_rdv_required: 'Valisez d’abord la date de RDV collecte',
+    pickup_rdv_required: 'Validez d’abord la date de RDV collecte',
     delivery_meeting_propose_btn: 'Proposer un RDV livraison',
     delivery_meeting_reschedule_btn: 'Proposer un autre horaire',
     delivery_meeting_proposed: 'Proposition envoyée — en attente de validation',

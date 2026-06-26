@@ -60,6 +60,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cgu, setCgu] = useState(false)
+  const [authMode, setAuthMode] = useState<'register' | 'login'>('register')
 
   // Etapes : colis / trajet / (vos infos si visiteur)
   const steps = useMemo(() => {
@@ -109,8 +110,12 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
       if (!receiver || !deadline) { toast.error(t.validation.required); return false }
     }
     if (s === 'infos') {
-      if (!firstName || !lastName || !email || !password) { toast.error(t.validation.required); return false }
-      if (!cgu) { toast.error(t.auth.cgu_required); return false }
+      if (authMode === 'login') {
+        if (!email || !password) { toast.error(t.validation.required); return false }
+      } else {
+        if (!firstName || !lastName || !email || !password) { toast.error(t.validation.required); return false }
+        if (!cgu) { toast.error(t.auth.cgu_required); return false }
+      }
     }
     return true
   }
@@ -134,7 +139,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
     const userInfo: GuestUserInfo | undefined = isVisitor
       ? { first_name: firstName, last_name: lastName, email, password, cgu_accepted: cgu }
       : undefined
-    await submitPublish('request', payload, userInfo)
+    await submitPublish('request', payload, userInfo, authMode)
   }
 
   const grid2 = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 } as const
@@ -246,16 +251,29 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
 
         {currentStep === 'infos' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={grid2}>
-              <Input label={t.auth.first_name} required value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle} />
-              <Input label={t.auth.last_name} required value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle} />
+            {/* Toggle nouveau compte / compte existant */}
+            <div style={{ display: 'flex', gap: 6, padding: 4, background: '#F2EFEA', borderRadius: 10 }}>
+              {(['register', 'login'] as const).map(m => (
+                <button key={m} type="button" onClick={() => setAuthMode(m)}
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: 'none', background: authMode === m ? WHITE : 'transparent', color: authMode === m ? CHARCOAL : TAUPE, fontSize: 13, fontWeight: authMode === m ? 600 : 500, cursor: 'pointer', boxShadow: authMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.15s' }}>
+                  {m === 'register' ? t.publish.auth_new : t.publish.auth_existing}
+                </button>
+              ))}
             </div>
+            {authMode === 'register' && (
+              <div style={grid2}>
+                <Input label={t.auth.first_name} required value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle} />
+                <Input label={t.auth.last_name} required value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle} />
+              </div>
+            )}
             <Input label={t.auth.email_label} type="email" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
             <Input label={t.auth.password_label} type="password" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: TAUPE, cursor: 'pointer' }}>
-              <input type="checkbox" checked={cgu} onChange={e => setCgu(e.target.checked)} style={{ marginTop: 2, accentColor: RED }} />
-              <span>{t.auth.cgu_label}</span>
-            </label>
+            {authMode === 'register' && (
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: TAUPE, cursor: 'pointer' }}>
+                <input type="checkbox" checked={cgu} onChange={e => setCgu(e.target.checked)} style={{ marginTop: 2, accentColor: RED }} />
+                <span>{t.auth.cgu_label}</span>
+              </label>
+            )}
           </div>
         )}
       </div>

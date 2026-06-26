@@ -1217,6 +1217,10 @@ export const en = {
     step_label: 'Step',
     prev_btn: 'Back',
     next_btn: 'Next',
+    auth_new: 'New account',
+    auth_existing: 'I have an account',
+    login_failed: 'Invalid credentials.',
+    login_2fa: 'Please log in from the login page to finalize publishing.',
   },
   faq: { 
     page_title: 'Frequently Asked Questions', 

@@ -1217,6 +1217,10 @@ export const es = {
     step_label: 'Paso',
     prev_btn: 'Anterior',
     next_btn: 'Siguiente',
+    auth_new: 'Cuenta nueva',
+    auth_existing: 'Ya tengo una cuenta',
+    login_failed: 'Credenciales inválidas.',
+    login_2fa: 'Inicie sesión desde la página de acceso para finalizar la publicación.',
   },
   faq: {
     page_title: 'Preguntas Frecuentes',

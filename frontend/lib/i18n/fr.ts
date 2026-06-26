@@ -1217,6 +1217,10 @@ export const fr = {
     step_label: 'Étape',
     prev_btn: 'Précédent',
     next_btn: 'Suivant',
+    auth_new: 'Nouveau compte',
+    auth_existing: "J'ai un compte",
+    login_failed: 'Identifiants invalides.',
+    login_2fa: 'Connectez-vous depuis la page de connexion pour finaliser la publication.',
   },
   faq: {
     page_title: 'Foire Aux Questions',

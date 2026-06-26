@@ -10,81 +10,61 @@ import { getLangCookie } from '@/lib/langCookie'
 /**
  * Hook de publication depuis la landing (formulaire public a 2 onglets).
  *
- * Gere les 3 cas :
- *  - VISITEUR (pas de token) : on persiste l'objet en sessionStorage (kipar_pending_publish),
- *    on cree le compte (POST /auth/register) puis on redirige vers /onboarding.
- *    La PUBLICATION reelle (POST /trips|/requests) est effectuee plus tard par la reprise
- *    au dashboard (consumePendingPublish), une fois l'onboarding termine.
- *  - CONNECTE + KYC ok : POST direct -> objet "open".
- *  - CONNECTE + KYC non ok : POST direct -> objet "pending_kyc".
- *  (Le backend pose le bon statut ; le front se contente d'appeler le POST.)
- *
- * Apres publication, redirection vers la page de l'objet cree.
+ * Cas geres :
+ *  - CONNECTE : POST direct (le backend pose open|pending_kyc), redirection vers l'objet.
+ *  - VISITEUR / NOUVEAU COMPTE (mode 'register') : persiste l'objet, cree le compte,
+ *    authentifie (token + user), va sur /onboarding. La publication reelle se fait a la
+ *    reprise au dashboard (consumePendingPublish) une fois l'onboarding termine.
+ *  - VISITEUR / COMPTE EXISTANT (mode 'login') : login (email+password), authentifie,
+ *    puis publie DIRECTEMENT (l'utilisateur est deja onboarde). Si 2FA active : on ne
+ *    contourne pas -> message + redirection vers /login (le pending est conserve).
  */
 
 export type PublishType = 'trip' | 'request'
+export type PublishMode = 'register' | 'login'
 
 export interface GuestUserInfo {
-  first_name: string
-  last_name: string
   email: string
   password: string
-  cgu_accepted: boolean
+  // Requis seulement en mode 'register' :
+  first_name?: string
+  last_name?: string
+  cgu_accepted?: boolean
 }
 
 export interface PendingPublish {
   type: PublishType
-  // payload deja pret pour l'API (champs convertis : floats, dates ISO, etc.)
   payload: Record<string, any>
 }
 
 const PENDING_KEY = 'kipar_pending_publish'
 
-/** Endpoint API selon le type d'objet. */
 function endpointFor(type: PublishType): string {
   return type === 'trip' ? '/trips' : '/requests'
 }
-
-/** Page de destination apres creation, selon le type. */
 function objectPath(type: PublishType, id: string): string {
   return type === 'trip' ? `/trips/${id}` : `/requests/${id}`
 }
 
-/** Stocke l'objet a publier (cas visiteur), pour survie au flow register -> onboarding. */
 export function storePendingPublish(pending: PendingPublish) {
   if (typeof window === 'undefined') return
-  try {
-    sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending))
-  } catch {
-    // quota/securite -> on ignore silencieusement
-  }
+  try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending)) } catch { /* ignore */ }
 }
-
-/** Lit (sans supprimer) l'objet en attente. */
 export function readPendingPublish(): PendingPublish | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = sessionStorage.getItem(PENDING_KEY)
     return raw ? (JSON.parse(raw) as PendingPublish) : null
-  } catch {
-    return null
-  }
+  } catch { return null }
 }
-
-/** Efface l'objet en attente. */
 export function clearPendingPublish() {
   if (typeof window === 'undefined') return
-  try {
-    sessionStorage.removeItem(PENDING_KEY)
-  } catch {
-    // ignore
-  }
+  try { sessionStorage.removeItem(PENDING_KEY) } catch { /* ignore */ }
 }
 
 /**
  * Reprise post-onboarding : a appeler au dashboard.
  * Si un objet est en attente, le publie puis redirige vers sa page.
- * Retourne true si une publication a ete tentee (pour eviter d'autres redirections).
  */
 export async function consumePendingPublish(
   push: (path: string) => void,
@@ -95,12 +75,9 @@ export async function consumePendingPublish(
     const res = await api.post(endpointFor(pending.type), pending.payload)
     clearPendingPublish()
     const id = res?.data?.id
-    if (id) {
-      push(objectPath(pending.type, id))
-    }
+    if (id) push(objectPath(pending.type, id))
     return true
   } catch (err: any) {
-    // En cas d'echec (ex: 422), on nettoie pour ne pas boucler, et on laisse l'user au dashboard.
     clearPendingPublish()
     toast.error(extractApiError(err, 'La publication a echoue, veuillez reessayer depuis votre espace.'))
     return false
@@ -112,41 +89,73 @@ export function useGuestPublish() {
   const { isAuthenticated, setToken, setRefreshToken, refreshUser } = useAuthStore()
   const [submitting, setSubmitting] = useState(false)
 
+  /** Publie directement l'objet (utilisateur authentifie) et redirige vers sa page. */
+  const publishDirect = async (type: PublishType, payload: Record<string, any>) => {
+    const res = await api.post(endpointFor(type), payload)
+    const id = res?.data?.id
+    if (id) router.push(objectPath(type, id))
+  }
+
   /**
-   * Soumet une publication depuis la landing.
-   * @param type 'trip' | 'request'
-   * @param payload corps API pret a l'emploi
-   * @param userInfo infos de compte (requis seulement si visiteur)
+   * @param mode 'register' (nouveau compte) | 'login' (compte existant). Defaut 'register'.
    */
   const submitPublish = async (
     type: PublishType,
     payload: Record<string, any>,
     userInfo?: GuestUserInfo,
+    mode: PublishMode = 'register',
   ): Promise<void> => {
     setSubmitting(true)
     try {
+      // Deja connecte : publication directe.
       if (isAuthenticated()) {
-        // CONNECTE : publication directe, le backend pose open|pending_kyc.
-        const res = await api.post(endpointFor(type), payload)
-        const id = res?.data?.id
-        if (id) router.push(objectPath(type, id))
+        await publishDirect(type, payload)
         return
       }
 
-      // VISITEUR : il faut les infos de compte.
       if (!userInfo) {
         toast.error('Informations de compte manquantes.')
         return
       }
+
+      // ===== MODE LOGIN (compte existant) =====
+      if (mode === 'login') {
+        try {
+          const res = await api.post('/auth/login', {
+            email: userInfo.email,
+            password: userInfo.password,
+          })
+          // 2FA active -> on ne contourne pas : message + redirection login (pending conserve).
+          if (res?.data?.token_type === '2fa_required' || !res?.data?.access_token) {
+            storePendingPublish({ type, payload })
+            toast.message('Connectez-vous depuis la page de connexion pour finaliser la publication.')
+            router.push('/login')
+            return
+          }
+          setToken(res.data.access_token)
+          if (res.data.refresh_token) setRefreshToken(res.data.refresh_token)
+          await refreshUser()
+        } catch (err: any) {
+          toast.error(extractApiError(err, 'Identifiants invalides.'))
+          return
+        }
+        // Utilisateur existant deja onboarde -> publication directe.
+        try {
+          await publishDirect(type, payload)
+        } catch (err: any) {
+          toast.error(extractApiError(err, 'La publication a echoue.'))
+        }
+        return
+      }
+
+      // ===== MODE REGISTER (nouveau compte) =====
       if (!userInfo.cgu_accepted) {
         toast.error('Vous devez accepter les conditions generales.')
         return
       }
-
       // 1) persister l'objet pour survie au flow register -> onboarding
       storePendingPublish({ type, payload })
-
-      // 2) creer le compte ET authentifier (stocker le token retourne)
+      // 2) creer le compte ET authentifier
       try {
         const reg = await api.post('/auth/register', {
           first_name: userInfo.first_name,
@@ -156,19 +165,15 @@ export function useGuestPublish() {
           language: getLangCookie(),
           cgu_accepted: userInfo.cgu_accepted,
         })
-        // Sans cela, le layout (app) ne voit pas de token -> redirige /onboarding vers /login.
         if (reg?.data?.access_token) setToken(reg.data.access_token)
         if (reg?.data?.refresh_token) setRefreshToken(reg.data.refresh_token)
-        // Charger le user (GET /users/me) : le register ne retourne que le token.
         await refreshUser()
       } catch (err: any) {
-        // register a echoue -> on retire l'objet en attente (sinon il serait publie au prochain login)
         clearPendingPublish()
         toast.error(extractApiError(err, 'La creation du compte a echoue.'))
         return
       }
-
-      // 3) vers l'onboarding ; la publication se fera a la reprise (dashboard)
+      // 3) vers l'onboarding ; publication a la reprise (dashboard)
       router.push('/onboarding')
     } finally {
       setSubmitting(false)

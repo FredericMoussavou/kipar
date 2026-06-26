@@ -56,7 +56,7 @@ export default function PublishForm() {
       </div>
 
       {/* Contenu */}
-      <div style={{ padding: isMobile ? 20 : 28, height: isMobile ? 'auto' : 490, overflowY: isMobile ? 'visible' : 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: isMobile ? 20 : 28, height: isMobile ? 'auto' : 600, overflowY: isMobile ? 'visible' : 'auto', display: 'flex', flexDirection: 'column' }}>
         {tab === 'sender'
           ? <SenderPublishTab isVisitor={isVisitor} isMobile={isMobile} />
           : <CarrierPublishTab isVisitor={isVisitor} isMobile={isMobile} />}

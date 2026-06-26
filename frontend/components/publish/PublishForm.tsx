@@ -43,11 +43,10 @@ export default function PublishForm() {
       borderRadius: 16,
       border: `1px solid ${BORDER}`,
       boxShadow: '0 16px 50px rgba(26,26,26,0.16)',
-      overflow: 'hidden',
       width: '100%',
     }}>
       {/* En-tete onglets */}
-      <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}` }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}`, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }}>
         <button type="button" onClick={() => setTab('sender')} style={tabBtn(tab === 'sender')}>
           {t.publish?.tab_sender ?? 'Envoyer un colis'}
         </button>
@@ -57,7 +56,7 @@ export default function PublishForm() {
       </div>
 
       {/* Contenu */}
-      <div style={{ padding: isMobile ? 20 : 28 }}>
+      <div style={{ padding: isMobile ? 20 : 28, height: isMobile ? 'auto' : 490, overflowY: isMobile ? 'visible' : 'auto', display: 'flex', flexDirection: 'column' }}>
         {tab === 'sender'
           ? <SenderPublishTab isVisitor={isVisitor} isMobile={isMobile} />
           : <CarrierPublishTab isVisitor={isVisitor} isMobile={isMobile} />}

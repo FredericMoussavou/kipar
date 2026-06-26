@@ -109,7 +109,7 @@ export async function consumePendingPublish(
 
 export function useGuestPublish() {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, setToken, setRefreshToken, refreshUser } = useAuthStore()
   const [submitting, setSubmitting] = useState(false)
 
   /**
@@ -146,9 +146,9 @@ export function useGuestPublish() {
       // 1) persister l'objet pour survie au flow register -> onboarding
       storePendingPublish({ type, payload })
 
-      // 2) creer le compte
+      // 2) creer le compte ET authentifier (stocker le token retourne)
       try {
-        await api.post('/auth/register', {
+        const reg = await api.post('/auth/register', {
           first_name: userInfo.first_name,
           last_name: userInfo.last_name,
           email: userInfo.email,
@@ -156,6 +156,11 @@ export function useGuestPublish() {
           language: getLangCookie(),
           cgu_accepted: userInfo.cgu_accepted,
         })
+        // Sans cela, le layout (app) ne voit pas de token -> redirige /onboarding vers /login.
+        if (reg?.data?.access_token) setToken(reg.data.access_token)
+        if (reg?.data?.refresh_token) setRefreshToken(reg.data.refresh_token)
+        // Charger le user (GET /users/me) : le register ne retourne que le token.
+        await refreshUser()
       } catch (err: any) {
         // register a echoue -> on retire l'objet en attente (sinon il serait publie au prochain login)
         clearPendingPublish()

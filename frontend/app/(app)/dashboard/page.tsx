@@ -21,6 +21,7 @@ import { RED, CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
 type Corridor = { label: string; origin: string | null; dest: string | null }
 const DEFAULT_CORRIDORS: Corridor[] = [{ label: 'Tous', origin: null, dest: null }]
 
+import { consumePendingPublish } from '@/components/publish/useGuestPublish'
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user, setUser } = useAuthStore()
@@ -49,6 +50,17 @@ export default function DashboardPage() {
       router.push(`/trips/${tid}`)
     }
   }, [user])
+
+  // Reprise publication differee (visiteur ayant publie depuis la landing)
+  const _publishConsumed = useRef(false)
+  useEffect(() => {
+    if (_publishConsumed.current) return
+    if (user?.onboarding_completed) {
+      _publishConsumed.current = true
+      consumePendingPublish((path) => router.push(path))
+    }
+  }, [user])
+
   const corridor = corridors[activeCorr] ?? DEFAULT_CORRIDORS[0]
 
   useState(() => {

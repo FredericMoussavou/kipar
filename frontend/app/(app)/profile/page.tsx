@@ -382,13 +382,13 @@ export default function ProfilePage() {
     setToast({ message, type })
   }
 
+  const { startKyc, isLoading: kycLoading } = useKyc({ onApproved: () => refreshUser() })
   if (!user) return null
 
   const fullName = `${user.first_name} ${user.last_name}`
   const initials = `${user.first_name[0] || ''}${user.last_name[0] || ''}`
   const avatarUrl = getAvatarUrl(user.avatar_url, 200)
   const isKycVerified = user.kyc_status === 'approved'
-  const { startKyc, isLoading: kycLoading } = useKyc({ onApproved: () => refreshUser() })
   const isEmailVerified = user.email_verified ?? false
   const isPhoneVerified = user.phone_verified ?? false
 

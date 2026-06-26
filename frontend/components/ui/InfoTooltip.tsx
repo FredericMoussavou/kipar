@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Info } from 'lucide-react'
-import { TAUPE, CHARCOAL, WHITE, BORDER } from '@/lib/theme'
+import { TAUPE, SAND, WHITE, BORDER, CHARCOAL } from '@/lib/theme'
 
 /**
  * Petite bulle d'info : icone (i) qui affiche un texte au survol (desktop)
@@ -30,8 +30,8 @@ export default function InfoTooltip({ text }: { text: string }) {
             left: '50%',
             transform: 'translateX(-50%)',
             width: 220,
-            background: CHARCOAL,
-            color: WHITE,
+            background: SAND,
+            color: CHARCOAL,
             fontSize: 11,
             lineHeight: 1.4,
             fontWeight: 400,

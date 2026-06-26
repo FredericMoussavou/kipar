@@ -867,6 +867,7 @@ export const es = {
     field_deadline: 'Fecha límite',
     field_receiver: 'Email o teléfono del receptor',
     field_photos: 'Fotos (máx 3)',
+    photos_required: 'Se requiere al menos una foto',
     submit_btn: 'Publicar mi anuncio',
     success_created: '¡Anuncio publicado!',
     applications: 'Candidaturas',

@@ -162,6 +162,10 @@ export default function NewRequestPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
+      if (photos.length === 0) {
+        toast.error(t.requests.photos_required)
+        return
+      }
       if (packageMode === 'small' && toKg(parseFloat(data.weight_kg), weightUnit) >= SMALL_PACKAGE_MAX_KG) {
         toast.error(t.booking.weight_too_big_for_small)
         return
@@ -382,7 +386,7 @@ export default function NewRequestPage() {
 
         {/* Photos */}
         <div style={sectionStyle}>
-          <p style={labelStyle}>{t.requests.field_photos}</p>
+          <p style={labelStyle}>{t.requests.field_photos}<span style={{ color: RED }}> *</span></p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {photos.map((url, i) => (
               <div key={i} style={{ position: 'relative', width: 80, height: 80 }}>

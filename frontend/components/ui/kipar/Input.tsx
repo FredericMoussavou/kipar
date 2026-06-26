@@ -38,18 +38,19 @@ if (typeof document !== 'undefined') {
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  required?: boolean
   error?: string
   leftIcon?: ReactNode
   rightIcon?: ReactNode
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
-  label, error, leftIcon, rightIcon, style, ...props
+  label, error, leftIcon, rightIcon, style, required, ...props
 }, ref) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {label && (
-        <label style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL }}>{label}</label>
+        <label style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL }}>{label}{required && <span style={{ color: RED }}> *</span>}</label>
       )}
       <div style={{ position: 'relative' }}>
         {leftIcon && (

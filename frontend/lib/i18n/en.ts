@@ -867,6 +867,7 @@ export const en = {
     field_deadline: 'Deadline', 
     field_receiver: 'Receiver email or phone', 
     field_photos: 'Photos (max 3)', 
+    photos_required: 'At least one photo is required',
     submit_btn: 'Post my listing', 
     success_created: 'Listing published!', 
     applications: 'Applications', 

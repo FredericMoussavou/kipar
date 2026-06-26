@@ -7,9 +7,10 @@ interface TimePickerProps {
   label?: string
   value: string
   onChange: (val: string) => void
+  error?: string
 }
 
-export default function TimePicker({ label, value, onChange }: TimePickerProps) {
+export default function TimePicker({ label, value, onChange, error }: TimePickerProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const [hh, mm] = value ? value.split(':') : ['', '']
@@ -45,12 +46,13 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
     <div ref={ref} style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 6 }}>
       {label && <label style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL }}>{label}</label>}
       <div onClick={() => setOpen(o => !o)}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, border: `1px solid ${open ? RED : BORDER}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, border: `1px solid ${error ? '#F87171' : open ? RED : BORDER}`, borderRadius: 10, padding: '10px 12px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
         <span style={{ flex: 1, fontSize: 13, color: displayValue ? CHARCOAL : TAUPE }}>
           {displayValue || '--:--'}
         </span>
         <Clock size={15} color={TAUPE} />
       </div>
+      {error && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 2 }}>{error}</p>}
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 1000, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 240 }}>
           <div style={{ display: 'flex', gap: 8 }}>

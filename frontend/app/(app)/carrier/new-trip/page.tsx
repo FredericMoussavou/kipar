@@ -30,10 +30,10 @@ const makeSchema = (t: any) => z.object({
   destination_city: z.string().min(2, t.validation.required),
   destination_airport_code: z.string().length(3, t.validation.iata_code),
   departure_date: z.string().min(1, t.validation.required),
-  departure_time: z.string().optional(),
-  arrival_date: z.string().optional(),
-  arrival_time: z.string().optional(),
-  flight_number: z.string().optional(),
+  departure_time: z.string().min(1, t.validation.required),
+  arrival_date: z.string().min(1, t.validation.required),
+  arrival_time: z.string().min(1, t.validation.required),
+  flight_number: z.string().min(1, t.validation.required),
   total_kg: z.string().optional(),
   max_kg_per_package: z.string().optional(),
   price_per_kg: z.string().optional(),
@@ -271,7 +271,7 @@ export default function NewTripPage() {
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_departure}</p>
             <div style={{ position: 'relative' }}>
-              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.origin_label}</p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.origin_label} *</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
                 <input value={originInput}
@@ -294,7 +294,7 @@ export default function NewTripPage() {
           <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_destination}</p>
             <div style={{ position: 'relative' }}>
-              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.dest_label}</p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: CHARCOAL, marginBottom: 6 }}>{t.carrier.dest_label} *</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: BG, borderRadius: 10, padding: '10px 12px', border: '1px solid ' + BORDER }}>
                 <Search size={13} color={TAUPE} />
                 <input value={destInput}
@@ -369,7 +369,7 @@ export default function NewTripPage() {
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{t.carrier.section_flight}</p>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
-              <DatePicker label={t.carrier.date_label} value={departureDate}
+              <DatePicker label={`${t.carrier.date_label} *`} value={departureDate}
                 onChange={v => { setDepartureDate(v); setValue('departure_date', v); setDateTouched(true) }}
                 error={errors.departure_date?.message}
                 min={(() => {
@@ -384,12 +384,14 @@ export default function NewTripPage() {
                 </p>
               )}
             </div>
-            <DatePicker label={t.carrier.arrival_date_label || 'Date d\'arrivée'} value={arrivalDate}
+            <DatePicker label={`${t.carrier.arrival_date_label || 'Date d\'arrivée'} *`} value={arrivalDate}
               onChange={v => { setArrivalDate(v); setValue('arrival_date', v) }}
+              error={errors.arrival_date?.message}
               min={departureDate || new Date().toISOString().slice(0,10)}
               defaultView={departureDate || undefined} />
             <div>
-              <Input label={t.carrier.flight_label} placeholder="AF502"
+              <Input label={`${t.carrier.flight_label} *`} placeholder="AF502"
+                error={errors.flight_number?.message}
                 {...register('flight_number')}
                 onChange={e => { register('flight_number').onChange(e); validateFlight(e.target.value) }}
               />
@@ -400,9 +402,11 @@ export default function NewTripPage() {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols === 1 ? '1fr' : '1fr 1fr', gap: 10 }}>
-            <TimePicker label={t.carrier.departure_time_label} value={departureTime}
+            <TimePicker label={`${t.carrier.departure_time_label} *`} value={departureTime}
+              error={errors.departure_time?.message}
               onChange={v => { setDepartureTime(v); setValue('departure_time', v) }} />
-            <TimePicker label={t.carrier.arrival_time_label} value={arrivalTime}
+            <TimePicker label={`${t.carrier.arrival_time_label} *`} value={arrivalTime}
+              error={errors.arrival_time?.message}
               onChange={v => { setArrivalTime(v); setValue('arrival_time', v) }} />
           </div>
         </div>

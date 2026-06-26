@@ -8,6 +8,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import { getT } from '@/lib/i18n'
 import { publicApi } from '@/lib/api'
 import PublicTripCard, { PublicTrip } from '@/components/trips/PublicTripCard'
+import PublishForm from '@/components/publish/PublishForm'
 import { useRouter } from 'next/navigation'
 
 const R = '#DC0029'
@@ -330,12 +331,14 @@ export default function LandingPage() {
 )}
 {/* VIDEO */}
       <section style={{ padding: isMobile ? '60px 20px' : '80px 48px', background: WHITE }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1150, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 28 : 36, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', margin: 0 }}>{t.landing.video_title}</h2>
           </div>
           
-          {/* Conteneur de la vidéo (Conserve le ratio 16:9) */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? 32 : 40 }}>
+          <div style={{ flex: isMobile ? 'none' : '1 1 55%', width: '100%' }}>
+          {/* Vidéo (ratio 16:9) */}
           <div style={{ position: 'relative', paddingBottom: '56.25%', borderRadius: 16, overflow: 'hidden', background: CHARCOAL, boxShadow: '0 20px 56px rgba(0,0,0,0.15)' }}>
             
             <video
@@ -350,6 +353,12 @@ export default function LandingPage() {
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
             />
 
+          </div>
+          </div>
+          {/* Formulaire de publication */}
+          <div style={{ flex: isMobile ? 'none' : '1 1 45%', width: '100%' }}>
+            <PublishForm />
+          </div>
           </div>
         </div>
       </section>

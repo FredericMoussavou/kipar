@@ -20,6 +20,22 @@ class BookingCreate(BaseModel):
             raise ValueError("Maximum 5 photos autorisées")
         return v
 
+    @field_validator("photos")
+    @classmethod
+    def photos_required(cls, v: list) -> list:
+        if not v or len([p for p in v if p and str(p).strip()]) < 1:
+            raise ValueError("PHOTOS_REQUIRED")
+        return v
+
+    @field_validator("weight_kg")
+    @classmethod
+    def weight_within_bounds(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("La valeur doit etre positive")
+        if v > 100:
+            raise ValueError("Le poids ne peut pas depasser 100 kg")
+        return v
+
 class BookingUpdate(BaseModel):
     weight_kg: float | None = None
     content_description: str | None = Field(None, max_length=500)

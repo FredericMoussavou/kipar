@@ -369,7 +369,10 @@ export default function BookPage() {
         </div>
       </HeroHeader>
 
-      <form onSubmit={handleSubmit((data) => mutation.mutate(data))}
+      <form onSubmit={handleSubmit((data) => {
+        if (photos.length === 0) { toast.error(t.booking.photos_required); return }
+        mutation.mutate(data)
+      })}
         style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}
         className="md:max-w-2xl md:mx-auto">
 
@@ -380,6 +383,7 @@ export default function BookPage() {
           </p>
           <Input
             label={t.booking.receiver_label}
+            required
             placeholder={t.booking.receiver_placeholder}
             type="email"
             error={errors.receiver_email_or_phone?.message}
@@ -449,6 +453,7 @@ export default function BookPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Input
               label={t.booking.content_label}
+              required
               placeholder={t.booking.content_placeholder}
               error={errors.content_description?.message}
               {...register('content_description')}
@@ -468,6 +473,7 @@ export default function BookPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <Input
                 label={t.booking.weight_label}
+                required
                 type="number"
                 placeholder={packageMode === 'small' ? '0.5' : '2.5'}
                 step="0.1"
@@ -498,7 +504,7 @@ export default function BookPage() {
         {/* Photos */}
         <div style={{ background: WHITE, borderRadius: 16, padding: 16, border: '1px solid ' + BORDER }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-            {t.requests.field_photos}
+            {t.requests.field_photos}<span style={{ color: RED }}> *</span>
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {photos.map((url, i) => (

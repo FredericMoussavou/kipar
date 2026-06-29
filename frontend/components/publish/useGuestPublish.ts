@@ -105,7 +105,7 @@ export function useGuestPublish() {
     payload: Record<string, any>,
     userInfo?: GuestUserInfo,
     mode: PublishMode = 'register',
-  ): Promise<void> => {
+  ): Promise<'email_exists' | void> => {
     setSubmitting(true)
     try {
       // Deja connecte : publication directe.
@@ -172,7 +172,17 @@ export function useGuestPublish() {
         await refreshUser()
       } catch (err: any) {
         clearPendingPublish()
-        toast.error(extractApiError(err, 'La creation du compte a echoue.'))
+        const status = err?.response?.status
+        const msg = extractApiError(err, '')
+        const emailExistsLabels = [
+          'Email déjà utilisé',
+          'Email already registered',
+          'El correo electrónico ya está registrado',
+        ]
+        if (status === 400 && emailExistsLabels.some(l => msg === l)) {
+          return 'email_exists'
+        }
+        toast.error(msg || 'La creation du compte a echoue.')
         return
       }
       // 3) vers l'onboarding ; publication a la reprise (dashboard)

@@ -141,7 +141,11 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
     const userInfo: GuestUserInfo | undefined = isVisitor
       ? { first_name: firstName, last_name: lastName, email, password, cgu_accepted: cgu, turnstile_token: turnstileToken }
       : undefined
-    await submitPublish('request', payload, userInfo, authMode)
+    const result = await submitPublish('request', payload, userInfo, authMode)
+    if (result === 'email_exists') {
+      setAuthMode('login')
+      toast.error(t.publish.email_exists_switch)
+    }
   }
 
   const grid2 = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 } as const

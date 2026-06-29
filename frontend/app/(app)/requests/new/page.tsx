@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button, Input } from '@/components/ui/kipar'
 import DatePicker from '@/components/ui/kipar/DatePicker'
+import AirportInput from '@/components/trips/AirportInput'
 import HeroHeader from '@/components/layout/HeroHeader'
 import HeroBackHeader from '@/components/layout/HeroBackHeader'
 import api from '@/lib/api'
@@ -244,66 +245,44 @@ export default function NewRequestPage() {
 
         {/* Départ */}
         <div style={sectionStyle}>
-          <p style={labelStyle}>{t.carrier.section_departure}</p>
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <Search size={14} color={TAUPE} />
-              <input
-                value={originInput}
-                onChange={e => { setOriginInput(e.target.value); setOriginSelected(false); searchAirports(e.target.value, setOriginSuggestions) }}
-                placeholder={t.search.origin_placeholder}
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: CHARCOAL, background: 'transparent' }}
-              />
-              {originSelected && <span style={{ fontSize: 11, color: GREEN }}>{t.carrier.airport_selected}</span>}
-            </div>
-            {originSuggestions.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 12, zIndex: 10, marginTop: 4 }}>
-                {originSuggestions.map((a: any) => (
-                  <div key={a.code} onClick={() => {
-                    setOriginInput(`${a.code} — ${a.name}`)
-                    setValue('origin_airport_code', a.code)
-                    setValue('origin_city', a.city || a.name)
-                    setOriginSuggestions([])
-                    setOriginSelected(true)
-                  }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 13, color: CHARCOAL, borderBottom: '1px solid ' + BORDER }}>
-                    <span style={{ fontWeight: 700 }}>{a.code}</span> — {a.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <AirportInput
+            light
+            required
+            label={t.carrier.section_departure}
+            placeholder={t.search.origin_placeholder}
+            value={originInput}
+            onChange={(v) => { setOriginInput(v); setOriginSelected(false); searchAirports(v, setOriginSuggestions) }}
+            onSelect={(a: any) => {
+              setOriginInput(`${a.code} — ${a.name}`)
+              setValue('origin_airport_code', a.code)
+              setValue('origin_city', a.city || a.name)
+              setOriginSuggestions([])
+              setOriginSelected(true)
+            }}
+            onClear={() => { setOriginInput(''); setOriginSuggestions([]); setOriginSelected(false) }}
+            suggestions={originSuggestions}
+          />
         </div>
 
         {/* Destination */}
         <div style={sectionStyle}>
-          <p style={labelStyle}>{t.carrier.section_destination}</p>
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <Search size={14} color={TAUPE} />
-              <input
-                value={destInput}
-                onChange={e => { setDestInput(e.target.value); setDestSelected(false); searchAirports(e.target.value, setDestSuggestions) }}
-                placeholder={t.search.dest_placeholder}
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: CHARCOAL, background: 'transparent' }}
-              />
-              {destSelected && <span style={{ fontSize: 11, color: GREEN }}>{t.carrier.airport_selected}</span>}
-            </div>
-            {destSuggestions.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 12, zIndex: 10, marginTop: 4 }}>
-                {destSuggestions.map((a: any) => (
-                  <div key={a.code} onClick={() => {
-                    setDestInput(`${a.code} — ${a.name}`)
-                    setValue('destination_airport_code', a.code)
-                    setValue('destination_city', a.city || a.name)
-                    setDestSuggestions([])
-                    setDestSelected(true)
-                  }} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 13, color: CHARCOAL, borderBottom: '1px solid ' + BORDER }}>
-                    <span style={{ fontWeight: 700 }}>{a.code}</span> — {a.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <AirportInput
+            light
+            required
+            label={t.carrier.section_destination}
+            placeholder={t.search.dest_placeholder}
+            value={destInput}
+            onChange={(v) => { setDestInput(v); setDestSelected(false); searchAirports(v, setDestSuggestions) }}
+            onSelect={(a: any) => {
+              setDestInput(`${a.code} — ${a.name}`)
+              setValue('destination_airport_code', a.code)
+              setValue('destination_city', a.city || a.name)
+              setDestSuggestions([])
+              setDestSelected(true)
+            }}
+            onClear={() => { setDestInput(''); setDestSuggestions([]); setDestSelected(false) }}
+            suggestions={destSuggestions}
+          />
         </div>
 
         {/* Colis */}
@@ -359,7 +338,7 @@ export default function NewRequestPage() {
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Input label={t.requests.field_content} placeholder={t.requests.field_content_placeholder}
+            <Input label={t.requests.field_content} required placeholder={t.requests.field_content_placeholder}
               error={errors.content_description?.message} {...register('content_description')} />
             <div style={{ display: 'flex', gap: 8 }}>
               {(['kg', 'small'] as const).map(m => (
@@ -372,12 +351,12 @@ export default function NewRequestPage() {
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} type="number" placeholder="3" step="0.1" min="0.1" max={packageMode === 'small' ? String(SMALL_PACKAGE_MAX_KG - 0.01) : undefined}
+              <Input label={`${t.requests.field_weight} (${unitLabel(weightUnit)})`} required type="number" placeholder="3" step="0.1" min="0.1" max={packageMode === 'small' ? String(SMALL_PACKAGE_MAX_KG - 0.01) : undefined}
                 error={errors.weight_kg?.message} {...register('weight_kg')} />
               <Input label={t.requests.field_value} type="number" placeholder="100" min="0"
                 {...register('declared_value')} />
             </div>
-            <Input label={t.requests.field_budget} type="number" placeholder="5" step="0.5" min="0.5"
+            <Input label={t.requests.field_budget} required type="number" placeholder="5" step="0.5" min="0.5"
               error={errors.budget_per_kg?.message} {...register('budget_per_kg')}
               readOnly={packageMode === 'small'}
               style={packageMode === 'small' ? { background: SAND, color: TAUPE, cursor: 'not-allowed' } : undefined} />
@@ -416,9 +395,9 @@ export default function NewRequestPage() {
         <div style={sectionStyle}>
           <p style={labelStyle}>{t.booking.receiver_label}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Input label={t.requests.field_receiver} placeholder={t.booking.receiver_placeholder}
+            <Input label={t.requests.field_receiver} required placeholder={t.booking.receiver_placeholder}
               error={errors.receiver_email_or_phone?.message} {...register('receiver_email_or_phone')} />
-            <DatePicker label={t.requests.field_deadline} value={deadlineDate}
+            <DatePicker label={t.requests.field_deadline} required value={deadlineDate}
               onChange={v => { setDeadlineDate(v); setValue('deadline_date', v) }}
               error={errors.deadline_date?.message} min={new Date().toISOString().slice(0,10)} />
           </div>

@@ -18,6 +18,7 @@ export default function AirportInput({
   placeholder,
   label,
   light = false,
+  required = false,
 }: {
   value: string
   onChange: (v: string) => void
@@ -27,6 +28,7 @@ export default function AirportInput({
   placeholder: string
   label: string
   light?: boolean
+  required?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [dropdownStyle, setDropdownStyle] = useState<any>(null)
@@ -52,7 +54,7 @@ export default function AirportInput({
 
   return (
     <div>
-      <p style={{ fontSize: light ? 12 : 11, fontWeight: light ? 500 : 700, color: light ? CHARCOAL : '#fff', marginBottom: 6, textTransform: light ? 'none' : 'uppercase', letterSpacing: light ? 0 : '0.07em' }}>{label}</p>
+      <p style={{ fontSize: light ? 12 : 11, fontWeight: light ? 500 : 700, color: light ? CHARCOAL : '#fff', marginBottom: 6, textTransform: light ? 'none' : 'uppercase', letterSpacing: light ? 0 : '0.07em' }}>{label}{required && <span style={{ color: '#DC0029' }}> *</span>}</p>
       <div ref={ref} style={{ display: 'flex', alignItems: 'center', gap: 8, background: light ? '#FFFFFF' : 'rgba(255,255,255,0.95)', border: light ? '1px solid #D8D2CA' : 'none', borderRadius: 10, padding: '10px 12px' }}>
         <Search size={13} color={TAUPE} />
         <input

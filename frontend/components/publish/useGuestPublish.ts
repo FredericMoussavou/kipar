@@ -30,6 +30,7 @@ export interface GuestUserInfo {
   first_name?: string
   last_name?: string
   cgu_accepted?: boolean
+  turnstile_token?: string
 }
 
 export interface PendingPublish {
@@ -164,6 +165,7 @@ export function useGuestPublish() {
           password: userInfo.password,
           language: getLangCookie(),
           cgu_accepted: userInfo.cgu_accepted,
+          turnstile_token: userInfo.turnstile_token,
         })
         if (reg?.data?.access_token) setToken(reg.data.access_token)
         if (reg?.data?.refresh_token) setRefreshToken(reg.data.refresh_token)

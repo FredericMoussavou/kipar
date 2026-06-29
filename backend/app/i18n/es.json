@@ -120,7 +120,8 @@
     "justification_required": "Se requiere una justificación",
     "too_many_evidence_files": "Máximo {n} archivos de prueba",
     "no_pending_review": "No hay solicitud de revisión pendiente",
-    "invalid_decision": "La decisión debe ser 'justified' o 'unjustified'"
+    "invalid_decision": "La decisión debe ser 'justified' o 'unjustified'",
+    "captcha_failed": "Verificacion anti-robot fallida. Intentelo de nuevo."
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

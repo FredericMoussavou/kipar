@@ -57,6 +57,17 @@ class PackageRequestCreate(BaseModel):
     def positive_values(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("La valeur doit etre positive")
+        if v > 100:
+            raise ValueError("Le poids ne peut pas depasser 100 kg")
+        return v
+
+    @field_validator("budget_per_kg")
+    @classmethod
+    def budget_within_bounds(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("Le budget doit etre positif")
+        if v > 1000:
+            raise ValueError("Le budget par kg ne peut pas depasser 1000")
         return v
 
     @field_validator("photos")

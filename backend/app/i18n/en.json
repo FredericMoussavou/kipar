@@ -121,7 +121,8 @@
     "justification_required": "A justification is required",
     "too_many_evidence_files": "Maximum {n} evidence files",
     "no_pending_review": "No pending review request",
-    "invalid_decision": "Decision must be 'justified' or 'unjustified'"
+    "invalid_decision": "Decision must be 'justified' or 'unjustified'",
+    "captcha_failed": "Anti-bot verification failed. Please try again."
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

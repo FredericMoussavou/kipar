@@ -14,6 +14,7 @@ import api from '@/lib/api'
 import { setLangCookie, getLangCookie, SupportedLang } from '@/lib/langCookie'
 import { RED, CHARCOAL, TAUPE, BG, WHITE, BORDER, SAND } from '@/lib/theme'
 import { useResponsive } from '@/hooks/useResponsive'
+import TurnstileWidget from '@/components/ui/TurnstileWidget'
 
 const makeSchema = (t: any) => z.object({
   first_name: z.string().min(2, t.auth.first_name_required),
@@ -88,6 +89,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [cguAccepted, setCguAccepted] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -102,6 +104,7 @@ export default function RegisterPage() {
         || (typeof window !== 'undefined' ? localStorage.getItem('kipar_pending_trip') : null)
         || undefined
       await api.post('/auth/register', {
+        turnstile_token: turnstileToken,
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,

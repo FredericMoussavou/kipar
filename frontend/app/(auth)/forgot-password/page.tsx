@@ -8,6 +8,7 @@ import { Button, Input } from '@/components/ui/kipar'
 import api from '@/lib/api'
 import { RED, CHARCOAL, TAUPE, WHITE, BORDER, SAND, BG } from '@/lib/theme'
 import { useResponsive } from '@/hooks/useResponsive'
+import TurnstileWidget from '@/components/ui/TurnstileWidget'
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation()
@@ -17,6 +18,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,7 +26,7 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     setError('')
     try {
-      await api.post('/auth/forgot-password', { email: email.trim() })
+      await api.post('/auth/forgot-password', { email: email.trim(), turnstile_token: turnstileToken })
       setSent(true)
     } catch (err: any) {
       setError(err?.response?.data?.detail || t.errors.generic)

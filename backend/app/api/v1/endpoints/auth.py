@@ -14,6 +14,7 @@ from app.core.security import (
     create_access_token, create_refresh_token, decode_token
 )
 from app.core.rate_limit import limiter
+from app.core.turnstile import verify_turnstile
 from app.models.user import User
 from app.i18n.loader import t
 from app.core.deps import get_current_user
@@ -48,9 +49,10 @@ class RegisterRequest(BaseModel):
     first_name: str = Field(..., max_length=50)
     last_name: str = Field(..., max_length=50)
     phone: str | None = Field(None, max_length=30)
-    language: Literal["fr", "en"] = "fr"
+    language: Literal["fr", "en", "es"] = "fr"
     cgu_accepted: bool = False
     pending_trip_id: uuid.UUID | None = None
+    turnstile_token: str | None = None
 
     @field_validator("password")
     @classmethod
@@ -93,6 +95,8 @@ class RefreshRequest(BaseModel):
 async def register(request: Request, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """5 inscriptions max par minute par IP."""
     lang = payload.language
+    if not await verify_turnstile(payload.turnstile_token, request.client.host if request.client else None):
+        raise HTTPException(status_code=400, detail=t("errors.captcha_failed", lang))
     result = await db.execute(select(User).where(User.email == payload.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail=t("errors.email_already_registered", lang))
@@ -187,6 +191,7 @@ async def refresh(request: Request, payload: RefreshRequest, db: AsyncSession = 
 # ── Reset mot de passe ──
 
 class ForgotPasswordRequest(BaseModel):
+    turnstile_token: str | None = None
     email: EmailStr
 
 
@@ -247,6 +252,8 @@ async def forgot_password(
     Envoie un lien de réinitialisation par email.
     Répond toujours 200 même si l'email n'existe pas — sécurité anti-enumération.
     """
+    if not await verify_turnstile(payload.turnstile_token, request.client.host if request.client else None):
+        raise HTTPException(status_code=400, detail=t("errors.captcha_failed", "fr"))
     from datetime import timedelta, timezone
     from app.models.password_reset import PasswordReset
     from app.services.notification_service import send_email

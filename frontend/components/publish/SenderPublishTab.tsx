@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/kipar'
 import DatePicker from '@/components/ui/kipar/DatePicker'
 import AirportInput, { AirportSuggestion } from '@/components/trips/AirportInput'
 import InfoTooltip from '@/components/ui/InfoTooltip'
+import TurnstileWidget from '@/components/ui/TurnstileWidget'
 import { RED, CHARCOAL, TAUPE, WHITE } from '@/lib/theme'
 import { useGuestPublish, GuestUserInfo } from './useGuestPublish'
 
@@ -61,6 +62,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
   const [password, setPassword] = useState('')
   const [cgu, setCgu] = useState(false)
   const [authMode, setAuthMode] = useState<'register' | 'login'>('register')
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   // Etapes : colis / trajet / (vos infos si visiteur)
   const steps = useMemo(() => {
@@ -137,7 +139,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
       photos,
     }
     const userInfo: GuestUserInfo | undefined = isVisitor
-      ? { first_name: firstName, last_name: lastName, email, password, cgu_accepted: cgu }
+      ? { first_name: firstName, last_name: lastName, email, password, cgu_accepted: cgu, turnstile_token: turnstileToken }
       : undefined
     await submitPublish('request', payload, userInfo, authMode)
   }
@@ -273,6 +275,9 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
                 <input type="checkbox" checked={cgu} onChange={e => setCgu(e.target.checked)} style={{ marginTop: 2, accentColor: RED }} />
                 <span>{t.auth.cgu_label}</span>
               </label>
+            )}
+            {authMode === 'register' && (
+              <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
             )}
           </div>
         )}

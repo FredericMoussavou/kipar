@@ -42,6 +42,29 @@ class TripCreate(BaseModel):
             raise ValueError("La valeur doit etre positive")
         return v
 
+    @field_validator("total_kg", "max_kg_per_package")
+    @classmethod
+    def kg_within_bounds(cls, v: float | None) -> float | None:
+        if v is not None and v > 100:
+            raise ValueError("Le poids ne peut pas depasser 100 kg")
+        return v
+
+    @field_validator("price_per_kg")
+    @classmethod
+    def price_within_bounds(cls, v: float | None) -> float | None:
+        if v is not None and v > 1000:
+            raise ValueError("Le prix par kg ne peut pas depasser 1000")
+        return v
+
+    @field_validator("small_package_price")
+    @classmethod
+    def small_price_within_bounds(cls, v: float | None) -> float | None:
+        if v is not None and v < 0:
+            raise ValueError("Le prix doit etre positif")
+        if v is not None and v > 100:
+            raise ValueError("Le prix du petit colis ne peut pas depasser 100")
+        return v
+
     @field_validator("departure_date")
     @classmethod
     def future_date(cls, v: date) -> date:

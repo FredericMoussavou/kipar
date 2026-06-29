@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Stripe
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    TURNSTILE_SECRET: str = ""
 
     # PawaPay
     PAWAPAY_API_TOKEN: str = ""

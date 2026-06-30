@@ -31,3 +31,9 @@ count_*.py
 fk_*.py
 purge.py
 nul
+
+# Patchs jetables
+p*.py
+diag.py
+frontend/p*.py
+frontend/diag.py

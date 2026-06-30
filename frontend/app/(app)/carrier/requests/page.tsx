@@ -17,6 +17,7 @@ import { WeightDisplay } from '@/components/ui/kipar/WeightDisplay'
 import { PricePerWeightDisplay, formatPricePerWeight } from '@/components/ui/kipar/PricePerWeightDisplay'
 import { useExchangeRates } from '@/hooks/useExchangeRates'
 import { useState } from 'react'
+import Modal from '@/components/ui/kipar/Modal'
 
 export default function CarrierRequestsPage() {
   const { t } = useTranslation()
@@ -27,6 +28,8 @@ export default function CarrierRequestsPage() {
   const [applyingId, setApplyingId] = useState<string | null>(null)
   const [selectedTripId, setSelectedTripId] = useState<string>('')
   const [myCorridorsOnly, setMyCorridorsOnly] = useState(false)
+  const [pendingApply, setPendingApply] = useState<{ requestId: string; tripId: string } | null>(null)
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['carrier-requests'],
@@ -42,7 +45,7 @@ export default function CarrierRequestsPage() {
 
   const applyMutation = useMutation({
     mutationFn: async ({ requestId, tripId }: { requestId: string; tripId: string }) =>
-      (await api.post(`/requests/${requestId}/apply?trip_id=${tripId}`)).data,
+      (await api.post(`/requests/${requestId}/apply?trip_id=${tripId}&disclaimer_accepted=true`)).data,
     onSuccess: () => {
       toast.success(t.requests.apply_success)
       queryClient.invalidateQueries({ queryKey: ['carrier-requests'] })
@@ -59,6 +62,7 @@ export default function CarrierRequestsPage() {
     ? (requests as any[]).filter((r: any) => myCorridors.has(`${r.origin_airport_code}-${r.destination_airport_code}`))
     : (requests as any[])
   return (
+    <>
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
       <HeroBackHeader
         imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80"
@@ -147,7 +151,7 @@ export default function CarrierRequestsPage() {
                           style={{ flex: 1, padding: '10px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                           {t.profile_edit.cancel}
                         </button>
-                        <button onClick={e => { e.stopPropagation(); if (selectedTripId) applyMutation.mutate({ requestId: req.id, tripId: selectedTripId }) }}
+                        <button onClick={e => { e.stopPropagation(); if (selectedTripId) { setPendingApply({ requestId: req.id, tripId: selectedTripId }); setDisclaimerAccepted(false) } }}
                           disabled={!selectedTripId || applyMutation.isPending}
                           style={{ flex: 2, padding: '10px', background: selectedTripId ? RED : TAUPE, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: selectedTripId ? 'pointer' : 'not-allowed' }}>
                           {applyMutation.isPending ? '...' : t.requests.apply_btn}
@@ -162,5 +166,23 @@ export default function CarrierRequestsPage() {
         )}
       </div>
     </div>
+      <Modal isOpen={!!pendingApply} onClose={() => setPendingApply(null)} title={t.disclaimer.confirm_title}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
+          <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: CHARCOAL, lineHeight: 1.5 }}>{t.disclaimer.carrier}</span>
+        </label>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setPendingApply(null)}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={() => { if (pendingApply) { applyMutation.mutate(pendingApply); setPendingApply(null) } }}
+            disabled={!disclaimerAccepted}
+            style={{ padding: '10px 20px', background: disclaimerAccepted ? RED : SAND, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: disclaimerAccepted ? 'pointer' : 'not-allowed', opacity: disclaimerAccepted ? 1 : 0.6 }}>
+            {t.disclaimer.confirm_btn}
+          </button>
+        </div>
+      </Modal>
+    </>
   )
 }

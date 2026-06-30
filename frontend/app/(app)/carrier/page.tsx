@@ -64,6 +64,8 @@ export default function CarrierPage() {
   const [deliverCode, setDeliverCode] = useState('')
   const [delivering, setDelivering] = useState(false)
   const [deliverError, setDeliverError] = useState('')
+  const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null)
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [deletingTrip, setDeletingTrip] = useState(false)
   const kyc = useKyc()
 
@@ -102,7 +104,7 @@ export default function CarrierPage() {
   })
 
   const acceptMutation = useMutation({
-    mutationFn: (id: string) => api.patch(`/bookings/${id}/accept`),
+    mutationFn: (id: string) => api.patch(`/bookings/${id}/accept?disclaimer_accepted=true`),
     onSuccess: () => {
       toast.success(t.carrier.toast_booking_accepted)
       queryClient.invalidateQueries({ queryKey: ['carrier-bookings'] })
@@ -259,7 +261,24 @@ export default function CarrierPage() {
       <div style={{ padding: '20px 20px 80px' }} className="md:px-0">
 
         {/* Modal confirmer remise */}
-        <Modal
+        <Modal isOpen={!!pendingAcceptId} onClose={() => setPendingAcceptId(null)} title={t.disclaimer.confirm_title}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
+          <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: CHARCOAL, lineHeight: 1.5 }}>{t.disclaimer.carrier}</span>
+        </label>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setPendingAcceptId(null)}
+            style={{ padding: '10px 20px', background: 'transparent', color: TAUPE, border: '1px solid ' + BORDER, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t.profile_edit.cancel}
+          </button>
+          <button onClick={() => { if (pendingAcceptId) { acceptMutation.mutate(pendingAcceptId); setPendingAcceptId(null) } }}
+            disabled={!disclaimerAccepted}
+            style={{ padding: '10px 20px', background: disclaimerAccepted ? RED : SAND, color: WHITE, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: disclaimerAccepted ? 'pointer' : 'not-allowed', opacity: disclaimerAccepted ? 1 : 0.6 }}>
+            {t.disclaimer.confirm_btn}
+          </button>
+        </div>
+      </Modal>
+      <Modal
           isOpen={!!deliverModal}
           onClose={() => { setDeliverModal(null); setDeliverCode(''); setDeliverError('') }}
           title={t.delivery.confirm_title}
@@ -313,7 +332,7 @@ export default function CarrierPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => acceptMutation.mutate(booking.id)} disabled={acceptMutation.isPending}
+                    <button onClick={() => { setPendingAcceptId(booking.id); setDisclaimerAccepted(false) }} disabled={acceptMutation.isPending}
                       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 99, background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                       <Check size={14} /> {t.carrier.accept}
                     </button>

@@ -5,6 +5,7 @@ export const en = {
   },
   disclaimer: {
     sender: 'I certify that the shipped parcel matches the photos and description provided, that it contains no illicit, dangerous or prohibited items, and I assume full responsibility for its contents as well as for any false declaration, in accordance with the French Transport Code and Article L133-1 of the French Commercial Code.',
+    carrier: 'I certify that I have verified the parcel against the photos and description provided, ensured it contains no illicit, dangerous or prohibited items, and I assume full responsibility for its transport as well as for any negligence or false declaration, in accordance with the French Transport Code and Article L133-1 of the French Commercial Code.',
     required: 'You must accept the liability statement to continue.',
     confirm_title: 'Liability confirmation',
     confirm_btn: 'I certify and accept',

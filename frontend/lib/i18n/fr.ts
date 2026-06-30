@@ -5,6 +5,7 @@ export const fr = {
   },
   disclaimer: {
     sender: 'Je certifie que le colis expédié est conforme aux photos et à la description fournies, qu\'il ne contient aucun objet illicite, dangereux ou interdit au transport, et j\'assume l\'entière responsabilité de son contenu ainsi que de toute fausse déclaration, conformément au Code des transports et à l\'article L133-1 du Code de commerce.',
+    carrier: 'Je certifie avoir vérifié la conformité du colis avec les photos et la description fournies, m\'être assuré qu\'il ne contient aucun objet illicite, dangereux ou interdit au transport, et j\'assume l\'entière responsabilité de son transport ainsi que de toute négligence ou fausse déclaration, conformément au Code des transports et à l\'article L133-1 du Code de commerce.',
     required: 'Vous devez accepter la déclaration de responsabilité pour continuer.',
     confirm_title: 'Confirmation de responsabilité',
     confirm_btn: 'Je certifie et j\'accepte',

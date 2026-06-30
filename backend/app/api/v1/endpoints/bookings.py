@@ -226,6 +226,7 @@ async def create_booking(
 @router.patch("/{booking_id}/accept", response_model=BookingResponse)
 async def accept_booking(
     booking_id: str,
+    disclaimer_accepted: bool = Query(False),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
@@ -244,6 +245,9 @@ async def accept_booking(
         raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
     if booking.status != "paid":
         raise HTTPException(status_code=400, detail=t("errors.booking_already_actioned", lang))
+    if not disclaimer_accepted:
+        raise HTTPException(status_code=400, detail=t("errors.disclaimer_required", lang))
+    booking.carrier_disclaimer_at = datetime.now(timezone.utc)
 
     # Capture Stripe si paiement en escrow
     if booking.escrow_ref and booking.payment_rail == "stripe":

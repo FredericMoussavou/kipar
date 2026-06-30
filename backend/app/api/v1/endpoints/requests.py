@@ -254,10 +254,13 @@ async def delete_request(
 async def apply_to_request(
     request_id: str,
     trip_id: str = Query(...),
+    disclaimer_accepted: bool = Query(False),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     lang: str = Depends(get_lang),
 ):
+    if not disclaimer_accepted:
+        raise HTTPException(status_code=400, detail=t("errors.disclaimer_required", lang))
     # Verif request
     result = await db.execute(select(PackageRequest).where(PackageRequest.id == request_id))
     req = result.scalar_one_or_none()
@@ -312,6 +315,7 @@ async def apply_to_request(
         trip_id=trip.id,
     )
     db.add(app)
+    app.carrier_disclaimer_at = datetime.now(timezone.utc)
     await db.flush()
 
     # Notifie l'expéditeur de la nouvelle candidature

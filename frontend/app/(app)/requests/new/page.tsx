@@ -47,6 +47,7 @@ export default function NewRequestPage() {
   const { user } = useAuthStore()
   const weightUnit = (user?.weight_unit ?? 'kg') as WeightUnit
   const [originInput, setOriginInput] = useState('')
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [destInput, setDestInput] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<any[]>([])
   const [destSuggestions, setDestSuggestions] = useState<any[]>([])
@@ -183,6 +184,7 @@ export default function NewRequestPage() {
         package_mode: packageMode,
         receiver_email_or_phone: data.receiver_email_or_phone,
         deadline_date: data.deadline_date,
+        disclaimer_accepted: disclaimerAccepted,
         photos,
       })
       toast.success(t.requests.success_created)
@@ -403,7 +405,11 @@ export default function NewRequestPage() {
           </div>
         </div>
 
-        <Button type="submit" fullWidth size="lg" loading={isSubmitting}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: WHITE, borderRadius: 12, padding: 14, border: '1px solid ' + BORDER, cursor: 'pointer' }}>
+          <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: CHARCOAL, lineHeight: 1.5 }}>{t.disclaimer.sender}</span>
+        </label>
+        <Button type="submit" fullWidth size="lg" loading={isSubmitting} disabled={!disclaimerAccepted}>
           {t.requests.submit_btn}
         </Button>
       </form>

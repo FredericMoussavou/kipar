@@ -117,6 +117,9 @@ class Booking(Base):
     #          paid / in_transit / delivered / disputed / refunded
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
 
+    # --- Disclaimers de responsabilite (preuve horodatee) ---
+    sender_disclaimer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    carrier_disclaimer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)

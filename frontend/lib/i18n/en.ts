@@ -3,6 +3,12 @@ export const en = {
     title: 'KIPAR. — Peer-to-peer parcel delivery',
     description: 'Send your parcels anywhere in the world through our network of verified travelers',
   },
+  disclaimer: {
+    sender: 'I certify that the shipped parcel matches the photos and description provided, that it contains no illicit, dangerous or prohibited items, and I assume full responsibility for its contents as well as for any false declaration, in accordance with the French Transport Code and Article L133-1 of the French Commercial Code.',
+    required: 'You must accept the liability statement to continue.',
+    confirm_title: 'Liability confirmation',
+    confirm_btn: 'I certify and accept',
+  },
   validation: {
     required: 'Required',
     iata_code: '3 letters',

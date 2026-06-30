@@ -122,7 +122,8 @@
     "too_many_evidence_files": "Maximum {n} evidence files",
     "no_pending_review": "No pending review request",
     "invalid_decision": "Decision must be 'justified' or 'unjustified'",
-    "captcha_failed": "Anti-bot verification failed. Please try again."
+    "captcha_failed": "Anti-bot verification failed. Please try again.",
+    "disclaimer_required": "You must accept the liability statement to continue."
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",
@@ -184,7 +185,9 @@
     "delivery_code_email_subject": "KIPAR. — Your delivery code",
     "delivery_confirmed_subject": "KIPAR. — Package delivered!",
     "booking_received_subject": "KIPAR. — New delivery request",
-    "booking_accepted_subject": "KIPAR. — Request accepted"
+    "booking_accepted_subject": "KIPAR. — Request accepted",
+    "became_carrier_title": "You are now a carrier",
+    "became_carrier_body": "Welcome! By publishing your first trip, your carrier account has been activated. You can now receive parcel requests."
   },
   "statuses": {
     "pending": "Pending",

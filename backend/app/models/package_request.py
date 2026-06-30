@@ -46,6 +46,7 @@ class PackageRequest(Base):
     )
 
     # Relations
+    sender_disclaimer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     sender: Mapped["User"] = relationship("User", foreign_keys=[sender_id])
     applications: Mapped[list["Application"]] = relationship("Application", back_populates="package_request")
 

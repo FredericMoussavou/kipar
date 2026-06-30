@@ -121,7 +121,8 @@
     "too_many_evidence_files": "Maximum {n} fichiers de preuve",
     "no_pending_review": "Aucune demande en attente de révision",
     "invalid_decision": "La décision doit être 'justified' ou 'unjustified'",
-    "captcha_failed": "Verification anti-robot echouee. Veuillez reessayer."
+    "captcha_failed": "Verification anti-robot echouee. Veuillez reessayer.",
+    "disclaimer_required": "Vous devez accepter la declaration de responsabilite pour continuer."
   },
   "success": {
     "delivery_confirmed": "Livraison confirmée — paiement en cours de libération",
@@ -182,7 +183,9 @@
     "delivery_confirmed_body": "Votre colis a été remis au récepteur. Les fonds sont débloqués.",
     "email_footer": "Kipar · Ce lien est valable 24h",
     "delivery_code_email_subject": "KIPAR. — Votre code de remise",
-    "delivery_confirmed_subject": "KIPAR. — Colis livré !"
+    "delivery_confirmed_subject": "KIPAR. — Colis livré !",
+    "became_carrier_title": "Vous êtes maintenant transporteur",
+    "became_carrier_body": "Bienvenue ! En publiant votre premier trajet, votre compte transporteur a été activé. Vous pouvez désormais recevoir des demandes de colis."
   },
   "statuses": {
     "pending": "En attente",

@@ -121,7 +121,8 @@
     "too_many_evidence_files": "Máximo {n} archivos de prueba",
     "no_pending_review": "No hay solicitud de revisión pendiente",
     "invalid_decision": "La decisión debe ser 'justified' o 'unjustified'",
-    "captcha_failed": "Verificacion anti-robot fallida. Intentelo de nuevo."
+    "captcha_failed": "Verificacion anti-robot fallida. Intentelo de nuevo.",
+    "disclaimer_required": "Debe aceptar la declaracion de responsabilidad para continuar."
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",
@@ -184,7 +185,9 @@
     "delivery_code_email_subject": "KIPAR. — Tu código de entrega",
     "delivery_confirmed_subject": "KIPAR. — ¡Paquete entregado!",
     "booking_received_subject": "KIPAR. — Nueva solicitud de envío",
-    "booking_accepted_subject": "KIPAR. — Solicitud aceptada"
+    "booking_accepted_subject": "KIPAR. — Solicitud aceptada",
+    "became_carrier_title": "Ahora eres transportista",
+    "became_carrier_body": "¡Bienvenido! Al publicar tu primer viaje, tu cuenta de transportista ha sido activada. Ahora puedes recibir solicitudes de paquetes."
   },
   "statuses": {
     "pending": "Pendiente",

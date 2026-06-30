@@ -23,6 +23,7 @@ class ApplicationResponse(BaseModel):
     model_config = {"from_attributes": False}
 
 class PackageRequestCreate(BaseModel):
+    disclaimer_accepted: bool = False
     package_mode: Literal["kg", "small"] = "kg"
     origin_city: str = Field(..., max_length=100)
     origin_airport_code: str = Field(..., max_length=10)

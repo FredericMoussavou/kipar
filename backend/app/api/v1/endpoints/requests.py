@@ -45,6 +45,8 @@ async def create_request(
     # Publication differee : un non-approuve KYC peut creer une annonce, mais en brouillon
     # (pending_kyc), invisible du public et promue automatiquement apres validation KYC.
     is_kyc_ok = _os.environ.get("ENVIRONMENT") == "test" or current_user.kyc_status == "approved"
+    if not payload.disclaimer_accepted:
+        raise HTTPException(status_code=400, detail=t("errors.disclaimer_required", lang))
     from app.api.v1.endpoints.premium import is_premium_active
     from sqlalchemy import func
     if not is_premium_active(current_user):
@@ -77,6 +79,7 @@ async def create_request(
         deadline_date=payload.deadline_date,
     )
     db.add(req)
+    req.sender_disclaimer_at = datetime.now(timezone.utc)
     await db.flush()
     return _enrich_request(req, current_user, 0)
 

@@ -95,6 +95,8 @@ async def create_booking(
     lang: str = Depends(get_lang),
 ):
     import os
+    if not payload.disclaimer_accepted:
+        raise HTTPException(status_code=400, detail=t("errors.disclaimer_required", lang))
     _kyc_ok = os.environ.get("ENVIRONMENT") == "test" or current_user.kyc_status == "approved"
     from app.api.v1.endpoints.premium import is_premium_active
     from sqlalchemy import func
@@ -195,6 +197,7 @@ async def create_booking(
         base_amount=base_amount,
     )
     db.add(booking)
+    booking.sender_disclaimer_at = datetime.now(timezone.utc)
     await db.flush()
 
     receiver_id = await find_or_invite_receiver(

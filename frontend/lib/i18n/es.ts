@@ -3,6 +3,12 @@ export const es = {
     title: 'KIPAR. — Envío de paquetes entre particulares',
     description: 'Envía tus paquetes a cualquier parte del mundo gracias a nuestra red de transportistas verificados',
   },
+  disclaimer: {
+    sender: 'Certifico que el paquete enviado es conforme a las fotos y a la descripción facilitadas, que no contiene ningún objeto ilícito, peligroso o prohibido para el transporte, y asumo la entera responsabilidad de su contenido así como de toda declaración falsa, de conformidad con el Código de Transportes y el artículo L133-1 del Código de Comercio francés.',
+    required: 'Debe aceptar la declaración de responsabilidad para continuar.',
+    confirm_title: 'Confirmación de responsabilidad',
+    confirm_btn: 'Certifico y acepto',
+  },
   validation: {
     required: 'Obligatorio',
     iata_code: '3 letras',

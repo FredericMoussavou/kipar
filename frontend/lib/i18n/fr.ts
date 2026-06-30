@@ -3,6 +3,12 @@ export const fr = {
     title: 'KIPAR. — Transport de colis entre particuliers',
     description: 'Envoyez vos colis partout dans le monde grâce à notre réseau de transporteurs vérifiés',
   },
+  disclaimer: {
+    sender: 'Je certifie que le colis expédié est conforme aux photos et à la description fournies, qu\'il ne contient aucun objet illicite, dangereux ou interdit au transport, et j\'assume l\'entière responsabilité de son contenu ainsi que de toute fausse déclaration, conformément au Code des transports et à l\'article L133-1 du Code de commerce.',
+    required: 'Vous devez accepter la déclaration de responsabilité pour continuer.',
+    confirm_title: 'Confirmation de responsabilité',
+    confirm_btn: 'Je certifie et j\'accepte',
+  },
   validation: {
     required: 'Requis',
     iata_code: '3 lettres',

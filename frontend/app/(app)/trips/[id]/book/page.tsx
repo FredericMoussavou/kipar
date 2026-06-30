@@ -91,6 +91,7 @@ export default function BookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId])
   const [withInsurance, setWithInsurance] = useState(false)
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [reminderHours, setReminderHours] = useState<number | null>(null)
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
@@ -226,6 +227,7 @@ export default function BookPage() {
         declared_value: parseFloat(data.declared_value || '0'),
         insurance_subscribed: withInsurance,
         reminder_hours: reminderHours,
+        disclaimer_accepted: disclaimerAccepted,
       })
       return res.data
     },
@@ -624,8 +626,12 @@ export default function BookPage() {
         </p>
       </div>
     )}
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: WHITE, borderRadius: 12, padding: 14, border: '1px solid ' + BORDER, cursor: 'pointer' }}>
+      <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: CHARCOAL, lineHeight: 1.5 }}>{t.disclaimer.sender}</span>
+    </label>
     <Button type="submit" fullWidth size="lg" loading={mutation.isPending}
-      disabled={!!weightModeError || (isUrgentTrip && !canBookUrgent) || (packageMode === 'kg' && weight > 0 && trip && trip.remaining_kg != null && trip.max_kg_per_package != null && (weight > trip.remaining_kg || weight > trip.max_kg_per_package))}>
+      disabled={!disclaimerAccepted || !!weightModeError || (isUrgentTrip && !canBookUrgent) || (packageMode === 'kg' && weight > 0 && trip && trip.remaining_kg != null && trip.max_kg_per_package != null && (weight > trip.remaining_kg || weight > trip.max_kg_per_package))}>
       {t.booking.confirm_btn}
     </Button>
       </form>

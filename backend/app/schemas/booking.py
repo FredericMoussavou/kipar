@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 class BookingCreate(BaseModel):
+    disclaimer_accepted: bool = False
     trip_id: uuid.UUID
     receiver_email_or_phone: str = Field(..., max_length=100)
     weight_kg: float

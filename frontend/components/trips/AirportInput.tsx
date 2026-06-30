@@ -31,29 +31,20 @@ export default function AirportInput({
   required?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [dropdownStyle, setDropdownStyle] = useState<any>(null)
-
-  useEffect(() => {
-    if (suggestions.length > 0 && ref.current) {
-      const rect = ref.current.getBoundingClientRect()
-      setDropdownStyle({
-        position: 'fixed' as const,
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        background: WHITE,
-        borderRadius: 10,
-        overflow: 'hidden',
-        zIndex: 9999,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-      })
-    } else {
-      setDropdownStyle(null)
-    }
-  }, [suggestions])
+  const dropdownStyle = {
+    position: 'absolute' as const,
+    top: 'calc(100% + 4px)',
+    left: 0,
+    right: 0,
+    background: WHITE,
+    borderRadius: 10,
+    overflow: 'hidden',
+    zIndex: 40,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+  }
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <p style={{ fontSize: light ? 12 : 11, fontWeight: light ? 500 : 700, color: light ? CHARCOAL : '#fff', marginBottom: 6, textTransform: light ? 'none' : 'uppercase', letterSpacing: light ? 0 : '0.07em' }}>{label}{required && <span style={{ color: '#DC0029' }}> *</span>}</p>
       <div ref={ref} style={{ display: 'flex', alignItems: 'center', gap: 8, background: light ? '#FFFFFF' : 'rgba(255,255,255,0.95)', border: light ? '1px solid #D8D2CA' : 'none', borderRadius: 10, padding: '10px 12px' }}>
         <Search size={13} color={TAUPE} />
@@ -69,7 +60,7 @@ export default function AirportInput({
           </button>
         )}
       </div>
-      {dropdownStyle && suggestions.length > 0 && (
+      {suggestions.length > 0 && (
         <div style={dropdownStyle}>
           {suggestions.map((a: AirportSuggestion) => (
             <div key={a.code} onClick={() => onSelect(a)}

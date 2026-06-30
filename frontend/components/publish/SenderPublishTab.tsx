@@ -61,6 +61,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [cgu, setCgu] = useState(false)
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false)
   const [authMode, setAuthMode] = useState<'register' | 'login'>('register')
   const [turnstileToken, setTurnstileToken] = useState('')
 
@@ -127,6 +128,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
 
   const onSubmit = async () => {
     if (!validateStep(steps[step])) return
+    if (!disclaimerAccepted) { toast.error(t.disclaimer.required); return }
     const payload: Record<string, any> = {
       origin_city: originCity, origin_airport_code: originCode,
       destination_city: destCity, destination_airport_code: destCode,
@@ -136,6 +138,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
       package_mode: mode,
       receiver_email_or_phone: receiver,
       deadline_date: deadline,
+      disclaimer_accepted: disclaimerAccepted,
       photos,
     }
     const userInfo: GuestUserInfo | undefined = isVisitor
@@ -158,7 +161,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
   const currentStep = steps[step]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 380 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 380, flex: 1 }}>
       {/* Barre de progression */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -283,12 +286,16 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
             {authMode === 'register' && (
               <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
             )}
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, color: CHARCOAL, lineHeight: 1.5, cursor: 'pointer', background: '#FAF8F5', border: `1px solid ${FIELD_BORDER}`, borderRadius: 10, padding: 10 }}>
+              <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
+              <span>{t.disclaimer.sender}</span>
+            </label>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+      <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 16, marginBottom: 20 }}>
         {step > 0 && (
           <button type="button" onClick={prev}
             style={{ flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', gap: 4, padding: '12px 16px', borderRadius: 12, border: `1px solid ${FIELD_BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
@@ -301,8 +308,8 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
             {t.publish.next_btn ?? 'Suivant'} <ChevronRight size={16} />
           </button>
         ) : (
-          <button type="button" onClick={onSubmit} disabled={submitting}
-            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', borderRadius: 12, border: 'none', background: RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: submitting ? 'wait' : 'pointer', opacity: submitting ? 0.6 : 1, boxShadow: '0 4px 16px rgba(220,0,41,0.3)' }}>
+          <button type="button" onClick={onSubmit} disabled={submitting || !disclaimerAccepted}
+            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', borderRadius: 12, border: 'none', background: (submitting || !disclaimerAccepted) ? '#C9C2B8' : RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: (submitting || !disclaimerAccepted) ? 'not-allowed' : 'pointer', opacity: (submitting || !disclaimerAccepted) ? 0.7 : 1, boxShadow: (submitting || !disclaimerAccepted) ? 'none' : '0 4px 16px rgba(220,0,41,0.3)' }}>
             {submitting ? '...' : t.publish.publish_request_cta}
           </button>
         )}

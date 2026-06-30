@@ -9,6 +9,7 @@ from app.core.lang import get_lang
 from app.core.config import settings
 from app.models.user import User
 from app.models.trip import Trip
+from app.services.notif_db_service import create_notification
 from app.schemas.trip import TripCreate, TripResponse
 from app.i18n.loader import t
 from app.models.package_request import PackageRequest
@@ -139,6 +140,15 @@ async def create_trip(
     )
     db.add(trip)
     await db.flush()
+    # Auto-activation du mode transporteur (option A) : publier un trajet = devenir transporteur.
+    if not current_user.is_carrier:
+        current_user.is_carrier = True
+        await create_notification(
+            db, current_user.id, "became_carrier",
+            t("notifications.became_carrier_title", lang),
+            t("notifications.became_carrier_body", lang),
+            link="/carrier",
+        )
 
     # Matching — notifie les expéditeurs dont l'annonce correspond à ce trajet
     matching = await db.execute(

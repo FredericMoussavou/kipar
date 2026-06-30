@@ -63,7 +63,7 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
 
   // Etapes : trajet / vol+tarif / (vos infos si visiteur)
   const steps = useMemo(() => {
-    const base = ['trajet', 'vol']
+    const base = ['voyage']
     return isVisitor ? [...base, 'infos'] : base
   }, [isVisitor])
   const lastStep = steps.length - 1
@@ -78,10 +78,8 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
   }
 
   const validateStep = (s: string): boolean => {
-    if (s === 'trajet') {
+    if (s === 'voyage') {
       if (!originCode || !destCode) { toast.error(t.carrier.airport_required); return false }
-    }
-    if (s === 'vol') {
       if (!departureDate || !departureTime || !arrivalDate || !arrivalTime || !flightNumber) {
         toast.error(t.carrier.flight_fields_required); return false
       }
@@ -132,7 +130,7 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
   const currentStep = steps[step]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 380 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 380, flex: 1 }}>
       {/* Progression */}
       <div>
         <div style={{ marginBottom: 8 }}>
@@ -148,7 +146,7 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
       </div>
 
       <div style={{ flex: 1 }}>
-        {currentStep === 'trajet' && (
+        {currentStep === 'voyage' && (
           <div style={grid2}>
             <AirportInput light label={t.carrier.origin_label} placeholder={'Ex: CDG, Paris...'}
               value={originInput}
@@ -165,7 +163,7 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
           </div>
         )}
 
-        {currentStep === 'vol' && (
+        {currentStep === 'voyage' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={grid2}>
               <DatePicker label={t.carrier.date_label} required value={departureDate} onChange={setDepartureDate}
@@ -237,7 +235,7 @@ export default function CarrierPublishTab({ isVisitor, isMobile }: Props) {
       </div>
 
       {/* Navigation */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+      <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 16, marginBottom: 20 }}>
         {step > 0 && (
           <button type="button" onClick={prev}
             style={{ flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', gap: 4, padding: '12px 16px', borderRadius: 12, border: `1px solid ${FIELD_BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>

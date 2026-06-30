@@ -102,7 +102,7 @@ export default function DatePicker({ label, value, onChange, error, min, max, lo
       </div>
       {error && <p style={{ fontSize: 11, color: '#F87171', margin: 0 }}>{error}</p>}
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 9999, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 260 }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 40, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 260 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <button type='button' onClick={prev} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: TAUPE }}>
               <ChevronLeft size={16} />

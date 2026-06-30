@@ -55,7 +55,7 @@ export default function TimePicker({ label, value, onChange, error, required }: 
       </div>
       {error && <p style={{ fontSize: 11, color: '#DC2626', marginTop: 2 }}>{error}</p>}
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 1000, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 240 }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 40, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 12, padding: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 240 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 10, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Heure</p>

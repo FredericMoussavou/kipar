@@ -39,7 +39,7 @@ export default function InfoTooltip({ text }: { text: string }) {
             borderRadius: 8,
             boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
             border: `1px solid ${BORDER}`,
-            zIndex: 2000,
+            zIndex: 90,
             textTransform: 'none',
             letterSpacing: 0,
             pointerEvents: 'none',

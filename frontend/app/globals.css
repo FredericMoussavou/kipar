@@ -157,3 +157,7 @@ select::-webkit-scrollbar-thumb {
   background: #B5AFAB;
   border-radius: 99px;
 }
+
+/* Masquer la scrollbar (carrousel cards trip) */
+.hide-scroll::-webkit-scrollbar { display: none; }
+.hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }

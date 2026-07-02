@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Shield, Zap, Globe, Star, ChevronDown, Package, Plane, Users, CheckCircle } from 'lucide-react'
+import { ArrowRight, Shield, Zap, Globe, Star, ChevronDown, Package, Plane, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useTheme } from 'next-themes'
+import { useEffect as useEffectTheme } from 'react'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useLanguage } from '@/hooks/useLanguage'
 import { getT } from '@/lib/i18n'
@@ -16,6 +18,7 @@ const CHARCOAL = '#1A1A1A'
 const SAND = '#F5F2EE'
 const TAUPE = '#8B8078'
 const WHITE = '#FFFFFF'
+const BORDER = 'rgba(0,0,0,0.12)'
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null)
@@ -135,6 +138,23 @@ function LaptopMockup({ t }: { t: any }) {
 export default function LandingPage() {
   const router = useRouter()
   const [publicTrips, setPublicTrips] = useState<PublicTrip[]>([])
+  const tripsScrollRef = useRef<HTMLDivElement>(null)
+  const scrollTrips = (dir: number) => tripsScrollRef.current?.scrollBy({ left: dir * 340, behavior: 'smooth' })
+  const [tripsAtStart, setTripsAtStart] = useState(true)
+  const [tripsAtEnd, setTripsAtEnd] = useState(false)
+  const onTripsScroll = () => {
+    const el = tripsScrollRef.current
+    if (!el) return
+    setTripsAtStart(el.scrollLeft <= 2)
+    setTripsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2)
+  }
+  useEffect(() => {
+    const el = tripsScrollRef.current
+    if (!el) return
+    onTripsScroll()
+    el.addEventListener('scroll', onTripsScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onTripsScroll)
+  }, [publicTrips])
   useEffect(() => { publicApi<PublicTrip[]>('/trips').then(setPublicTrips).catch(() => {}) }, [])
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
@@ -154,6 +174,8 @@ export default function LandingPage() {
     return () => observer.disconnect()
   }, [])
   const isMobile = useIsMobile()
+  const { setTheme } = useTheme()
+  useEffectTheme(() => { setTheme('light') }, [setTheme])
   const { paddingH, fontSizeHero, paddingBtn } = useResponsive()
   const { currentLang: lang, setLanguage: setLang } = useLanguage()
   const t = getT(lang)
@@ -307,18 +329,40 @@ export default function LandingPage() {
 
 {/* TRAJETS DISPONIBLES */}
 {publicTrips.length > 0 && (
-  <section style={{ padding: isMobile ? '60px 20px' : '100px 48px', background: WHITE }}>
+  <section style={{ padding: isMobile ? '60px 20px 30px' : '100px 48px 48px', background: WHITE }}>
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: R, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{t.landing.trips_tag}</p>
         <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 32 : 44, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', margin: 0 }}>{t.landing.trips_title}</h2>
         <p style={{ fontSize: 14, color: TAUPE, marginTop: 12, maxWidth: 540, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>{t.landing.trips_subtitle}</p>
       </div>
-      <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 12, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-        {publicTrips.map(tr => (
-          <PublicTripCard key={tr.id} trip={tr} onClick={() => router.push(`/trips/${tr.id}`)}
-            smallLabel={t.landing.trips_small_only} kgLabel={t.landing.trips_kg_left} trustLabel={t.landing.trips_trust} />
-        ))}
+      <div style={{ position: 'relative' }}>
+        {!isMobile && !tripsAtStart && (
+          <button onClick={() => scrollTrips(-1)} aria-label="Precedent"
+            style={{ position: 'absolute', left: -18, top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: 40, height: 40, borderRadius: '50%', background: WHITE, border: '1px solid ' + BORDER, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ChevronLeft size={20} color={CHARCOAL} />
+          </button>
+        )}
+        <div ref={tripsScrollRef} style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 12, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }} className="hide-scroll">
+          {publicTrips.map(tr => (
+            <PublicTripCard key={tr.id} trip={tr} onClick={() => router.push(`/trips/${tr.id}`)}
+              smallLabel={t.landing.trips_small_only} kgLabel={t.landing.trips_kg_left} trustLabel={t.landing.trips_trust} />
+          ))}
+          <div onClick={() => router.push('/recherche')}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}
+            style={{ flexShrink: 0, width: 160, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 16, cursor: 'pointer', color: CHARCOAL, fontWeight: 550, fontSize: 15, transition: 'transform 0.2s ease' }}>
+            {t.landing.trips_see_more}
+            <ArrowRight size={18} />
+            
+          </div>
+        </div>
+        {!isMobile && !tripsAtEnd && (
+          <button onClick={() => scrollTrips(1)} aria-label="Suivant"
+            style={{ position: 'absolute', right: -18, top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: 40, height: 40, borderRadius: '50%', background: WHITE, border: '1px solid ' + BORDER, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ChevronRight size={20} color={CHARCOAL} />
+          </button>
+        )}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
         <Link href="/recherche" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: isMobile ? '14px 24px' : '16px 36px', borderRadius: 12, background: R, color: WHITE, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 32px rgba(220,0,41,0.4)' }}>

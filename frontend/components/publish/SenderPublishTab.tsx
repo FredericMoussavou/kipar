@@ -67,7 +67,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
 
   // Etapes : colis / trajet / (vos infos si visiteur)
   const steps = useMemo(() => {
-    const base = ['colis', 'trajet']
+    const base = ['annonce']
     return isVisitor ? [...base, 'infos'] : base
   }, [isVisitor])
   const lastStep = steps.length - 1
@@ -102,13 +102,11 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
 
   // validation par etape
   const validateStep = (s: string): boolean => {
-    if (s === 'colis') {
+    if (s === 'annonce') {
       if (!description || !weightKg) { toast.error(t.validation.required); return false }
       if (mode === 'small' && parseFloat(weightKg) >= SMALL_MAX_KG) { toast.error(t.booking.weight_too_big_for_small); return false }
       if (mode === 'kg' && !budgetPerKg) { toast.error(t.validation.required); return false }
       if (photos.length === 0) { toast.error(t.requests.photos_required); return false }
-    }
-    if (s === 'trajet') {
       if (!originCode || !destCode) { toast.error(t.carrier.airport_required); return false }
       if (!receiver || !deadline) { toast.error(t.validation.required); return false }
     }
@@ -159,6 +157,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
   const fieldLabel = { fontSize: 12, fontWeight: 500 as const, color: CHARCOAL, marginBottom: 6, display: 'flex', alignItems: 'center' } as const
 
   const currentStep = steps[step]
+  const canSubmit = disclaimerAccepted && (authMode === 'login' || cgu)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 380, flex: 1 }}>
@@ -178,7 +177,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
 
       {/* Contenu de l'etape */}
       <div style={{ flex: 1 }}>
-        {currentStep === 'colis' && (
+        {currentStep === 'annonce' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
               <p style={{ ...fieldLabel, marginBottom: 8 }}>
@@ -210,17 +209,17 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
               <p style={fieldLabel}>{t.requests.field_photos}<span style={{ color: RED }}> *</span></p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {photos.map((url, i) => (
-                  <div key={i} style={{ position: 'relative', width: 64, height: 64 }}>
-                    <img src={url} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />
+                  <div key={i} style={{ position: 'relative', width: 40, height: 40 }}>
+                    <img src={url} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8 }} />
                     <button type="button" onClick={() => setPhotos(p => p.filter((_, j) => j !== i))}
-                      style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', background: RED, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <X size={9} color={WHITE} />
+                      style={{ position: 'absolute', top: -5, right: -5, width: 12, height: 12, borderRadius: '50%', background: RED, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <X size={8} color={WHITE} />
                     </button>
                   </div>
                 ))}
                 {photos.length < 3 && (
                   <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                    style={{ width: 64, height: 64, borderRadius: 8, border: `2px dashed ${FIELD_BORDER}`, background: '#FAFAF8', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    style={{ width: 40, height: 40, borderRadius: 8, border: `2px dashed ${FIELD_BORDER}`, background: '#FAFAF8', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     {uploading ? <span style={{ fontSize: 10, color: TAUPE }}>...</span> : <Upload size={16} color={TAUPE} />}
                   </button>
                 )}
@@ -230,8 +229,8 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
           </div>
         )}
 
-        {currentStep === 'trajet' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {currentStep === 'annonce' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
             <div style={grid2}>
               <AirportInput light label={t.carrier.origin_label} placeholder={'Ex: CDG, Paris...'}
                 value={originInput}
@@ -278,13 +277,13 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
             <Input label={t.auth.email_label} type="email" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
             <Input label={t.auth.password_label} type="password" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
             {authMode === 'register' && (
+              <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
+            )}
+            {authMode === 'register' && (
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: TAUPE, cursor: 'pointer' }}>
                 <input type="checkbox" checked={cgu} onChange={e => setCgu(e.target.checked)} style={{ marginTop: 2, accentColor: RED }} />
                 <span>{t.auth.cgu_label}</span>
               </label>
-            )}
-            {authMode === 'register' && (
-              <TurnstileWidget onVerify={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
             )}
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, color: CHARCOAL, lineHeight: 1.5, cursor: 'pointer', background: '#FAF8F5', border: `1px solid ${FIELD_BORDER}`, borderRadius: 10, padding: 10 }}>
               <input type="checkbox" checked={disclaimerAccepted} onChange={e => setDisclaimerAccepted(e.target.checked)} style={{ marginTop: 2, accentColor: RED, flexShrink: 0 }} />
@@ -295,7 +294,7 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
       </div>
 
       {/* Navigation */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 16, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 16 }}>
         {step > 0 && (
           <button type="button" onClick={prev}
             style={{ flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', gap: 4, padding: '12px 16px', borderRadius: 12, border: `1px solid ${FIELD_BORDER}`, background: WHITE, color: CHARCOAL, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
@@ -304,12 +303,12 @@ export default function SenderPublishTab({ isVisitor, isMobile }: Props) {
         )}
         {step < lastStep ? (
           <button type="button" onClick={next}
-            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 16px', borderRadius: 12, border: 'none', background: RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(220,0,41,0.3)' }}>
+            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 16px', borderRadius: 12, border: 'none', background: RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(220,0,41,0.3)'}}>
             {t.publish.next_btn ?? 'Suivant'} <ChevronRight size={16} />
           </button>
         ) : (
-          <button type="button" onClick={onSubmit} disabled={submitting || !disclaimerAccepted}
-            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', borderRadius: 12, border: 'none', background: (submitting || !disclaimerAccepted) ? '#C9C2B8' : RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: (submitting || !disclaimerAccepted) ? 'not-allowed' : 'pointer', opacity: (submitting || !disclaimerAccepted) ? 0.7 : 1, boxShadow: (submitting || !disclaimerAccepted) ? 'none' : '0 4px 16px rgba(220,0,41,0.3)' }}>
+          <button type="button" onClick={onSubmit} disabled={submitting || !canSubmit}
+            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', borderRadius: 12, border: 'none', background: (submitting || !canSubmit) ? '#C9C2B8' : RED, color: WHITE, fontSize: 14, fontWeight: 700, cursor: (submitting || !canSubmit) ? 'not-allowed' : 'pointer', opacity: (submitting || !canSubmit) ? 0.7 : 1, boxShadow: (submitting || !canSubmit) ? 'none' : '0 4px 16px rgba(220,0,41,0.3)' }}>
             {submitting ? '...' : t.publish.publish_request_cta}
           </button>
         )}

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Zap, Plane, Mail } from 'lucide-react'
-import { CHARCOAL, TAUPE, SAND, BORDER, WHITE } from '@/lib/theme'
+import { Zap, Plane, Mail, SlidersHorizontal } from 'lucide-react'
+import { CHARCOAL, TAUPE, SAND, BORDER, WHITE, RED } from '@/lib/theme'
 import type { TripSearchState } from '@/components/trips/useTripSearch'
 
 export default function TripSearchResults({
@@ -24,6 +24,7 @@ export default function TripSearchResults({
   const [showOwnTrips, setShowOwnTrips] = useState(false)
   const [showUrgentOnly, setShowUrgentOnly] = useState(false)
   const [showSmallOnly, setShowSmallOnly] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
 
   const visibleTrips = trips.filter((trip: any) =>
     (!showOwnTripsFilter || showOwnTrips || String(trip.carrier_id) !== String(currentUserId)) &&
@@ -34,18 +35,52 @@ export default function TripSearchResults({
   return (
     <div style={{ padding: '20px 20px 80px' }}>
       {searched && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
-          {showOwnTripsFilter && (
-            <button onClick={() => setShowOwnTrips(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showOwnTrips ? CHARCOAL : TAUPE, background: showOwnTrips ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
-              <Plane size={15} /><span className="hidden md:inline">{showOwnTrips ? t.search.hide_own_trips : t.search.show_own_trips}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <button onClick={() => setShowFilters(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: CHARCOAL, background: showFilters ? SAND : WHITE, border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+            <SlidersHorizontal size={15} /> {t.search.filters}
+          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {showOwnTripsFilter && (
+              <button onClick={() => setShowOwnTrips(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showOwnTrips ? CHARCOAL : TAUPE, background: showOwnTrips ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+                <Plane size={15} /><span className="hidden md:inline">{showOwnTrips ? t.search.hide_own_trips : t.search.show_own_trips}</span>
+              </button>
+            )}
+            <button onClick={() => setShowUrgentOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showUrgentOnly ? CHARCOAL : TAUPE, background: showUrgentOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Zap size={15} /><span className="hidden md:inline">{showUrgentOnly ? t.search.filter_urgent_active : t.search.filter_urgent}</span>
             </button>
-          )}
-          <button onClick={() => setShowUrgentOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showUrgentOnly ? CHARCOAL : TAUPE, background: showUrgentOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
-            <Zap size={15} /><span className="hidden md:inline">{showUrgentOnly ? t.search.filter_urgent_active : t.search.filter_urgent}</span>
-          </button>
-          <button onClick={() => setShowSmallOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showSmallOnly ? CHARCOAL : TAUPE, background: showSmallOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
-            <Mail size={15} /><span className="hidden md:inline">{t.search.filter_small_packages}</span>
-          </button>
+            <button onClick={() => setShowSmallOnly(v => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: showSmallOnly ? CHARCOAL : TAUPE, background: showSmallOnly ? SAND : 'transparent', border: '1px solid ' + BORDER, borderRadius: 99, padding: '6px 12px', cursor: 'pointer' }}>
+              <Mail size={15} /><span className="hidden md:inline">{t.search.filter_small_packages}</span>
+            </button>
+          </div>
+        </div>
+      )}
+      {searched && showFilters && (
+        <div style={{ marginBottom: 16, background: WHITE, border: '1px solid ' + BORDER, borderRadius: 16, padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 6 }}>{t.search.filter_price_min}</label>
+            <input type="number" min="0" value={search.priceMin} onChange={e => search.setPriceMin(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 6 }}>{t.search.filter_price_max}</label>
+            <input type="number" min="0" value={search.priceMax} onChange={e => search.setPriceMax(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 6 }}>{t.search.filter_weight_min}</label>
+            <input type="number" min="0" value={search.weightMin} onChange={e => search.setWeightMin(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 6 }}>{t.search.filter_trust_min}</label>
+            <input type="number" min="0" max="100" value={search.trustMin} onChange={e => search.setTrustMin(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: TAUPE, marginBottom: 6 }}>{t.search.filter_date_max}</label>
+            <input type="date" value={search.dateMax} onChange={e => search.setDateMax(e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid ' + BORDER, fontSize: 13, color: CHARCOAL, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button onClick={() => { search.setPriceMin(''); search.setPriceMax(''); search.setWeightMin(''); search.setTrustMin(''); search.setDateMax('') }} style={{ fontSize: 12, fontWeight: 600, color: RED, background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 0' }}>
+              {t.search.filter_reset}
+            </button>
+          </div>
         </div>
       )}
 
@@ -71,7 +106,7 @@ export default function TripSearchResults({
           <p style={{ fontSize: 11, fontWeight: 600, color: TAUPE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
             {visibleTrips.length} {visibleTrips.length > 1 ? t.search.results_count_plural : t.search.results_count}
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {visibleTrips.map((trip: any) => renderCard(trip, () => onTripClick(trip)))}
           </div>
           {hasMore && (

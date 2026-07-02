@@ -57,7 +57,14 @@ def _to_public(trip: Trip, trust: float | None) -> dict:
 async def public_list_trips(
     origin: str | None = None,
     destination: str | None = None,
+    date: str | None = None,
     date_min: str | None = None,
+    date_max: str | None = None,
+    price_min: float | None = None,
+    price_max: float | None = None,
+    weight_min: float | None = None,
+    trust_min: float | None = None,
+    sort_by: str | None = None,
     limit: int = PUBLIC_LIMIT,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
@@ -70,12 +77,36 @@ async def public_list_trips(
         query = query.where(Trip.origin_airport_code == origin.upper())
     if destination:
         query = query.where(Trip.destination_airport_code == destination.upper())
+    if date:
+        try:
+            query = query.where(Trip.departure_date == dclass.fromisoformat(date))
+        except ValueError:
+            raise HTTPException(status_code=400, detail='invalid_date')
     if date_min:
         try:
             query = query.where(Trip.departure_date >= dclass.fromisoformat(date_min))
         except ValueError:
             raise HTTPException(status_code=400, detail='invalid_date_min')
-    query = query.order_by(Trip.departure_date.asc()).limit(limit).offset(offset)
+    if date_max:
+        try:
+            query = query.where(Trip.departure_date <= dclass.fromisoformat(date_max))
+        except ValueError:
+            raise HTTPException(status_code=400, detail='invalid_date_max')
+    if price_min is not None:
+        query = query.where(Trip.price_per_kg >= price_min)
+    if price_max is not None:
+        query = query.where(Trip.price_per_kg <= price_max)
+    if weight_min is not None:
+        query = query.where(Trip.remaining_kg >= weight_min)
+    if trust_min is not None:
+        query = query.join(User, User.id == Trip.carrier_id).where(User.trust_score >= trust_min)
+    if sort_by == 'price_asc':
+        query = query.order_by(Trip.price_per_kg.asc())
+    elif sort_by == 'price_desc':
+        query = query.order_by(Trip.price_per_kg.desc())
+    else:
+        query = query.order_by(Trip.departure_date.asc())
+    query = query.limit(limit).offset(offset)
     result = await db.execute(query)
     trips = result.scalars().all()
     if not trips:

@@ -36,8 +36,8 @@ interface Trip {
   accepts_urgent?: boolean
 }
 
-export default function TripCard({ trip, onClick, className }: {
-  trip: Trip; onClick: () => void; className?: string
+export default function TripCard({ trip, onClick, className, hideCarrier }: {
+  trip: Trip; onClick: () => void; className?: string; hideCarrier?: boolean
 }) {
   const { t } = useTranslation()
   const { user } = useAuthStore()
@@ -59,7 +59,8 @@ export default function TripCard({ trip, onClick, className }: {
     >
       {/* Header : transporteur + prix */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        {/* Avatar + nom */}
+        {/* Avatar + nom (masque en public) */}
+        {hideCarrier ? <div /> : (
         <Link href={trip.carrier_id ? `/profile/${trip.carrier_id}` : '#'} onClick={e => e.stopPropagation()}
           style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: CHARCOAL, overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -76,6 +77,7 @@ export default function TripCard({ trip, onClick, className }: {
             )}
           </div>
         </Link>
+        )}
         {/* Prix */}
         <div style={{ textAlign: 'right' }}>
           <div style={{ textAlign: 'right' }}>

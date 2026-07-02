@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { AirportSuggestion } from '@/components/trips/AirportInput'
 
 export interface UseTripSearchOptions {
@@ -17,6 +17,16 @@ export interface TripSearchState {
   sortBy: string
   setDate: (v: string) => void
   setSortBy: (v: string) => void
+  priceMin: string
+  priceMax: string
+  weightMin: string
+  trustMin: string
+  dateMax: string
+  setPriceMin: (v: string) => void
+  setPriceMax: (v: string) => void
+  setWeightMin: (v: string) => void
+  setTrustMin: (v: string) => void
+  setDateMax: (v: string) => void
   originSuggestions: AirportSuggestion[]
   destSuggestions: AirportSuggestion[]
   trips: any[]
@@ -47,6 +57,11 @@ export function useTripSearch({ fetchTrips, searchAirports, pageSize = 20 }: Use
   const [dest, setDest] = useState('')
   const [date, setDate] = useState('')
   const [sortBy, setSortBy] = useState('')
+  const [priceMin, setPriceMin] = useState('')
+  const [priceMax, setPriceMax] = useState('')
+  const [weightMin, setWeightMin] = useState('')
+  const [trustMin, setTrustMin] = useState('')
+  const [dateMax, setDateMax] = useState('')
   const [originSuggestions, setOriginSuggestions] = useState<AirportSuggestion[]>([])
   const [destSuggestions, setDestSuggestions] = useState<AirportSuggestion[]>([])
 
@@ -62,10 +77,15 @@ export function useTripSearch({ fetchTrips, searchAirports, pageSize = 20 }: Use
     if (dest) params.set('destination', dest)
     if (date) params.set('date', date)
     if (sortBy) params.set('sort_by', sortBy)
+    if (priceMin) params.set('price_min', priceMin)
+    if (priceMax) params.set('price_max', priceMax)
+    if (weightMin) params.set('weight_min', weightMin)
+    if (trustMin) params.set('trust_min', trustMin)
+    if (dateMax) params.set('date_max', dateMax)
     params.set('limit', String(pageSize))
     params.set('offset', String(nextOffset))
     return params
-  }, [origin, dest, date, sortBy, pageSize])
+  }, [origin, dest, date, sortBy, priceMin, priceMax, weightMin, trustMin, dateMax, pageSize])
 
   const runSearch = useCallback(async (nextOffset: number, append: boolean) => {
     setIsLoading(true)
@@ -83,6 +103,11 @@ export function useTripSearch({ fetchTrips, searchAirports, pageSize = 20 }: Use
     }
   }, [fetchTrips, buildParams, pageSize])
 
+  useEffect(() => {
+    if (!searched) return
+    runSearch(0, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceMin, priceMax, weightMin, trustMin, dateMax, sortBy])
   const handleSearch = useCallback(() => {
     setSearched(true)
     setOriginSuggestions([])
@@ -122,6 +147,8 @@ export function useTripSearch({ fetchTrips, searchAirports, pageSize = 20 }: Use
 
   return {
     origin, dest, date, sortBy, setDate, setSortBy,
+    priceMin, priceMax, weightMin, trustMin, dateMax,
+    setPriceMin, setPriceMax, setWeightMin, setTrustMin, setDateMax,
     originSuggestions, destSuggestions,
     trips, isLoading, searched, hasMore,
     handleSearch, handleLoadMore,

@@ -1,10 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
+import { WHITE, BORDER, CHARCOAL, TAUPE, RED, SAND } from '@/lib/theme'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useResponsive } from '@/hooks/useResponsive'
 import PublicTripCard from '@/components/trips/PublicTripCard'
+import TripCard from '@/components/trips/TripCard'
 import HeroHeader from '@/components/layout/HeroHeader'
 import { useTripSearch } from '@/components/trips/useTripSearch'
 import TripSearchBar from '@/components/trips/TripSearchBar'
@@ -35,6 +39,7 @@ export default function RecherchePubliquePage() {
   }
 
   const search = useTripSearch({ fetchTrips, searchAirports })
+  useEffect(() => { search.handleSearch() }, [])  // charge tous les vols au montage
 
   return (
     <div style={{ background: 'rgba(240,237,232,0.2)', minHeight: '100vh' }}>
@@ -49,19 +54,11 @@ export default function RecherchePubliquePage() {
           <TripSearchBar search={search} t={t} isMobile={isMobile} />
         </div>
       </HeroHeader>
-
       <TripSearchResults
         search={search}
         t={t}
         renderCard={(trip, onClick) => (
-          <PublicTripCard
-            key={trip.id}
-            trip={trip}
-            onClick={onClick}
-            smallLabel={t.landing.trips_small_only}
-            kgLabel={t.landing.trips_kg_left}
-            trustLabel={t.landing.trips_trust}
-          />
+          <TripCard key={trip.id} trip={trip} onClick={onClick} hideCarrier />
         )}
         onTripClick={(trip) => router.push('/trips/' + trip.id)}
       />

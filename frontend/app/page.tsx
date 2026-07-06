@@ -156,6 +156,8 @@ export default function LandingPage() {
     return () => el.removeEventListener('scroll', onTripsScroll)
   }, [publicTrips])
   useEffect(() => { publicApi<PublicTrip[]>('/trips').then(setPublicTrips).catch(() => {}) }, [])
+  const [platformReviews, setPlatformReviews] = useState<any[]>([])
+  useEffect(() => { publicApi<any[]>('/platform-reviews?limit=3').then(setPlatformReviews).catch(() => {}) }, [])
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
     const video = videoRef.current
@@ -461,22 +463,33 @@ export default function LandingPage() {
             <h2 style={{ fontFamily: 'var(--font-syne,Syne)', fontSize: isMobile ? 32 : 44, fontWeight: 900, color: CHARCOAL, letterSpacing: '-0.02em', margin: 0 }}>{t.landing.testimonials_title}</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 20 }}>
-            {[
-              { name: t.landing.testimonial1_name, role: t.landing.testimonial1_role, text: t.landing.testimonial1_text, stars: 5, avatar: 'A' },
-              { name: t.landing.testimonial2_name, role: t.landing.testimonial2_role, text: t.landing.testimonial2_text, stars: 5, avatar: 'K' },
-              { name: t.landing.testimonial3_name, role: t.landing.testimonial3_role, text: t.landing.testimonial3_text, stars: 5, avatar: 'M' },
-            ].map((t, i) => (
-              <div key={i} style={{ background: SAND, borderRadius: 18, padding: isMobile ? 24 : 28, opacity: testimonialInView ? 1 : 0, transform: testimonialInView ? 'translateY(0)' : 'translateY(24px)', transition: `opacity 0.5s ease ${i * 0.15}s, transform 0.5s ease ${i * 0.15}s` }}>
-                <div style={{ display: 'flex', gap: 3, marginBottom: 14 }}>
-                  {Array.from({ length: t.stars }).map((_, j) => <Star key={j} size={13} fill={R} color={R} />)}
+            {(() => {
+              const fallback = [
+                { name: t.landing.testimonial1_name, role: t.landing.testimonial1_role, text: t.landing.testimonial1_text, stars: 5 },
+                { name: t.landing.testimonial2_name, role: t.landing.testimonial2_role, text: t.landing.testimonial2_text, stars: 5 },
+                { name: t.landing.testimonial3_name, role: t.landing.testimonial3_role, text: t.landing.testimonial3_text, stars: 5 },
+              ]
+              const real = platformReviews.map((r: any) => ({ name: r.author || '', role: '', text: r.comment || '', stars: r.rating || 5 }))
+              const merged = [...real, ...fallback].slice(0, 3)
+              return merged.map((item, i) => (
+                <div key={i} style={{ background: SAND, borderRadius: 18, padding: isMobile ? 24 : 28, opacity: testimonialInView ? 1 : 0, transform: testimonialInView ? 'translateY(0)' : 'translateY(24px)', transition: `opacity 0.5s ease ${i * 0.15}s, transform 0.5s ease ${i * 0.15}s` }}>
+                  <div style={{ display: 'flex', gap: 3, marginBottom: 14 }}>
+                    {Array.from({ length: item.stars }).map((_, j) => <Star key={j} size={13} fill={R} color={R} />)}
+                  </div>
+                  <p style={{ fontSize: 14, color: CHARCOAL, lineHeight: 1.7, marginBottom: 18, fontStyle: 'italic' }}>"{item.text}"</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne,Syne)', fontSize: 15, fontWeight: 800, color: WHITE, flexShrink: 0 }}>{(item.name || 'K').charAt(0)}</div>
+                    <div><div style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL }}>{item.name}</div>{item.role && <div style={{ fontSize: 11, color: TAUPE }}>{item.role}</div>}</div>
+                  </div>
                 </div>
-                <p style={{ fontSize: 14, color: CHARCOAL, lineHeight: 1.7, marginBottom: 18, fontStyle: 'italic' }}>"{t.text}"</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne,Syne)', fontSize: 15, fontWeight: 800, color: WHITE, flexShrink: 0 }}>{t.avatar}</div>
-                  <div><div style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL }}>{t.name}</div><div style={{ fontSize: 11, color: TAUPE }}>{t.role}</div></div>
-                </div>
-              </div>
-            ))}
+              ))
+            })()}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
+            <Link href="/avis" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: R, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+              {t.landing.testimonials_see_all}
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>

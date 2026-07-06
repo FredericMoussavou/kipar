@@ -7,14 +7,14 @@ import {
   LayoutDashboard, Users, ShieldCheck, AlertTriangle,
   CheckCircle, XCircle, Ban, Shield, ChevronLeft,
   LogOut, RefreshCw, TrendingUp, Umbrella, ClipboardCheck, Menu, X,
-  Package, AlertCircle, Clock,
+  Package, AlertCircle, Clock, Star,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useResponsive } from '@/hooks/useResponsive'
 import api from '@/lib/api'
 import { RED, CHARCOAL, CHARCOAL2, TAUPE, SAND, BORDER, WHITE, GREEN, AMBER } from '@/lib/theme'
 
-type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance' | 'insurance' | 'validations'
+type Tab = 'dashboard' | 'users' | 'kyc' | 'disputes' | 'finance' | 'insurance' | 'validations' | 'reviews'
 type Period = 'day' | 'week' | 'month' | 'year'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1194,6 +1194,7 @@ export default function AdminPage() {
     { id: 'finance',     icon: <TrendingUp size={18} />,      label: 'Finance' },
     { id: 'insurance',   icon: <Umbrella size={18} />,        label: 'Assurance' },
     { id: 'validations', icon: <ClipboardCheck size={18} />,  label: 'Validations' },
+    { id: 'reviews',     icon: <Star size={18} />,            label: 'Avis' },
   ]
 
   const SidebarContent = () => (
@@ -1266,7 +1267,102 @@ export default function AdminPage() {
         {tab === 'finance'     && <FinanceTab isMobile={isCompact} />}
         {tab === 'validations' && <ValidationsTab onToast={showToast} isMobile={isCompact} />}
         {tab === 'insurance'   && <InsuranceConfigTab onToast={showToast} />}
+        {tab === 'reviews'     && <ReviewsTab onToast={showToast} isMobile={isCompact} />}
       </main>
+    </div>
+  )
+}
+
+
+function ReviewsTab({ onToast, isMobile }: { onToast: (msg: string, type: 'success' | 'error') => void; isMobile: boolean }) {
+  const [reviews, setReviews] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<string>('pending')
+
+  const load = async (status: string) => {
+    setLoading(true)
+    try {
+      const q = status ? `?status=${status}` : ''
+      const res = await api.get(`/admin/platform-reviews${q}`)
+      setReviews(Array.isArray(res.data) ? res.data : [])
+    } catch {
+      setReviews([])
+    } finally {
+      setLoading(false)
+    }
+  }
+  useEffect(() => { load(filter) }, [filter])
+
+  const moderate = async (id: string, status: string) => {
+    try {
+      await api.patch(`/admin/platform-reviews/${id}`, { status })
+      onToast(status === 'approved' ? 'Avis approuve' : 'Avis rejete', 'success')
+      load(filter)
+    } catch {
+      onToast('Erreur lors de la moderation', 'error')
+    }
+  }
+
+  const FILTERS = [
+    { id: 'pending', label: 'En attente' },
+    { id: 'approved', label: 'Approuves' },
+    { id: 'rejected', label: 'Rejetes' },
+    { id: '', label: 'Tous' },
+  ]
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: CHARCOAL, margin: '0 0 16px', fontFamily: 'var(--font-syne,Syne)' }}>Avis sur KIPAR</h2>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {FILTERS.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: `1px solid ${BORDER}`, background: filter === f.id ? CHARCOAL : WHITE, color: filter === f.id ? WHITE : TAUPE, cursor: 'pointer' }}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+      {loading ? (
+        <p style={{ color: TAUPE, fontSize: 13 }}>Chargement...</p>
+      ) : reviews.length === 0 ? (
+        <p style={{ color: TAUPE, fontSize: 13 }}>Aucun avis dans cette categorie.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {reviews.map(r => (
+            <div key={r.id} style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: CHARCOAL, margin: 0 }}>
+                    {r.user?.first_name} {r.user?.last_name} <span style={{ fontSize: 12, fontWeight: 400, color: TAUPE }}>({r.user?.email})</span>
+                  </p>
+                  <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+                    {[1,2,3,4,5].map(n => (
+                      <Star key={n} size={16} fill={r.rating >= n ? '#F59E0B' : 'none'} color={r.rating >= n ? '#F59E0B' : BORDER} />
+                    ))}
+                  </div>
+                </div>
+                <Badge status={r.status} />
+              </div>
+              {r.comment && (
+                <p style={{ fontSize: 13, color: CHARCOAL2, margin: '8px 0', lineHeight: 1.5 }}>{r.comment}</p>
+              )}
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                {r.status !== 'approved' && (
+                  <button onClick={() => moderate(r.id, 'approved')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: 'none', background: '#16A34A', color: WHITE, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                    <CheckCircle size={15} /> Approuver
+                  </button>
+                )}
+                {r.status !== 'rejected' && (
+                  <button onClick={() => moderate(r.id, 'rejected')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, background: WHITE, color: RED, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                    <XCircle size={15} /> Rejeter
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

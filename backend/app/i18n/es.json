@@ -122,7 +122,8 @@
     "no_pending_review": "No hay solicitud de revisión pendiente",
     "invalid_decision": "La decisión debe ser 'justified' o 'unjustified'",
     "captcha_failed": "Verificacion anti-robot fallida. Intentelo de nuevo.",
-    "disclaimer_required": "Debe aceptar la declaracion de responsabilidad para continuar."
+    "disclaimer_required": "Debe aceptar la declaracion de responsabilidad para continuar.",
+    "platform_review_not_eligible": "Debe haber realizado al menos una transaccion en KIPAR para dejar una opinion."
   },
   "success": {
     "delivery_confirmed": "Entrega confirmada — pago en proceso de liberación",

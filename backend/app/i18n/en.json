@@ -123,7 +123,8 @@
     "no_pending_review": "No pending review request",
     "invalid_decision": "Decision must be 'justified' or 'unjustified'",
     "captcha_failed": "Anti-bot verification failed. Please try again.",
-    "disclaimer_required": "You must accept the liability statement to continue."
+    "disclaimer_required": "You must accept the liability statement to continue.",
+    "platform_review_not_eligible": "You must have completed at least one transaction on KIPAR to leave a review."
   },
   "success": {
     "delivery_confirmed": "Delivery confirmed — payment release in progress",

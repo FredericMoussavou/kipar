@@ -5,6 +5,7 @@ from datetime import date as dclass
 from app.core.database import get_db
 from app.models.trip import Trip
 from app.models.user import User
+from app.models.platform_review import PlatformReview
 from app.schemas.trip import PublicTripResponse
 
 # Routeur PUBLIC : aucune dependance d'authentification. Donnees expurgees uniquement.
@@ -127,3 +128,38 @@ async def public_get_trip(trip_id: str, db: AsyncSession = Depends(get_db)):
     carrier_result = await db.execute(select(User).where(User.id == trip.carrier_id))
     carrier = carrier_result.scalar_one_or_none()
     return _to_public(trip, carrier.trust_score if carrier else 50.0)
+
+
+
+@router.get('/platform-reviews')
+async def public_platform_reviews(
+    limit: int = 20,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """Avis APPROUVES sur KIPAR (public). Auteur = prenom + initiale du nom."""
+    limit = max(1, min(limit, 50))
+    offset = max(0, offset)
+    query = (
+        select(PlatformReview, User)
+        .join(User, User.id == PlatformReview.user_id)
+        .where(PlatformReview.status == 'approved')
+        .order_by(PlatformReview.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(query)
+    rows = result.all()
+    out = []
+    for review, user in rows:
+        first = user.first_name or ''
+        initial = (user.last_name[0] + '.') if user.last_name else ''
+        author = (first + ' ' + initial).strip()
+        out.append({
+            'id': review.id,
+            'rating': review.rating,
+            'comment': review.comment,
+            'author': author,
+            'created_at': review.created_at,
+        })
+    return out

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, desc
 from datetime import timedelta
 from app.core.config import settings
 from datetime import datetime, timezone
@@ -13,9 +13,11 @@ from app.models.booking import Booking
 from app.models.dispute import Dispute
 from app.models.trip import Trip
 from app.models.review import Review
+from app.models.platform_review import PlatformReview
 from app.models.package_request import PackageRequest
 from app.models.package import Package
 from app.i18n.loader import t
+from pydantic import BaseModel
 from app.services.kyc_promotion_service import promote_pending_kyc_bookings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -1041,3 +1043,63 @@ async def reject_pending_validation(
     )
     await db.commit()
     return {"status": "disputed", "reason": reason}
+
+
+
+# ===================== MODERATION AVIS PLATEFORME =====================
+
+@router.get("/platform-reviews")
+async def admin_list_platform_reviews(
+    status: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Liste les avis plateforme (filtrable par statut) avec infos auteur."""
+    query = select(PlatformReview, User).join(User, User.id == PlatformReview.user_id)
+    if status:
+        query = query.where(PlatformReview.status == status)
+    query = query.order_by(desc(PlatformReview.created_at))
+    rows = (await db.execute(query)).all()
+    out = []
+    for review, user in rows:
+        out.append({
+            "id": str(review.id),
+            "rating": review.rating,
+            "comment": review.comment,
+            "status": review.status,
+            "created_at": review.created_at.isoformat() if review.created_at else None,
+            "updated_at": review.updated_at.isoformat() if review.updated_at else None,
+            "user": {
+                "id": str(user.id),
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            },
+        })
+    return out
+
+
+class PlatformReviewModerate(BaseModel):
+    status: str  # approved | rejected | pending
+
+
+@router.patch("/platform-reviews/{review_id}")
+async def admin_moderate_platform_review(
+    review_id: str,
+    payload: PlatformReviewModerate,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    """Approuve / rejette un avis plateforme."""
+    if payload.status not in ("approved", "rejected", "pending"):
+        raise HTTPException(status_code=400, detail="invalid_status")
+    result = await db.execute(
+        select(PlatformReview).where(PlatformReview.id == review_id)
+    )
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="review_not_found")
+    review.status = payload.status
+    await db.commit()
+    await db.refresh(review)
+    return {"id": str(review.id), "status": review.status}

@@ -11,6 +11,7 @@ from app.core.lang import get_lang
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.review import Review
+from app.models.platform_review import PlatformReview
 from app.models.trip import Trip
 from app.services.trust_service import update_trust_score
 from app.i18n.loader import t
@@ -236,3 +237,114 @@ async def can_review_booking(
     already = existing.scalar_one_or_none() is not None
 
     return {"can_review": can and not already, "criteria": criteria, "role": role, "already_reviewed": already}
+
+
+
+# ===================== AVIS PLATEFORME (utilisateur -> KIPAR) =====================
+
+# Etats terminaux d'un booking : la transaction est allee au bout d'un cycle
+# (livree, remboursee, annulee, refusee). Seuls ces users peuvent noter KIPAR.
+PLATFORM_REVIEW_TERMINAL = {
+    "cancelled", "cancelled_by_sender", "cancelled_by_carrier",
+    "refused", "refunded", "delivered",
+}
+
+
+async def _can_review_platform(db: AsyncSession, user_id) -> bool:
+    """True si l'user a >=1 booking terminal comme expediteur OU transporteur."""
+    # comme expediteur (sender_id direct)
+    q_sender = (
+        select(func.count())
+        .select_from(Booking)
+        .where(Booking.sender_id == user_id, Booking.status.in_(PLATFORM_REVIEW_TERMINAL))
+    )
+    n_sender = (await db.execute(q_sender)).scalar() or 0
+    if n_sender > 0:
+        return True
+    # comme transporteur (via Trip.carrier_id)
+    q_carrier = (
+        select(func.count())
+        .select_from(Booking)
+        .join(Trip, Trip.id == Booking.trip_id)
+        .where(Trip.carrier_id == user_id, Booking.status.in_(PLATFORM_REVIEW_TERMINAL))
+    )
+    n_carrier = (await db.execute(q_carrier)).scalar() or 0
+    return n_carrier > 0
+
+class PlatformReviewCreate(BaseModel):
+    rating: int
+    comment: str | None = None
+
+    @field_validator("rating")
+    @classmethod
+    def rating_range(cls, v):
+        if v < 1 or v > 5:
+            raise ValueError("rating must be between 1 and 5")
+        return v
+
+
+class PlatformReviewResponse(BaseModel):
+    id: uuid.UUID
+    rating: int
+    comment: str | None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+@router.post("/platform", response_model=PlatformReviewResponse)
+async def upsert_platform_review(
+    payload: PlatformReviewCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Cree ou modifie l'avis (unique) de l'utilisateur sur KIPAR. Repasse en 'pending' a chaque modif."""
+    if not await _can_review_platform(db, current_user.id):
+        raise HTTPException(status_code=403, detail=t("errors.platform_review_not_eligible", lang))
+    result = await db.execute(
+        select(PlatformReview).where(PlatformReview.user_id == current_user.id)
+    )
+    review = result.scalar_one_or_none()
+    if review:
+        review.rating = payload.rating
+        review.comment = payload.comment
+        review.status = "pending"  # re-moderation apres modification
+    else:
+        review = PlatformReview(
+            user_id=current_user.id,
+            rating=payload.rating,
+            comment=payload.comment,
+            status="pending",
+        )
+        db.add(review)
+    await db.commit()
+    await db.refresh(review)
+    return review
+
+
+@router.get("/platform/me")
+async def get_my_platform_review(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Avis de l'utilisateur courant (ou null) + eligibilite a deposer un avis."""
+    result = await db.execute(
+        select(PlatformReview).where(PlatformReview.user_id == current_user.id)
+    )
+    review = result.scalar_one_or_none()
+    can_review = await _can_review_platform(db, current_user.id)
+    return {
+        "review": (
+            {
+                "id": str(review.id),
+                "rating": review.rating,
+                "comment": review.comment,
+                "status": review.status,
+                "created_at": review.created_at.isoformat() if review.created_at else None,
+            } if review else None
+        ),
+        "can_review": can_review,
+    }

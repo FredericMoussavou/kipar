@@ -33,7 +33,7 @@ purge.py
 nul
 
 # Patchs jetables
-p*.py
+/p*.py
 diag.py
 frontend/p*.py
 frontend/diag.py

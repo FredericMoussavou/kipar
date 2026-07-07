@@ -304,49 +304,11 @@ async def release_payment(
     carrier_r = await db.execute(select(User).where(User.id == trip.carrier_id))
     carrier = carrier_r.scalar_one_or_none()
 
-    success = False
-    if booking.payment_rail == "stripe":
-        from app.services.pricing_service import compute_carrier_payout
-        from app.services.penalty_service import apply_penalty_deduction
-        _payout = compute_carrier_payout(booking)
-        _net, _deduct, _bal = await apply_penalty_deduction(db, carrier, _payout, booking.id) if carrier else (_payout, 0.0, 0.0)
-        if _net > 0:
-            success = await release_payment_to_carrier(
-                payment_intent_id=booking.escrow_ref,
-                carrier_stripe_account=carrier.stripe_account_id if carrier else None,
-                carrier_amount_eur=_net,
-            )
-        else:
-            success = True
-        if success and _deduct > 0 and carrier:
-            from app.services.notif_db_service import create_notification
-            from app.i18n.loader import t
-            await create_notification(
-                db=db, user_id=carrier.id,
-                type="penalty_deducted",
-                title=t("notifications.penalty_deducted_title", carrier.language),
-                body=t("notifications.penalty_deducted_body", carrier.language, amount=f"{_deduct:.2f}", balance=f"{_bal:.2f}"),
-                link="/carrier/finance",
-            )
-    elif booking.payment_rail == "pawapay":
-        # PawaPay payout vers le wallet mobile du transporteur
-        if carrier and carrier.mobile_money_number and carrier.mobile_money_provider:
-            from app.services.pricing_service import compute_carrier_payout
-            carrier_amount = compute_carrier_payout(booking)
-            payout_resp = await initiate_payout(
-                amount=carrier_amount,
-                currency=booking_currency if hasattr(booking, "currency") else "XOF",
-                phone=carrier.mobile_money_number,
-                provider=carrier.mobile_money_provider,
-                booking_id=str(booking.id),
-            )
-            success = payout_resp.get("status") in ("ACCEPTED", "COMPLETED")
-        else:
-            success = True  # simulation si carrier sans config mobile money
-    else:
-        success = True
-
-    if success:
+    from app.services.payout_service import record_and_release_payout
+    entry = await record_and_release_payout(db, booking, carrier)
+    # entry=None => deja verse precedemment (idempotence)
+    paid = entry is None or entry.status == "paid"
+    if paid:
         from app.services.notif_db_service import create_notification
         await create_notification(
             db=db, user_id=booking.carrier_id,
@@ -355,9 +317,10 @@ async def release_payment(
             body=f"Le paiement de {booking.amount:.2f} EUR a ete libere.",
             link=f"/packages/{booking.id}",
         )
-        await db.commit()
-
-    return {"status": "released" if success else "failed", "amount": booking.amount}
+    await db.commit()
+    if entry is None:
+        return {"status": "already_released", "amount": booking.amount}
+    return {"status": entry.status, "reason": entry.failure_reason, "amount": booking.amount}
 
 
 @router.post("/{booking_id}/carrier-penalty")

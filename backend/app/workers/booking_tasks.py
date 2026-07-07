@@ -151,41 +151,20 @@ def release_payment_after_delivery(booking_id: str):
             result = await db.execute(select(User).where(User.id == trip.carrier_id))
             carrier = result.scalar_one_or_none()
 
-            if booking.payment_rail == "stripe" and carrier.stripe_account_id:
-                from app.services.pricing_service import compute_carrier_payout
-                from app.services.penalty_service import apply_penalty_deduction
-                _payout = compute_carrier_payout(booking)
-                _net, _deduct, _bal = await apply_penalty_deduction(db, carrier, _payout, booking.id)
-                if _net > 0:
-                    success = await release_payment_to_carrier(
-                        payment_intent_id=booking.escrow_ref,
-                        carrier_stripe_account=carrier.stripe_account_id,
-                        carrier_amount_eur=_net,
-                    )
-                else:
-                    success = True
-                if success and _deduct > 0:
-                    from app.services.notif_db_service import create_notification
+            from app.services.payout_service import record_and_release_payout
+            entry = await record_and_release_payout(db, booking, carrier)
+            paid = entry is None or entry.status == "paid"
+            if paid:
+                logger.info(f"Payment released for booking {booking_id}")
+                if carrier and carrier.fcm_token:
                     from app.i18n.loader import t
-                    await create_notification(
-                        db=db, user_id=carrier.id,
-                        type="penalty_deducted",
-                        title=t("notifications.penalty_deducted_title", carrier.language),
-                        body=t("notifications.penalty_deducted_body", carrier.language, amount=f"{_deduct:.2f}", balance=f"{_bal:.2f}"),
-                        link="/carrier/finance",
+                    await send_push(
+                        carrier.fcm_token,
+                        "KIPAR.",
+                        t("notifications.payment_released", carrier.language, amount=booking.amount, currency=getattr(booking, "currency", "EUR"))
                     )
-                if success:
-                    logger.info(f"Payment released for booking {booking_id}")
-                    if carrier.fcm_token:
-                        from app.i18n.loader import t
-                        await send_push(
-                            carrier.fcm_token,
-                            "KIPAR.",
-                            t("notifications.payment_released", carrier.language, amount=booking.amount, currency=getattr(booking, "currency", "EUR"))
-                        )
-                else:
-                    logger.error(f"Payment release failed for booking {booking_id}")
-
+            else:
+                logger.warning(f"Payout pending/failed for booking {booking_id}: {entry.failure_reason if entry else 'n/a'}")
             await db.commit()
 
     asyncio.run(_run())

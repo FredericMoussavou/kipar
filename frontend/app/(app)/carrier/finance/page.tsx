@@ -102,6 +102,9 @@ export default function CarrierFinancePage() {
   const chart: any[] = data?.chart || []
   const penaltyBalance: number = data?.penalty_balance || 0
   const penaltyLedger: any[] = data?.penalty_ledger || []
+  const payoutsSummary = data?.payouts_summary || { pending_total: 0, paid_total: 0, pending_count: 0 }
+  const payoutLedger: any[] = data?.payout_ledger || []
+  const hasConfigIssue = payoutLedger.some((p: any) => p.status === 'pending' && (p.failure_reason === 'no_mobile_config' || p.failure_reason === 'no_stripe_account' || p.failure_reason === 'no_rail'))
   const txSlice = transactions.slice(txPage * TX_PER_PAGE, (txPage + 1) * TX_PER_PAGE)
 
   const STATUS_COLOR: Record<string, string> = {
@@ -185,6 +188,58 @@ export default function CarrierFinancePage() {
               </div>
             )}
 
+            {(payoutsSummary.paid_total > 0 || payoutsSummary.pending_total > 0 || payoutLedger.length > 0) && (
+              <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: CHARCOAL, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.carrierFinance.payouts_title}</p>
+                    <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.payouts_sub}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 20, textAlign: 'right', flexWrap: 'wrap' }}>
+                    <div>
+                      <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.payouts_pending}</p>
+                      <p style={{ fontSize: 20, fontWeight: 800, color: payoutsSummary.pending_total > 0 ? '#9A5B00' : '#16A34A', margin: 0 }}>{fmt(payoutsSummary.pending_total)} {'\u20ac'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 11, color: TAUPE, margin: 0 }}>{t.carrierFinance.payouts_paid}</p>
+                      <p style={{ fontSize: 20, fontWeight: 800, color: '#16A34A', margin: 0 }}>{fmt(payoutsSummary.paid_total)} {'\u20ac'}</p>
+                    </div>
+                  </div>
+                </div>
+                {hasConfigIssue && (
+                  <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10, padding: '12px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <p style={{ fontSize: 12, color: '#9A5B00', margin: 0, flex: 1, minWidth: 200 }}>{t.carrierFinance.payouts_config_warning}</p>
+                    <a href="/preferences" style={{ fontSize: 12, fontWeight: 700, color: RED, textDecoration: 'none', whiteSpace: 'nowrap' }}>{t.carrierFinance.payouts_config_cta} &rarr;</a>
+                  </div>
+                )}
+                {payoutLedger.length > 0 && (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: SAND }}>
+                          {[t.carrierFinance.col_date, t.carrierFinance.payouts_col_amount, t.carrierFinance.payouts_col_status].map(h => (
+                            <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: TAUPE, borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payoutLedger.map((p: any) => (
+                          <tr key={p.id} style={{ borderBottom: `1px solid ${BORDER}` }}>
+                            <td style={{ padding: '10px 14px', color: TAUPE, whiteSpace: 'nowrap' }}>{fmtDate(p.date)}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: CHARCOAL, whiteSpace: 'nowrap' }}>{fmt(p.amount)} {p.currency === 'EUR' ? '\u20ac' : p.currency}</td>
+                            <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 99, background: p.status === 'paid' ? '#ECFDF5' : p.status === 'pending' ? '#FFF7ED' : '#FEF2F2', color: p.status === 'paid' ? '#16A34A' : p.status === 'pending' ? '#EA580C' : RED }}>
+                                {p.status === 'paid' ? t.carrierFinance.payouts_status_paid : p.status === 'pending' ? t.carrierFinance.payouts_status_pending : t.carrierFinance.payouts_status_failed}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
             {(penaltyBalance > 0 || penaltyLedger.length > 0) && (
               <div style={{ background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>

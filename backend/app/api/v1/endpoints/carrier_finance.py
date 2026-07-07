@@ -42,6 +42,33 @@ async def get_carrier_finance(
         }
         for e in _led_res.scalars().all()
     ]
+    # Releve des versements (payouts) du transporteur
+    from app.models.payout_ledger import PayoutLedger
+    _pay_res = await db.execute(
+        select(PayoutLedger).where(PayoutLedger.carrier_id == current_user.id).order_by(PayoutLedger.created_at.desc())
+    )
+    _payout_rows = _pay_res.scalars().all()
+    payout_ledger = [
+        {
+            "id": str(p.id),
+            "date": p.created_at.isoformat(),
+            "amount": round(p.amount, 2),
+            "currency": p.currency,
+            "rail": p.rail,
+            "status": p.status,
+            "failure_reason": p.failure_reason,
+            "booking_id": str(p.booking_id),
+            "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+        }
+        for p in _payout_rows
+    ]
+    payouts_pending_total = round(sum(p.amount for p in _payout_rows if p.status == "pending"), 2)
+    payouts_paid_total = round(sum(p.amount for p in _payout_rows if p.status == "paid"), 2)
+    payouts_summary = {
+        "pending_total": payouts_pending_total,
+        "paid_total": payouts_paid_total,
+        "pending_count": sum(1 for p in _payout_rows if p.status == "pending"),
+    }
     min_date = now - timedelta(days=365 * MAX_HISTORY_YEARS)
 
     # Periode filtre
@@ -203,6 +230,8 @@ async def get_carrier_finance(
         "chart": chart,
         "penalty_balance": penalty_balance,
         "penalty_ledger": penalty_ledger,
+        "payouts_summary": payouts_summary,
+        "payout_ledger": payout_ledger,
     }
 
 
@@ -232,4 +261,6 @@ def _empty_response(period: str, now: datetime, penalty_balance: float = 0.0, pe
         "chart": [],
         "penalty_balance": round(penalty_balance or 0.0, 2),
         "penalty_ledger": penalty_ledger or [],
+        "payouts_summary": {"pending_total": 0.0, "paid_total": 0.0, "pending_count": 0},
+        "payout_ledger": [],
     }

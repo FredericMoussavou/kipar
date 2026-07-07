@@ -17,6 +17,8 @@ from app.models.scan_credit import ScanCredit
 from app.models.subscription import Subscription
 from app.models.totp_backup_code import TOTPBackupCode
 from app.models.penalty_ledger import PenaltyLedger
+from app.models.platform_review import PlatformReview
+from app.models.payout_ledger import PayoutLedger
 
 __all__ = [
     "User", "Trip", "Package", "Booking",
@@ -30,4 +32,7 @@ __all__ = [
     "ScanCredit",
     "Subscription",
     "TOTPBackupCode",
+    "PenaltyLedger",
+    "PlatformReview",
+    "PayoutLedger",
 ]

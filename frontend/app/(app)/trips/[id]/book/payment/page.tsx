@@ -155,35 +155,54 @@ export default function PaymentPage() {
   const [pawapayPhone, setPawapayPhone] = useState('')
   const [pawapayProvider, setPawapayProvider] = useState('ORANGE_SEN')
   const [pawapayWaiting, setPawapayWaiting] = useState(false)
+  const [pawapayCfa, setPawapayCfa] = useState<{ amount: number; currency: string } | null>(null)
+
+  // Devise CFA derivee de l'operateur (le backend n'accepte que XAF/XOF, taux fixe EUR)
+  const PAWAPAY_CURRENCY: Record<string, string> = {
+    ORANGE_SEN: 'XOF', FREE_SEN: 'XOF',
+    ORANGE_CIV: 'XOF', MTN_MOMO_CIV: 'XOF',
+    ORANGE_CMR: 'XAF', MTN_MOMO_CMR: 'XAF',
+    AIRTEL_GAB: 'XAF',
+  }
 
   const pawapayMutation = useMutation({
     mutationFn: async () => {
       const { data } = await api.post(`/payments/${bookingId}/pawapay`, null, {
-        params: { phone: pawapayPhone, provider: pawapayProvider, currency: 'XOF' }
+        params: {
+          phone: pawapayPhone,
+          provider: pawapayProvider,
+          currency: PAWAPAY_CURRENCY[pawapayProvider] ?? 'XOF',
+        }
       })
       return data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setPawapayWaiting(true)
+      setPawapayCfa({ amount: data.amount, currency: data.currency })
       toast.info(t.payment.pawapay_waiting ?? 'En attente de confirmation...')
-      // Poll statut booking toutes les 3s pendant 2 min
+      // Poll le statut du deposit PawaPay (4s, ~3 min : saisie du PIN en prod)
       let attempts = 0
       const interval = setInterval(async () => {
         attempts++
         try {
-          const { data } = await api.get(`/bookings/${bookingId}`)
-          if (data.status === 'accepted' || data.status === 'paid') {
+          const { data: st } = await api.get(`/payments/${bookingId}/pawapay/status`)
+          if (st.status === 'COMPLETED') {
             clearInterval(interval)
             setPawapayWaiting(false)
             toast.success(t.payment.pawapay_success ?? 'Paiement confirmé !')
             router.replace(`/packages/${bookingId}?success=true`)
+          } else if (st.status === 'FAILED') {
+            clearInterval(interval)
+            setPawapayWaiting(false)
+            setPawapayCfa(null)
+            toast.error(t.payment.pawapay_failed ?? t.errors.generic)
           }
         } catch {}
-        if (attempts >= 40) {
+        if (attempts >= 45) {
           clearInterval(interval)
           setPawapayWaiting(false)
         }
-      }, 3000)
+      }, 4000)
     },
     onError: () => toast.error(t.payment.pawapay_failed ?? t.errors.generic),
   })
@@ -284,18 +303,13 @@ export default function PaymentPage() {
                 onChange={e => setPawapayProvider(e.target.value)}
                 style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 14px', fontSize: 14, color: CHARCOAL, background: WHITE, outline: 'none', fontFamily: 'DM Sans, sans-serif' }}
               >
-                <option value="ORANGE_SEN">Orange Senegal</option>
-                <option value="FREE_SEN">Free Senegal</option>
-                <option value="MTN_MOMO_CMR">MTN Cameroun</option>
-                <option value="ORANGE_CMR">Orange Cameroun</option>
-                <option value="MTN_MOMO_CIV">MTN Côte d'Ivoire</option>
+                <option value="ORANGE_SEN">Orange Sénégal</option>
+                <option value="FREE_SEN">Free Sénégal</option>
                 <option value="ORANGE_CIV">Orange Côte d'Ivoire</option>
-                <option value="MTN_MOMO_GHA">MTN Ghana</option>
-                <option value="VODAFONE_GHA">Vodafone Ghana</option>
-                <option value="MTN_MOMO_UGA">MTN Uganda</option>
-                <option value="AIRTEL_UGA">Airtel Uganda</option>
-                <option value="MPESA_KEN">M-Pesa Kenya</option>
-                <option value="MTN_MOMO_ZMB">MTN Zambia</option>
+                <option value="MTN_MOMO_CIV">MTN Côte d'Ivoire</option>
+                <option value="ORANGE_CMR">Orange Cameroun</option>
+                <option value="MTN_MOMO_CMR">MTN Cameroun</option>
+                <option value="AIRTEL_GAB">Airtel Gabon</option>
               </select>
             </div>
             {pawapayWaiting && (
@@ -303,6 +317,11 @@ export default function PaymentPage() {
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#166534', margin: 0 }}>
                   📱 {t.payment.pawapay_waiting ?? 'En attente de confirmation sur votre téléphone...'}
                 </p>
+                {pawapayCfa && (
+                  <p style={{ fontSize: 12, color: '#166534', margin: '6px 0 0' }}>
+                    {pawapayCfa.amount.toLocaleString('fr-FR')} FCFA ({pawapayCfa.currency})
+                  </p>
+                )}
               </div>
             )}
             <Button fullWidth size="lg" loading={pawapayMutation.isPending || pawapayWaiting}

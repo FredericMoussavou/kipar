@@ -47,6 +47,8 @@ class UpdateMeRequest(BaseModel):
     payment_method: str | None = None
     payment_country: str | None = None
     mobile_money_number: str | None = None
+    payout_method: str | None = None
+    bank_holder_name: str | None = None
     iban: str | None = None
     onboarding_completed: bool | None = None
 
@@ -271,6 +273,12 @@ async def update_me(
         current_user.mobile_money_number = payload.mobile_money_number
     if payload.iban is not None:
         current_user.iban = payload.iban
+    if payload.payout_method is not None:
+        if payload.payout_method not in ("mobile_money", "bank"):
+            raise HTTPException(status_code=422, detail="payout_method: 'mobile_money' ou 'bank'")
+        current_user.payout_method = payload.payout_method
+    if payload.bank_holder_name is not None:
+        current_user.bank_holder_name = payload.bank_holder_name
     if payload.onboarding_completed is True:
         current_user.onboarding_completed = True
 
@@ -590,6 +598,8 @@ def _serialize_me(user: User) -> dict:
         "payment_method": user.payment_method,
         "payment_country": user.payment_country,
         "mobile_money_number": user.mobile_money_number,
+        "payout_method": user.payout_method,
+        "bank_holder_name": user.bank_holder_name,
         "iban": user.iban,
         "onboarding_completed": user.onboarding_completed,
         "is_admin": user.is_admin,

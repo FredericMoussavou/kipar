@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # PawaPay
     PAWAPAY_API_TOKEN: str = ""
     PAWAPAY_BASE_URL: str = "https://api.sandbox.pawapay.io"
+    QONTO_API_KEY: str = ""
 
     # Twilio
     TWILIO_ACCOUNT_SID: str = ""

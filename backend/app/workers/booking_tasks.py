@@ -124,10 +124,12 @@ def expire_old_trips():
 
 
 @celery_app.task(name="app.workers.booking_tasks.release_payment_after_delivery")
-def release_payment_after_delivery(booking_id: str):
-    """
-    Libère le paiement vers le transporteur 24h après confirmation de livraison.
-    Appelé par l'endpoint /delivery/{id}/validate après confirmation.
+def release_payment_after_delivery(booking_id: str, delay_hours: int = 48):
+    """Programme le versement transporteur a delivered + delay_hours (48h par defaut).
+
+    Ne verse plus rien directement : la fenetre de litige court, puis
+    process_due_payouts (worker horaire) execute la cascade de versement.
+    La notification 'paiement libere' part a l'execution reelle.
     """
     import asyncio
     from sqlalchemy import select
@@ -135,8 +137,6 @@ def release_payment_after_delivery(booking_id: str):
     from app.models.booking import Booking
     from app.models.trip import Trip
     from app.models.user import User
-    from app.services.stripe_service import release_payment_to_carrier
-    from app.services.notification_service import send_push
 
     async def _run():
         async with AsyncSessionLocal() as db:
@@ -148,24 +148,74 @@ def release_payment_after_delivery(booking_id: str):
 
             result = await db.execute(select(Trip).where(Trip.id == booking.trip_id))
             trip = result.scalar_one_or_none()
-            result = await db.execute(select(User).where(User.id == trip.carrier_id))
-            carrier = result.scalar_one_or_none()
+            carrier = None
+            if trip:
+                result = await db.execute(select(User).where(User.id == trip.carrier_id))
+                carrier = result.scalar_one_or_none()
 
-            from app.services.payout_service import record_and_release_payout
-            entry = await record_and_release_payout(db, booking, carrier)
-            paid = entry is None or entry.status == "paid"
-            if paid:
-                logger.info(f"Payment released for booking {booking_id}")
-                if carrier and carrier.fcm_token:
-                    from app.i18n.loader import t
-                    await send_push(
-                        carrier.fcm_token,
-                        "KIPAR.",
-                        t("notifications.payment_released", carrier.language, amount=booking.amount, currency=getattr(booking, "currency", "EUR"))
-                    )
-            else:
-                logger.warning(f"Payout pending/failed for booking {booking_id}: {entry.failure_reason if entry else 'n/a'}")
+            from app.services.payout_service import schedule_payout
+            await schedule_payout(db, booking, carrier, delay_hours=delay_hours)
             await db.commit()
+
+    asyncio.run(_run())
+
+
+@celery_app.task(name="app.workers.booking_tasks.process_due_payouts")
+def process_due_payouts():
+    """Execute les versements transporteurs dus. Planifie toutes les heures via Beat.
+
+    Prend tout payout scheduled/pending/failed dont due_at est echue et
+    attempts < MAX_ATTEMPTS, applique la cascade (execute_payout), et notifie
+    le transporteur en cas de versement reussi.
+    """
+    import asyncio
+    from sqlalchemy import select
+    from app.core.database import AsyncSessionLocal
+    from app.models.booking import Booking
+    from app.models.user import User
+    from app.models.payout_ledger import PayoutLedger
+    from app.services.payout_service import execute_payout, MAX_ATTEMPTS
+
+    async def _run():
+        async with AsyncSessionLocal() as db:
+            now = datetime.now(timezone.utc)
+            result = await db.execute(
+                select(PayoutLedger).where(
+                    PayoutLedger.status.in_(("scheduled", "pending", "failed")),
+                    PayoutLedger.due_at.isnot(None),
+                    PayoutLedger.due_at <= now,
+                    PayoutLedger.attempts < MAX_ATTEMPTS,
+                )
+            )
+            entries = result.scalars().all()
+            n_paid = 0
+            for entry in entries:
+                r = await db.execute(select(Booking).where(Booking.id == entry.booking_id))
+                booking = r.scalar_one_or_none()
+                r = await db.execute(select(User).where(User.id == entry.carrier_id))
+                carrier = r.scalar_one_or_none()
+                try:
+                    await execute_payout(db, entry, booking, carrier)
+                except Exception as e:
+                    logger.error(f"[PAYOUT] execute error entry {entry.id}: {e}")
+                    entry.status = "failed"
+                    entry.failure_reason = "internal_error"
+                    entry.attempts = (entry.attempts or 0) + 1
+                await db.commit()
+                if entry.status == "paid":
+                    n_paid += 1
+                    if carrier and carrier.fcm_token:
+                        try:
+                            from app.i18n.loader import t
+                            from app.services.notification_service import send_push
+                            await send_push(
+                                carrier.fcm_token, "KIPAR.",
+                                t("notifications.payment_released", carrier.language,
+                                  amount=entry.amount, currency=entry.currency),
+                            )
+                        except Exception:
+                            pass
+            logger.info(f"[PAYOUT] {len(entries)} payouts dus traites, {n_paid} verses")
 
     asyncio.run(_run())
 

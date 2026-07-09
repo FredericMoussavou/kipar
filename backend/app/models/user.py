@@ -85,6 +85,9 @@ class User(Base):
     payment_country: Mapped[str | None] = mapped_column(String(5), nullable=True)
     mobile_money_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
     iban: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # Moyen de versement choisi par le transporteur : mobile_money | bank
+    payout_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    bank_holder_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
 
     # 2FA
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)

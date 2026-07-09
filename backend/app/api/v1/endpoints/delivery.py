@@ -161,7 +161,7 @@ def _schedule_payment_release(booking_id: str):
         from app.workers.booking_tasks import release_payment_after_delivery
         release_payment_after_delivery.apply_async(
             args=[booking_id],
-            countdown=86400
+            countdown=0  # le delai (J+48h) est porte par le ledger (due_at), plus par Celery
         )
     except Exception:
         pass

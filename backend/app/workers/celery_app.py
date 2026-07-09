@@ -30,6 +30,11 @@ celery_app.conf.update(
             "task": "app.workers.booking_tasks.auto_release_escrow",
             "schedule": crontab(minute=0, hour="*/6"),
         },
+        # Execute les versements transporteurs dus (J+48h) toutes les heures
+        "process-due-payouts": {
+            "task": "app.workers.booking_tasks.process_due_payouts",
+            "schedule": crontab(minute=15, hour="*/1"),
+        },
         # Poll les vols actifs toutes les 15 min
         "poll-active-flights": {
             "task": "app.workers.flight_tasks.poll_active_flights",

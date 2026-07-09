@@ -12,7 +12,9 @@ from app.models.booking import Booking
 from app.models.trip import Trip
 from app.schemas.payment import PaymentIntentResponse, PawapayPaymentResponse
 from app.services.stripe_service import create_payment_intent, capture_payment_intent, release_payment_to_carrier
-from app.services.pawapay_service import initiate_deposit, initiate_refund, initiate_payout
+from app.services.pawapay_service import initiate_deposit, initiate_refund, initiate_payout, check_deposit_status
+
+EUR_CFA_RATE = 655.957  # taux fixe EUR -> XAF/XOF (arrimage CFA)
 from app.i18n.loader import t
 from app.services.notif_db_service import notify_carrier_booking_payable
 
@@ -83,10 +85,18 @@ async def initiate_pawapay_payment(
     if booking.status not in ("pending", "accepted", "awaiting_receiver"):
         raise HTTPException(status_code=400, detail=t("errors.booking_not_accepted", lang))
 
+    # PawaPay limite aux devises CFA (taux fixe EUR, pas de risque de change)
+    if currency not in ("XAF", "XOF"):
+        raise HTTPException(status_code=400, detail=t("errors.pawapay_error", lang))
+    amount_cfa = round(booking.amount * EUR_CFA_RATE)
+    # Sanitisation : chiffres uniquement, sans '+' ni prefixe 00
+    phone_clean = "".join(ch for ch in phone if ch.isdigit())
+    if phone_clean.startswith("00"):
+        phone_clean = phone_clean[2:]
     pawapay_response = await initiate_deposit(
-        amount=booking.amount,
+        amount=amount_cfa,
         currency=currency,
-        phone=phone,
+        phone=phone_clean,
         provider=provider,
         booking_id=str(booking.id),
     )
@@ -96,11 +106,11 @@ async def initiate_pawapay_payment(
 
     booking.escrow_ref = pawapay_response["depositId"]
     booking.payment_rail = "pawapay"
-    booking.status = "paid"
+    # Le statut 'paid' n'est pose qu'au COMPLETED verifie (webhook/polling)
 
     # Sauvegarder phone + provider sur le profil expediteur pour futurs paiements
-    if phone and not current_user.mobile_money_number:
-        current_user.mobile_money_number = phone
+    if phone_clean and not current_user.mobile_money_number:
+        current_user.mobile_money_number = phone_clean
     if provider and not current_user.mobile_money_provider:
         current_user.mobile_money_provider = provider
 
@@ -109,7 +119,7 @@ async def initiate_pawapay_payment(
     return PawapayPaymentResponse(
         booking_id=booking.id,
         deposit_id=pawapay_response["depositId"],
-        amount=booking.amount,
+        amount=amount_cfa,
         currency=currency,
         payment_rail="pawapay",
         status=pawapay_response.get("status", "ACCEPTED"),
@@ -143,8 +153,18 @@ async def confirm_payment(
             except stripe.StripeError as e:
                 raise HTTPException(status_code=400, detail=str(e))
     elif booking.payment_rail == "pawapay":
-        # PawaPay : confirmation via webhook uniquement - pas de verification synchrone
-        success = True
+        # Verification reelle aupres de PawaPay (source de verite)
+        check = await check_deposit_status(booking.escrow_ref)
+        dep_status = (check.get("data") or {}).get("status")
+        if dep_status == "FAILED":
+            await _apply_pawapay_final_status(db, booking, "FAILED")
+            await db.commit()
+            raise HTTPException(status_code=400, detail=t("errors.pawapay_error", lang))
+        if dep_status != "COMPLETED":
+            return {"message": "processing", "status": "processing"}
+        await _apply_pawapay_final_status(db, booking, "COMPLETED")
+        await db.commit()
+        return {"message": t("notifications.payment_confirmed", lang), "status": "completed"}
 
     if booking.status != "paid":
         booking.status = "paid"
@@ -236,33 +256,24 @@ async def stripe_webhook(
     return {"status": "ok"}
 
 
-@router.post("/pawapay/webhook")
-async def pawapay_webhook(
-    payload: dict,
-    db: AsyncSession = Depends(get_db),
-):
-    """Webhook PawaPay - confirme le depot cote serveur."""
+async def _apply_pawapay_final_status(db: AsyncSession, booking: Booking, status: str) -> None:
+    """Applique le statut final verifie d'un deposit PawaPay. Idempotent.
+
+    COMPLETED : paid_at + statut + notifs (+ flux request).
+    FAILED    : reset escrow_ref/payment_rail pour permettre une nouvelle tentative.
+    Le commit est a la charge de l'appelant.
+    """
     from app.services.notif_db_service import create_notification
-    # PawaPay envoie le statut final : COMPLETED | FAILED
-    status = payload.get("status")
-    if status not in ("COMPLETED", "FAILED"):
-        return {"status": "ignored"}
-    deposit_id = payload.get("depositId", "")
-    if not deposit_id:
-        return {"status": "ignored"}
-    # Retrouver le booking via escrow_ref
-    result = await db.execute(select(Booking).where(Booking.escrow_ref == deposit_id))
-    booking = result.scalar_one_or_none()
-    if not booking:
-        return {"status": "ignored"}
-    if status == "COMPLETED" and booking.status == "paid":
+    if status == "COMPLETED":
+        if booking.paid_at:
+            return
         booking.paid_at = datetime.now(timezone.utc)
-        # Flux request : capture + accepted automatique
+        if booking.status == "pending":
+            booking.status = "paid"
         if booking.package_request_id:
             booking.status = "accepted"
             booking.accepted_at = datetime.now(timezone.utc)
             booking.booking_fee_collected = True
-        await db.commit()
         await create_notification(
             db=db, user_id=booking.sender_id,
             type="payment_confirmed",
@@ -272,13 +283,62 @@ async def pawapay_webhook(
         )
         if not booking.package_request_id:
             await notify_carrier_booking_payable(db, booking)
-        await db.commit()
-    elif status == "FAILED" and booking.status == "paid":
-        # Deposit echoue apres acceptation initiale - on repasse en pending
-        booking.status = "pending"
+    elif status == "FAILED":
+        if booking.paid_at:
+            return
+        if booking.status == "paid":
+            booking.status = "pending"
         booking.escrow_ref = None
         booking.payment_rail = None
+
+
+@router.get("/{booking_id}/pawapay/status")
+async def pawapay_payment_status(
+    booking_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    lang: str = Depends(get_lang),
+):
+    """Statut du deposit PawaPay - polle par le front apres initiation."""
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail=t("errors.booking_not_found", lang))
+    if booking.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail=t("errors.unauthorized", lang))
+    if booking.payment_rail != "pawapay" or not booking.escrow_ref:
+        raise HTTPException(status_code=400, detail=t("errors.payment_not_initiated", lang))
+    check = await check_deposit_status(booking.escrow_ref)
+    dep_status = (check.get("data") or {}).get("status") or "UNKNOWN"
+    if dep_status in ("COMPLETED", "FAILED"):
+        await _apply_pawapay_final_status(db, booking, dep_status)
         await db.commit()
+    return {"status": dep_status}
+
+
+@router.post("/pawapay/webhook")
+async def pawapay_webhook(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+):
+    """Webhook PawaPay - le payload n'est jamais cru sur parole.
+
+    Le statut est re-verifie aupres de PawaPay (check_deposit_status)
+    avant toute action : un POST forge ne peut pas confirmer un paiement.
+    """
+    deposit_id = payload.get("depositId", "")
+    if not deposit_id:
+        return {"status": "ignored"}
+    result = await db.execute(select(Booking).where(Booking.escrow_ref == deposit_id))
+    booking = result.scalar_one_or_none()
+    if not booking or booking.payment_rail != "pawapay":
+        return {"status": "ignored"}
+    check = await check_deposit_status(deposit_id)
+    verified = (check.get("data") or {}).get("status")
+    if verified not in ("COMPLETED", "FAILED"):
+        return {"status": "ignored"}
+    await _apply_pawapay_final_status(db, booking, verified)
+    await db.commit()
     return {"status": "ok"}
 
 

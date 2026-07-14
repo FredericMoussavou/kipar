@@ -27,6 +27,9 @@ interface User {
   payment_method: string | null
   payment_country: string | null
   mobile_money_number: string | null
+  mobile_money_provider: string | null
+  payout_method: string | null
+  bank_holder_name: string | null
   iban: string | null
   onboarding_completed: boolean
   is_admin: boolean

@@ -26,6 +26,8 @@ import {
   Headphones,
   Scale,
   CreditCard,
+  Smartphone,
+  Landmark,
   TrendingUp,
   Plane,
   Crown,
@@ -321,6 +323,9 @@ export default function ProfilePage() {
   const [ibanInput, setIbanInput] = useState(user?.iban ?? '' as string)
   const [ibanError, setIbanError] = useState('')
   const [mobileInput, setMobileInput] = useState(user?.mobile_money_number ?? '' as string)
+  const [providerInput, setProviderInput] = useState(user?.mobile_money_provider ?? 'ORANGE_SEN' as string)
+  const [holderInput, setHolderInput] = useState(user?.bank_holder_name ?? '' as string)
+  const [payoutMethodChoice, setPayoutMethodChoice] = useState<'mobile_money' | 'bank'>((user?.payout_method as 'mobile_money' | 'bank') ?? 'mobile_money')
 
   const handleSaveIban = async () => {
     const clean = ibanInput.replace(/\s/g, '').toUpperCase()
@@ -333,7 +338,24 @@ export default function ProfilePage() {
   }
 
   const handleSaveMobile = async () => {
-    await handlePayoutChange({ mobile_money_number: mobileInput || null })
+    await handlePayoutChange({
+      payout_method: 'mobile_money',
+      mobile_money_number: mobileInput || null,
+      mobile_money_provider: providerInput || null,
+    })
+  }
+  const handleSaveBank = async () => {
+    const clean = ibanInput.replace(/\s/g, '').toUpperCase()
+    if (clean && !isValidIBAN(clean)) {
+      setIbanError(t.profile_edit.error_iban_invalid)
+      return
+    }
+    setIbanError('')
+    await handlePayoutChange({
+      payout_method: 'bank',
+      iban: clean || null,
+      bank_holder_name: holderInput || null,
+    })
   }
 
   const handleSendCode = async (channel: 'email' | 'phone') => {
@@ -419,8 +441,8 @@ export default function ProfilePage() {
     }
   }
 
-  const handlePayoutChange = async (fields: { currency?: string; payment_method?: string; payment_country?: string; mobile_money_number?: string | null; iban?: string | null }) => {
-    const previous = { currency: user.currency, payment_method: user.payment_method, payment_country: user.payment_country, mobile_money_number: user.mobile_money_number, iban: user.iban }
+  const handlePayoutChange = async (fields: { currency?: string; payment_method?: string; payment_country?: string; mobile_money_number?: string | null; iban?: string | null; payout_method?: string; mobile_money_provider?: string | null; bank_holder_name?: string | null }) => {
+    const previous = { currency: user.currency, payment_method: user.payment_method, payment_country: user.payment_country, mobile_money_number: user.mobile_money_number, iban: user.iban, payout_method: user.payout_method, mobile_money_provider: user.mobile_money_provider, bank_holder_name: user.bank_holder_name }
     patchUser(fields)
     try {
       await api.patch('/users/me', fields)
@@ -714,6 +736,73 @@ export default function ProfilePage() {
               </div>
               <ChevronRight size={16} color={TAUPE} />
             </Link>
+          </Card>
+
+          {/* payout-method-section : moyen de versement transporteur */}
+          <SectionTitle title={t.profile_edit.payout_section_title} />
+          <Card>
+            <div style={{ padding: '14px 16px' }}>
+              <p style={{ fontSize: 11, color: TAUPE, margin: '0 0 12px', lineHeight: 1.5 }}>
+                {t.profile_edit.payout_intro}
+              </p>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button type="button" onClick={() => setPayoutMethodChoice('mobile_money')}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'DM Sans, sans-serif',
+                    border: '1px solid ' + (payoutMethodChoice === 'mobile_money' ? GREEN : BORDER),
+                    background: payoutMethodChoice === 'mobile_money' ? '#F0FDF4' : WHITE,
+                    color: payoutMethodChoice === 'mobile_money' ? '#166534' : CHARCOAL }}>
+                  <Smartphone size={15} /> {t.profile_edit.payout_mobile_money}
+                </button>
+                <button type="button" onClick={() => setPayoutMethodChoice('bank')}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'DM Sans, sans-serif',
+                    border: '1px solid ' + (payoutMethodChoice === 'bank' ? GREEN : BORDER),
+                    background: payoutMethodChoice === 'bank' ? '#F0FDF4' : WHITE,
+                    color: payoutMethodChoice === 'bank' ? '#166534' : CHARCOAL }}>
+                  <Landmark size={15} /> {t.profile_edit.payout_bank_transfer}
+                </button>
+              </div>
+
+              {payoutMethodChoice === 'mobile_money' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <Input label={t.profile_edit.payout_phone_label} value={mobileInput}
+                    onChange={e => setMobileInput(e.target.value)}
+                    placeholder="+221 77 000 00 00" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: CHARCOAL }}>{t.profile_edit.payout_operator_label}</label>
+                    <select value={providerInput} onChange={e => setProviderInput(e.target.value)}
+                      style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 14px', fontSize: 14, color: CHARCOAL, background: WHITE, outline: 'none', fontFamily: 'DM Sans, sans-serif' }}>
+                      <option value="ORANGE_SEN">Orange Senegal</option>
+                      <option value="FREE_SEN">Free Senegal</option>
+                      <option value="ORANGE_CIV">Orange Cote d'Ivoire</option>
+                      <option value="MTN_MOMO_CIV">MTN Cote d'Ivoire</option>
+                      <option value="ORANGE_CMR">Orange Cameroun</option>
+                      <option value="MTN_MOMO_CMR">MTN Cameroun</option>
+                      <option value="AIRTEL_GAB">Airtel Gabon</option>
+                    </select>
+                  </div>
+                  <Button size="sm" onClick={handleSaveMobile}
+                    disabled={!mobileInput || (mobileInput === (user.mobile_money_number ?? '') && providerInput === (user.mobile_money_provider ?? '') && user.payout_method === 'mobile_money')}>
+                    {t.profile_edit.save}
+                  </Button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <Input label={t.profile_edit.payout_holder_label} value={holderInput}
+                    onChange={e => setHolderInput(e.target.value)}
+                    placeholder="Prenom Nom" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <Input label={t.profile_edit.payout_iban_label} value={ibanInput}
+                      onChange={e => { setIbanInput(e.target.value); setIbanError('') }}
+                      placeholder="FR76 ..." />
+                    {ibanError && <p style={{ fontSize: 11, color: '#DC2626', margin: 0 }}>{ibanError}</p>}
+                  </div>
+                  <Button size="sm" onClick={handleSaveBank}
+                    disabled={!ibanInput || !holderInput || (ibanInput.replace(/\s/g, '').toUpperCase() === (user.iban ?? '') && holderInput === (user.bank_holder_name ?? '') && user.payout_method === 'bank')}>
+                    {t.profile_edit.save}
+                  </Button>
+                </div>
+              )}
+            </div>
           </Card>
         </>
       )}
